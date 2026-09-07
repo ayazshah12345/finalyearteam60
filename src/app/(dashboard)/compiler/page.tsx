@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Terminal, Play, RotateCcw, CheckCircle2, Code2, Sparkles, Copy, Check, Cpu } from 'lucide-react';
 
 const CODE_TEMPLATES: Record<string, string> = {
@@ -121,6 +122,7 @@ WHERE u.cgpa >= 8.0 AND u.backlogs = 0;
 };
 
 export default function CodeCompilerPage() {
+  const router = useRouter();
   const [selectedLang, setSelectedLang] = useState<string>('Python');
   const [code, setCode] = useState<string>(CODE_TEMPLATES['Python']);
   const [inputStdin, setInputStdin] = useState<string>('');
@@ -128,6 +130,17 @@ export default function CodeCompilerPage() {
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [isCompiling, setIsCompiling] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.activeUser?.role === 'FACULTY') {
+          router.push('/faculty');
+        }
+      })
+      .catch(() => {});
+  }, [router]);
 
   const handleLanguageChange = (lang: string) => {
     setSelectedLang(lang);
