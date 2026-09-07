@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
 import { prisma } from '@/lib/prisma';
+import { getSupabaseClient } from '@/lib/supabase/admin';
 import { User } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  // 1. Sync from Supabase via Prisma ORM
   try {
     const dbUsers = await prisma.user.findMany();
     if (dbUsers && dbUsers.length > 0) {
@@ -26,14 +28,42 @@ export async function GET() {
           password: u.password || undefined,
           createdAt: u.createdAt.toISOString(),
         };
-        const existing = dbStore.getUserById(u.id);
-        if (!existing) {
+        if (!dbStore.getUserById(u.id)) {
           dbStore.addUser(formattedUser);
         }
       });
     }
   } catch (e) {
-    console.warn('Prisma GET /api/auth/me fallback:', e);
+    // 2. Fallback: Sync via Supabase JS SDK
+    try {
+      const supabase = getSupabaseClient();
+      const { data: supaUsers } = await supabase.from('User').select('*');
+      if (supaUsers && supaUsers.length > 0) {
+        supaUsers.forEach((u: any) => {
+          const formattedUser: User = {
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            department: u.department,
+            batch: u.batch || '2022-2026',
+            semester: u.semester || 6,
+            rollNumber: u.rollNumber || undefined,
+            avatarUrl: u.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+            cgpa: u.cgpa || 8.0,
+            backlogs: u.backlogs || 0,
+            bio: u.bio || 'VSB Student',
+            password: u.password || undefined,
+            createdAt: u.createdAt || new Date().toISOString(),
+          };
+          if (!dbStore.getUserById(u.id)) {
+            dbStore.addUser(formattedUser);
+          }
+        });
+      }
+    } catch (spErr) {
+      console.warn('Supabase JS SDK fallback GET:', spErr);
+    }
   }
 
   const activeUser = dbStore.getActiveUser();
@@ -64,7 +94,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fallback: Search directly in Supabase PostgreSQL via Prisma
+    // Fallback: Search directly in Supabase PostgreSQL via Prisma or Supabase SDK
     if (!targetUser) {
       try {
         const term = (identifier || rollNumber || email || '').trim().toLowerCase();
@@ -174,7 +204,7 @@ export async function PUT(req: Request) {
 
   const updatedUser = dbStore.updateUser(targetId, updates);
 
-  // Sync profile update with Supabase PostgreSQL via Prisma
+  // Sync profile update with Supabase PostgreSQL via Prisma & Supabase SDK
   try {
     const dbUpdates: any = {};
     if (updates.name) dbUpdates.name = updates.name;
@@ -191,7 +221,12 @@ export async function PUT(req: Request) {
       data: dbUpdates
     });
   } catch (e) {
-    console.warn('Prisma user update fallback:', e);
+    try {
+      const supabase = getSupabaseClient();
+      await supabase.from('User').update(updates).eq('id', targetId);
+    } catch (spErr) {
+      console.warn('Supabase JS SDK update fallback:', spErr);
+    }
   }
 
   dbStore.logAudit({

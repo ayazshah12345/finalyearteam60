@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
 import { prisma } from '@/lib/prisma';
+import { getSupabaseClient } from '@/lib/supabase/admin';
 import { User } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString()
     };
 
-    // 🌟 Persist student directly to Supabase PostgreSQL
+    // 🌟 1. Insert into Supabase via Prisma ORM
     try {
       await prisma.user.create({
         data: {
@@ -93,9 +94,32 @@ export async function POST(req: Request) {
           password: newStudent.password,
         }
       });
-      console.log('✅ Student successfully stored in Supabase PostgreSQL:', newStudent.name);
+      console.log('✅ Student successfully stored in Supabase PostgreSQL via Prisma:', newStudent.name);
     } catch (dbErr) {
-      console.error('⚠️ Could not save to Supabase DB directly, saved to memory:', dbErr);
+      console.error('Prisma insert warning, trying Supabase JS Client:', dbErr);
+      
+      // 🌟 2. Direct Fallback via Supabase JS SDK
+      try {
+        const supabase = getSupabaseClient();
+        await supabase.from('User').insert([{
+          id: newStudent.id,
+          name: newStudent.name,
+          email: newStudent.email,
+          role: 'STUDENT',
+          department: newStudent.department,
+          batch: newStudent.batch,
+          semester: newStudent.semester,
+          rollNumber: newStudent.rollNumber,
+          avatarUrl: newStudent.avatarUrl,
+          cgpa: newStudent.cgpa,
+          backlogs: newStudent.backlogs,
+          bio: newStudent.bio,
+          password: newStudent.password,
+        }]);
+        console.log('✅ Student successfully stored via Supabase JS Client:', newStudent.name);
+      } catch (spErr) {
+        console.error('Supabase JS Client insert fallback:', spErr);
+      }
     }
 
     // Save student in Database Store
