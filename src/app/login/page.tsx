@@ -32,8 +32,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
 
   // Faculty Login State
-  const [facultyEmail, setFacultyEmail] = useState('manivanan.vsb@gmail.com');
-  const [facultyPass, setFacultyPass] = useState('manivannan@vsb2027');
+  const [facultyEmail, setFacultyEmail] = useState('');
+  const [facultyPass, setFacultyPass] = useState('');
 
   // Student Register State
   const [regName, setRegName] = useState('');
@@ -44,28 +44,9 @@ export default function LoginPage() {
   const [regBacklogs, setRegBacklogs] = useState('0');
   const [regPassword, setRegPassword] = useState('');
 
-  const [students, setStudents] = useState<User[]>([]);
-  const [faculties, setFaculties] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.allUsers) {
-        setStudents(data.allUsers.filter((u: User) => u.role === 'STUDENT'));
-        setFaculties(data.allUsers.filter((u: User) => u.role === 'FACULTY'));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const handleStudentLogin = async (e?: React.FormEvent, customId?: string, customPass?: string) => {
     if (e) e.preventDefault();
@@ -364,31 +345,7 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              {/* Quick Persona Picker for Registered Students */}
-              {students.length > 0 && (
-                <div className="pt-4 border-t border-slate-800">
-                  <div className="text-[11px] text-slate-400 font-bold uppercase mb-2">One-Click Student Demo Profiles:</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {students.map((st) => (
-                      <button
-                        key={st.id}
-                        onClick={() => {
-                          setIdentifier(st.rollNumber || st.email);
-                          if (st.password) setPassword(st.password);
-                          handleStudentLogin(undefined, st.id, st.password);
-                        }}
-                        className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 text-left text-xs font-semibold flex items-center gap-2 hover:bg-slate-900 transition-all cursor-pointer group"
-                      >
-                        <img src={st.avatarUrl} alt={st.name} className="w-7 h-7 rounded-full object-cover shrink-0" />
-                        <div className="truncate">
-                          <div className="text-white truncate group-hover:text-amber-400 transition-colors">{st.name}</div>
-                          <div className="text-[10px] text-slate-400 font-mono">Roll: {st.rollNumber}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+
             </div>
           )}
 
@@ -571,33 +528,7 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              {/* Quick Faculty Persona Picker */}
-              <div className="pt-3 border-t border-slate-800">
-                <div className="text-[11px] text-slate-400 font-bold uppercase mb-2">Or One-Click Demo Faculty Persona:</div>
-                {faculties.map((fac) => (
-                  <button
-                    key={fac.id}
-                    onClick={() => handleFacultyLogin(undefined, fac.id)}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-indigo-500 transition-all text-left flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img src={fac.avatarUrl} alt={fac.name} className="w-9 h-9 rounded-full object-cover border-2 border-indigo-500/40 shrink-0" />
-                      <div>
-                        <div className="text-xs font-extrabold text-white group-hover:text-indigo-400 transition-colors">
-                          {fac.name}
-                        </div>
-                        <div className="text-[10px] text-slate-400 font-mono">
-                          {fac.role} • {fac.department}
-                        </div>
-                      </div>
-                    </div>
 
-                    <span className="px-3 py-1 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold group-hover:bg-indigo-500 text-white transition-all flex items-center gap-1">
-                      <span>Login as Faculty</span> <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
-                  </button>
-                ))}
-              </div>
             </div>
           )}
         </div>
