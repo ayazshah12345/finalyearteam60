@@ -25,8 +25,10 @@ import {
   BookOpen
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function CodingTrackerPage() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CodingProfile | null>(null);
   const [problems, setProblems] = useState<CodingProblem[]>([]);
@@ -69,6 +71,11 @@ export default function CodingTrackerPage() {
       const authRes = await fetch('/api/auth/me');
       const authData = await authRes.json();
       setUser(authData.activeUser);
+
+      if (authData.activeUser?.role === 'FACULTY') {
+        router.push('/faculty');
+        return;
+      }
 
       const res = await fetch('/api/coding');
       const data = await res.json();
