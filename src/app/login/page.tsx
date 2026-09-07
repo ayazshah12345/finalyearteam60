@@ -161,31 +161,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/40 to-indigo-50/40 text-slate-900 flex flex-col justify-between p-4 md:p-8 relative overflow-hidden font-sans">
-      {/* Background Glows */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#cbd5e130_1px,transparent_1px),linear-gradient(to_bottom,#cbd5e130_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none"></div>
-
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col justify-between p-4 md:p-8 relative font-sans">
       {/* Header Branding */}
-      <header className="relative z-10 max-w-6xl w-full mx-auto flex items-center justify-between py-4 border-b border-slate-200/80 pb-4">
+      <header className="relative z-10 max-w-6xl w-full mx-auto flex items-center justify-between py-4 border-b border-slate-200 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 p-1 shadow-md shadow-amber-500/10 flex items-center justify-center">
-            <img src="/vsb-logo.png" alt="VSB Engineering College Logo" className="w-full h-full object-contain bg-white rounded-xl p-0.5" />
+          <div className="w-14 h-14 rounded-2xl bg-white p-1 border border-slate-200 shadow-sm flex items-center justify-center">
+            <img src="/vsb-logo.png" alt="VSB Engineering College Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="text-xl md:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
-              VSB ENGINEERING COLLEGE <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full font-mono font-extrabold uppercase">KARUR</span>
+              VSB ENGINEERING COLLEGE <span className="text-[10px] bg-slate-100 text-slate-700 border border-slate-300 px-2.5 py-0.5 rounded-full font-mono font-extrabold uppercase">KARUR</span>
             </div>
-            <div className="text-[11px] text-amber-600 font-extrabold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+            <div className="text-[11px] text-indigo-700 font-extrabold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
               <span>★ HARDWORK IS THE KEY TO SUCCESS ★</span>
             </div>
           </div>
         </div>
 
         <div className="hidden sm:flex items-center gap-3 text-xs text-slate-600 font-medium">
-          <span className="flex items-center gap-1.5 bg-white border border-amber-300 px-3.5 py-1.5 rounded-full text-amber-800 font-semibold shadow-xs">
-            <ShieldCheck className="w-4 h-4 text-amber-500" /> College ERP Portal
+          <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-full text-slate-700 font-semibold shadow-xs">
+            <ShieldCheck className="w-4 h-4 text-indigo-600" /> College ERP Portal
           </span>
         </div>
       </header>
@@ -195,13 +190,13 @@ export default function LoginPage() {
         
         {/* Left Hero */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-800 bg-amber-100/90 border border-amber-300 px-3.5 py-1.5 rounded-full shadow-xs">
-            <GraduationCap className="w-4 h-4 text-amber-600" /> VSB Student & Faculty Gateway
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-indigo-900 bg-indigo-50 border border-indigo-200 px-3.5 py-1.5 rounded-full">
+            <GraduationCap className="w-4 h-4 text-indigo-600" /> VSB Student & Faculty Gateway
           </div>
 
-          <div className="bg-white/90 border border-slate-200/90 rounded-3xl p-6 backdrop-blur-md space-y-4 shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-md shrink-0 border-2 border-amber-400">
+              <div className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-sm shrink-0 border border-slate-200">
                 <img src="/vsb-logo.png" alt="VSB Emblem" className="w-full h-full object-contain" />
               </div>
               <div>
@@ -220,15 +215,15 @@ export default function LoginPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/80 border border-slate-200/90 rounded-2xl p-4 shadow-xs">
-              <div className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Student Portal</div>
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Student Portal</div>
               <div className="text-xs font-extrabold text-slate-900 mt-1 flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-emerald-600" /> Tests, CGPA & Placement
+                <Award className="w-4 h-4 text-indigo-600" /> Tests, CGPA & Placement
               </div>
             </div>
 
-            <div className="bg-white/80 border border-slate-200/90 rounded-2xl p-4 shadow-xs">
-              <div className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">Faculty Portal</div>
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+              <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Faculty Portal</div>
               <div className="text-xs font-extrabold text-slate-900 mt-1 flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4 text-indigo-600" /> Student Evaluation & Roster
               </div>
@@ -237,7 +232,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right Dynamic Login/Register Card */}
-        <div className="lg:col-span-7 bg-white/95 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-xl backdrop-blur-xl space-y-6">
+        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-md space-y-6">
           
           {/* Main Role Selector Tabs (Only 3 Modes: Student Login, Student Sign Up, Faculty Login) */}
           <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs gap-1.5">
@@ -245,7 +240,7 @@ export default function LoginPage() {
               onClick={() => setMode('student_login')}
               className={`flex-1 py-3 px-3 rounded-xl font-extrabold transition-all flex items-center justify-center gap-2 ${
                 mode === 'student_login'
-                  ? 'bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white shadow-md shadow-amber-600/20'
+                  ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -256,22 +251,22 @@ export default function LoginPage() {
               onClick={() => setMode('student_register')}
               className={`flex-1 py-3 px-3 rounded-xl font-extrabold transition-all flex items-center justify-center gap-2 ${
                 mode === 'student_register'
-                  ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 text-white shadow-md shadow-emerald-600/20'
+                  ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <UserPlus className="w-4 h-4 text-emerald-100" /> Student Sign Up
+              <UserPlus className="w-4 h-4" /> Student Sign Up
             </button>
 
             <button
               onClick={() => setMode('faculty_login')}
               className={`flex-1 py-3 px-3 rounded-xl font-extrabold transition-all flex items-center justify-center gap-2 ${
                 mode === 'faculty_login'
-                  ? 'bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-600 text-white shadow-md shadow-indigo-600/20'
+                  ? 'bg-indigo-700 text-white shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Briefcase className="w-4 h-4 text-indigo-100" /> Faculty Login
+              <Briefcase className="w-4 h-4" /> Faculty Login
             </button>
           </div>
 
@@ -306,10 +301,10 @@ export default function LoginPage() {
                       value={identifier}
                       onChange={(e) => setIdentifier(e.target.value)}
                       placeholder="Enter Student Roll Number or Email"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                     />
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-1 font-medium">New students can click <strong className="text-emerald-600 font-bold">Student Sign Up</strong> above to create an account.</div>
+                  <div className="text-[11px] text-slate-500 mt-1 font-medium">New students can click <strong className="text-indigo-600 font-bold">Student Sign Up</strong> above to create an account.</div>
                 </div>
 
                 <div>
@@ -324,7 +319,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                     />
                   </div>
                 </div>
@@ -332,7 +327,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white text-xs font-extrabold uppercase tracking-wider shadow-md shadow-amber-600/20 hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {loading ? (
                     <span>Authenticating VSB Student...</span>
@@ -359,7 +354,7 @@ export default function LoginPage() {
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="e.g. Syed Ayaz Shah"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                   />
                 </div>
 
@@ -371,7 +366,7 @@ export default function LoginPage() {
                     value={regRollNumber}
                     onChange={(e) => setRegRollNumber(e.target.value)}
                     placeholder="e.g. 21CS205"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 font-mono focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 font-mono focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                   />
                 </div>
               </div>
@@ -384,7 +379,7 @@ export default function LoginPage() {
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
                   placeholder="syed@vsb.edu.in"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                 />
               </div>
 
@@ -394,7 +389,7 @@ export default function LoginPage() {
                   <select
                     value={regDepartment}
                     onChange={(e) => setRegDepartment(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 font-medium focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-medium focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                   >
                     <option value="Computer Science & Engineering">CSE</option>
                     <option value="AI & Data Science">AI & DS</option>
@@ -414,7 +409,7 @@ export default function LoginPage() {
                     max="10"
                     value={regCgpa}
                     onChange={(e) => setRegCgpa(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 font-bold focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-bold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                   />
                 </div>
 
@@ -425,7 +420,7 @@ export default function LoginPage() {
                     min="0"
                     value={regBacklogs}
                     onChange={(e) => setRegBacklogs(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 font-bold focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-bold focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                   />
                 </div>
               </div>
@@ -438,14 +433,14 @@ export default function LoginPage() {
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 text-white text-xs font-extrabold uppercase tracking-wider shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading ? (
                   <span>Registering VSB Student Account...</span>
@@ -488,7 +483,7 @@ export default function LoginPage() {
                       value={facultyEmail}
                       onChange={(e) => setFacultyEmail(e.target.value)}
                       placeholder="dr.ramesh@vsb.edu.in"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                     />
                   </div>
                 </div>
@@ -505,7 +500,7 @@ export default function LoginPage() {
                       value={facultyPass}
                       onChange={(e) => setFacultyPass(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                     />
                   </div>
                 </div>
@@ -513,7 +508,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-600 text-white text-xs font-extrabold uppercase tracking-wider shadow-md shadow-indigo-600/20 hover:opacity-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {loading ? (
                     <span>Authenticating VSB Faculty...</span>
