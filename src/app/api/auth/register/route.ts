@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
+import { prisma } from '@/lib/prisma';
 import { User } from '@/types';
 
 export async function POST(req: Request) {
@@ -11,15 +12,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Name, Email, and Roll Number are required fields.' }, { status: 400 });
     }
 
-    const allUsers = dbStore.getUsers();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedRoll = rollNumber.trim().toUpperCase();
 
-    // Check existing email or roll number
-    const existingEmail = allUsers.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
+    // Check existing email or roll number in Supabase PostgreSQL
+    try {
+      const existingDbUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: trimmedEmail },
+            { rollNumber: trimmedRoll }
+          ]
+        }
+      });
+
+      if (existingDbUser) {
+        if (existingDbUser.email === trimmedEmail) {
+          return NextResponse.json({ error: 'A student account with this email already exists.' }, { status: 400 });
+        }
+        return NextResponse.json({ error: 'A student account with this Roll Number already exists.' }, { status: 400 });
+      }
+    } catch (e) {
+      console.warn('Prisma database check warning:', e);
+    }
+
+    const allUsers = dbStore.getUsers();
+    const existingEmail = allUsers.find(u => u.email.toLowerCase() === trimmedEmail);
     if (existingEmail) {
       return NextResponse.json({ error: 'A student account with this email already exists.' }, { status: 400 });
     }
 
-    const existingRoll = allUsers.find(u => u.rollNumber && u.rollNumber.toLowerCase() === rollNumber.trim().toLowerCase());
+    const existingRoll = allUsers.find(u => u.rollNumber && u.rollNumber.toUpperCase() === trimmedRoll);
     if (existingRoll) {
       return NextResponse.json({ error: 'A student account with this Roll Number already exists.' }, { status: 400 });
     }
@@ -31,10 +54,10 @@ export async function POST(req: Request) {
     const newStudent: User = {
       id: newStudentId,
       name: name.trim(),
-      email: email.trim().toLowerCase(),
+      email: trimmedEmail,
       role: 'STUDENT',
       department: department || 'Computer Science & Engineering',
-      rollNumber: rollNumber.trim().toUpperCase(),
+      rollNumber: trimmedRoll,
       semester: semester ? parseInt(semester) : 6,
       batch: batch || '2022-2026',
       cgpa: parsedCgpa,
@@ -48,6 +71,30 @@ export async function POST(req: Request) {
       streak: 1,
       createdAt: new Date().toISOString()
     };
+
+    // 🌟 Persist student directly to Supabase PostgreSQL
+    try {
+      await prisma.user.create({
+        data: {
+          id: newStudent.id,
+          name: newStudent.name,
+          email: newStudent.email,
+          role: 'STUDENT',
+          department: newStudent.department,
+          batch: newStudent.batch,
+          semester: newStudent.semester,
+          rollNumber: newStudent.rollNumber,
+          avatarUrl: newStudent.avatarUrl,
+          cgpa: newStudent.cgpa,
+          backlogs: newStudent.backlogs,
+          bio: newStudent.bio,
+          password: newStudent.password,
+        }
+      });
+      console.log('✅ Student successfully stored in Supabase PostgreSQL:', newStudent.name);
+    } catch (dbErr) {
+      console.error('⚠️ Could not save to Supabase DB directly, saved to memory:', dbErr);
+    }
 
     // Save student in Database Store
     dbStore.addUser(newStudent);

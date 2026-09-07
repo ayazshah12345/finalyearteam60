@@ -1,8 +1,39 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
+import { prisma } from '@/lib/prisma';
 import { User } from '@/types';
 
 export async function GET() {
+  try {
+    const dbUsers = await prisma.user.findMany();
+    if (dbUsers && dbUsers.length > 0) {
+      dbUsers.forEach((u) => {
+        const formattedUser: User = {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role as any,
+          department: u.department,
+          batch: u.batch || '2022-2026',
+          semester: u.semester || 6,
+          rollNumber: u.rollNumber || undefined,
+          avatarUrl: u.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+          cgpa: u.cgpa || 8.0,
+          backlogs: u.backlogs || 0,
+          bio: u.bio || 'VSB Student',
+          password: u.password || undefined,
+          createdAt: u.createdAt.toISOString(),
+        };
+        const existing = dbStore.getUserById(u.id);
+        if (!existing) {
+          dbStore.addUser(formattedUser);
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('Prisma GET /api/auth/me fallback:', e);
+  }
+
   const activeUser = dbStore.getActiveUser();
   const allUsers = dbStore.getUsers();
   return NextResponse.json({ activeUser, allUsers });
@@ -13,7 +44,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { userId, email, password, rollNumber, identifier } = body;
     
-    const allUsers = dbStore.getUsers();
+    let allUsers = dbStore.getUsers();
     let targetUser: User | undefined = undefined;
 
     if (userId) {
@@ -29,6 +60,44 @@ export async function POST(req: Request) {
         u.email.toLowerCase() === term || 
         (u.rollNumber && u.rollNumber.toLowerCase() === term)
       );
+    }
+
+    // Fallback: Search directly in Supabase PostgreSQL via Prisma
+    if (!targetUser) {
+      try {
+        const term = (identifier || rollNumber || email || '').trim().toLowerCase();
+        const dbUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { id: userId || '' },
+              { email: term },
+              { rollNumber: term.toUpperCase() }
+            ]
+          }
+        });
+
+        if (dbUser) {
+          targetUser = {
+            id: dbUser.id,
+            name: dbUser.name,
+            email: dbUser.email,
+            role: dbUser.role as any,
+            department: dbUser.department,
+            batch: dbUser.batch || '2022-2026',
+            semester: dbUser.semester || 6,
+            rollNumber: dbUser.rollNumber || undefined,
+            avatarUrl: dbUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+            cgpa: dbUser.cgpa || 8.0,
+            backlogs: dbUser.backlogs || 0,
+            bio: dbUser.bio || 'VSB Student',
+            password: dbUser.password || undefined,
+            createdAt: dbUser.createdAt.toISOString(),
+          };
+          dbStore.addUser(targetUser);
+        }
+      } catch (e) {
+        console.warn('Prisma POST login search warning:', e);
+      }
     }
 
     if (!targetUser) {
@@ -102,6 +171,26 @@ export async function PUT(req: Request) {
   if (avatarUrl !== undefined && avatarUrl.trim() !== '') updates.avatarUrl = avatarUrl;
 
   const updatedUser = dbStore.updateUser(targetId, updates);
+
+  // Sync profile update with Supabase PostgreSQL via Prisma
+  try {
+    const dbUpdates: any = {};
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.cgpa !== undefined) dbUpdates.cgpa = updates.cgpa;
+    if (updates.backlogs !== undefined) dbUpdates.backlogs = updates.backlogs;
+    if (updates.department) dbUpdates.department = updates.department;
+    if (updates.semester !== undefined) dbUpdates.semester = updates.semester;
+    if (updates.rollNumber) dbUpdates.rollNumber = updates.rollNumber;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+    if (updates.avatarUrl) dbUpdates.avatarUrl = updates.avatarUrl;
+
+    await prisma.user.update({
+      where: { id: targetId },
+      data: dbUpdates
+    });
+  } catch (e) {
+    console.warn('Prisma user update fallback:', e);
+  }
 
   dbStore.logAudit({
     id: `aud_${Date.now()}`,
