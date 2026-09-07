@@ -3,6 +3,8 @@ import { dbStore } from '@/lib/db-store';
 import { prisma } from '@/lib/prisma';
 import { User } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
