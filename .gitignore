@@ -1,0 +1,29 @@
+# Dependencies
+/node_modules
+/.pnpm
+/.yarn
+
+# Next.js Build Output
+/.next/
+/out/
+
+# Production & Local Environment Files
+.env
+.env*.local
+.env.production
+
+# IDE & Editor Configs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Database Local Store (If any)
+/data/sgip-db.json
