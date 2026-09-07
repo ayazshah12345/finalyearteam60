@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from '@/types';
-import { Search, Bell, Sun, Moon, Sparkles, ShieldCheck } from 'lucide-react';
+import { Search, Bell, Sun, Moon, Sparkles, ShieldCheck, Menu } from 'lucide-react';
 import { GlobalSearchModal } from './GlobalSearchModal';
 import { NotificationDrawer } from './NotificationDrawer';
 
-export function TopNavbar({ user }: { user: User }) {
+interface TopNavbarProps {
+  user: User;
+  onToggleMobileMenu?: () => void;
+}
+
+export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
   const [darkMode, setDarkMode] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -40,20 +45,33 @@ export function TopNavbar({ user }: { user: User }) {
 
   return (
     <>
-      <header className="h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-        {/* Global Search Bar Trigger */}
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-slate-100/80 hover:bg-slate-100 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-xs transition-all w-64 md:w-80 justify-between shadow-xs"
-        >
-          <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-indigo-500" />
-            <span className="font-medium">Search courses, placement drives...</span>
-          </div>
-          <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-600 shadow-xs">
-            Ctrl K
-          </kbd>
-        </button>
+      <header className="h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+        <div className="flex items-center gap-2">
+          {/* Mobile Hamburger Menu Toggle */}
+          {onToggleMobileMenu && (
+            <button
+              onClick={onToggleMobileMenu}
+              className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5 text-indigo-600" />
+            </button>
+          )}
+
+          {/* Global Search Bar Trigger */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 rounded-xl bg-slate-100/80 hover:bg-slate-100 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-xs transition-all w-44 sm:w-64 md:w-80 justify-between shadow-xs"
+          >
+            <div className="flex items-center gap-2 truncate">
+              <Search className="w-4 h-4 text-indigo-500 shrink-0" />
+              <span className="font-medium truncate">Search...</span>
+            </div>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-600 shadow-xs">
+              Ctrl K
+            </kbd>
+          </button>
+        </div>
 
         {/* Right Action Icons */}
         <div className="flex items-center gap-3">

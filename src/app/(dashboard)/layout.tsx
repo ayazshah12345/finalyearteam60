@@ -8,6 +8,7 @@ import { TopNavbar } from '@/components/shell/TopNavbar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchSession();
@@ -36,15 +37,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
       <div className="flex flex-1 relative">
         {/* 2. Left Role-Aware Sidebar */}
-        <Sidebar user={user} />
+        <Sidebar
+          user={user}
+          mobileOpen={mobileMenuOpen}
+          onCloseMobile={() => setMobileMenuOpen(false)}
+        />
 
         {/* 3. Main Body Container */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Navbar */}
-          <TopNavbar user={user} />
+          <TopNavbar
+            user={user}
+            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+          />
 
           {/* Page Content */}
-          <main className="p-6 md:p-8 flex-1 max-w-7xl w-full mx-auto space-y-8 animate-in fade-in duration-300">
+          <main className="p-3 sm:p-6 md:p-8 flex-1 max-w-7xl w-full mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
             {children}
           </main>
         </div>
