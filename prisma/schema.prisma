@@ -60,6 +60,7 @@ model User {
   quizAttempts         QuizAttempt[]
   dailyReports         DailyReport[]
   codingProfile        CodingProfile?
+  codingSubmissions    CodingSubmission[]
   portfolioItems       PortfolioItem[]
   resume               Resume?
   applications         PlacementApplication[]
@@ -236,14 +237,50 @@ model CodingProfile {
   student              User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   leetcodeUsername     String?
   leetcodeSolved       Int      @default(0)
+  easyCount            Int      @default(0)
+  mediumCount          Int      @default(0)
+  hardCount            Int      @default(0)
   leetcodeRating       Int      @default(0)
+  streakDays           Int      @default(0)
   codeforcesUsername   String?
   codeforcesRating     Int      @default(0)
   githubUsername       String?
   githubReposCount     Int      @default(0)
   githubCommitsThisYear Int     @default(0)
   overallCodeRating    Int      @default(0)
+  verificationStatus   String   @default("Manual Entry")
   lastSyncedAt         DateTime @default(now())
+}
+
+model CodingProblem {
+  id               String             @id @default(uuid())
+  title            String
+  slug             String             @unique
+  difficulty       String             @default("Easy")
+  topics           String[]
+  description      String
+  constraints      String[]
+  starterCodeJson  Json
+  sampleCasesJson  Json
+  createdAt        DateTime           @default(now())
+  submissions      CodingSubmission[]
+}
+
+model CodingSubmission {
+  id               String        @id @default(uuid())
+  studentId        String
+  student          User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentName      String
+  problemId        String
+  problem          CodingProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problemTitle     String
+  language         String
+  code             String
+  status           String        @default("Accepted")
+  testCasesPassed  Int           @default(0)
+  totalTestCases   Int           @default(0)
+  executionTimeMs  Int           @default(0)
+  submittedAt      DateTime      @default(now())
 }
 
 model PortfolioItem {

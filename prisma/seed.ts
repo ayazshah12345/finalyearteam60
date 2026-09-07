@@ -11,6 +11,8 @@ import {
   SEED_QUIZ_ATTEMPTS,
   SEED_DAILY_REPORTS,
   SEED_CODING_PROFILES,
+  SEED_CODING_PROBLEMS,
+  SEED_CODING_SUBMISSIONS,
   SEED_PORTFOLIO_ITEMS,
   SEED_RESUME,
   SEED_COMPANIES,
@@ -112,6 +114,75 @@ async function main() {
     });
   }
   console.log('✅ Placement Drives seeded');
+
+  // Coding Profiles
+  for (const cp of SEED_CODING_PROFILES) {
+    const userExists = await prisma.user.findUnique({ where: { id: cp.studentId } });
+    if (userExists) {
+      await prisma.codingProfile.upsert({
+        where: { studentId: cp.studentId },
+        update: {},
+        create: {
+          id: cp.id,
+          studentId: cp.studentId,
+          leetcodeUsername: cp.leetcodeUsername,
+          leetcodeSolved: cp.totalSolved,
+          easyCount: cp.easyCount,
+          mediumCount: cp.mediumCount,
+          hardCount: cp.hardCount,
+          leetcodeRating: cp.contestRating,
+          streakDays: cp.streakDays,
+          verificationStatus: cp.verificationStatus,
+        },
+      });
+    }
+  }
+  console.log('✅ Coding Profiles seeded');
+
+  // Coding Problems
+  for (const prob of SEED_CODING_PROBLEMS) {
+    await prisma.codingProblem.upsert({
+      where: { slug: prob.slug },
+      update: {},
+      create: {
+        id: prob.id,
+        title: prob.title,
+        slug: prob.slug,
+        difficulty: prob.difficulty,
+        topics: prob.topics,
+        description: prob.description,
+        constraints: prob.constraints,
+        starterCodeJson: prob.starterCode as any,
+        sampleCasesJson: prob.sampleCases as any,
+      },
+    });
+  }
+  console.log('✅ Coding Problems seeded');
+
+  // Coding Submissions
+  for (const sub of SEED_CODING_SUBMISSIONS) {
+    const userExists = await prisma.user.findUnique({ where: { id: sub.studentId } });
+    if (userExists) {
+      await prisma.codingSubmission.upsert({
+        where: { id: sub.id },
+        update: {},
+        create: {
+          id: sub.id,
+          studentId: sub.studentId,
+          studentName: sub.studentName,
+          problemId: sub.problemId,
+          problemTitle: sub.problemTitle,
+          language: sub.language,
+          code: sub.code,
+          status: sub.status,
+          testCasesPassed: sub.testCasesPassed,
+          totalTestCases: sub.totalTestCases,
+          executionTimeMs: sub.executionTimeMs,
+        },
+      });
+    }
+  }
+  console.log('✅ Coding Submissions seeded');
 
   console.log('🎉 Database seed completed successfully!');
 }

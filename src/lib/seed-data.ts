@@ -11,6 +11,8 @@ import {
   QuizAttempt,
   DailyReport,
   CodingProfile,
+  CodingProblem,
+  CodingSubmission,
   PortfolioItem,
   ResumeData,
   Company,
@@ -911,3 +913,340 @@ export const SEED_MOCK_INTERVIEWS: any[] = [
     completedAt: '2026-08-26T14:30:00Z'
   }
 ];
+
+export const SEED_CODING_PROBLEMS: CodingProblem[] = [
+  {
+    id: 'lc_1',
+    title: 'Two Sum',
+    slug: 'two-sum',
+    difficulty: 'Easy',
+    topics: ['Array', 'Hash Table'],
+    description: `Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to \`target\`.
+
+You may assume that each input would have **exactly one solution**, and you may not use the same element twice.
+
+You can return the answer in any order.`,
+    constraints: [
+      '2 <= nums.length <= 10^4',
+      '-10^9 <= nums[i] <= 10^9',
+      '-10^9 <= target <= 10^9',
+      'Only one valid answer exists.'
+    ],
+    starterCode: {
+      Python: `def twoSum(nums, target):
+    # Write your solution here
+    hashmap = {}
+    for i, num in enumerate(nums):
+        diff = target - num
+        if diff in hashmap:
+            return [hashmap[diff], i]
+        hashmap[num] = i
+    return []
+
+print(twoSum([2, 7, 11, 15], 9))`,
+      JavaScript: `function twoSum(nums, target) {
+    const map = new Map();
+    for (let i = 0; i < nums.length; i++) {
+        const diff = target - nums[i];
+        if (map.has(diff)) {
+            return [map.get(diff), i];
+        }
+        map.set(nums[i], i);
+    }
+    return [];
+}
+console.log(twoSum([2, 7, 11, 15], 9));`,
+      Java: `public class Solution {
+    public static int[] twoSum(int[] nums, int target) {
+        java.util.Map<Integer, Integer> map = new java.util.HashMap<>();
+        for (int i = 0; i < nums.length; i++) {
+            int comp = target - nums[i];
+            if (map.containsKey(comp)) {
+                return new int[] { map.get(comp), i };
+            }
+            map.put(nums[i], i);
+        }
+        return new int[]{};
+    }
+}`,
+      'C++': `#include <vector>
+#include <unordered_map>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> mp;
+        for (int i = 0; i < nums.size(); i++) {
+            int diff = target - nums[i];
+            if (mp.count(diff)) return {mp[diff], i};
+            mp[nums[i]] = i;
+        }
+        return {};
+    }
+};`
+    },
+    sampleCases: [
+      { id: 'tc1', input: 'nums = [2,7,11,15], target = 9', expectedOutput: '[0, 1]', explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].' },
+      { id: 'tc2', input: 'nums = [3,2,4], target = 6', expectedOutput: '[1, 2]', explanation: 'Because nums[1] + nums[2] == 6, we return [1, 2].' },
+      { id: 'tc3', input: 'nums = [3,3], target = 6', expectedOutput: '[0, 1]', explanation: 'Because nums[0] + nums[1] == 6, we return [0, 1].' }
+    ],
+    createdAt: '2026-08-01T10:00:00Z'
+  },
+  {
+    id: 'lc_2',
+    title: 'Valid Anagram',
+    slug: 'valid-anagram',
+    difficulty: 'Easy',
+    topics: ['String', 'Hash Table', 'Sorting'],
+    description: `Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s\`, and \`false\` otherwise.
+
+An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.`,
+    constraints: [
+      '1 <= s.length, t.length <= 5 * 10^4',
+      's and t consist of lowercase English letters.'
+    ],
+    starterCode: {
+      Python: `def isAnagram(s: str, t: str) -> bool:
+    if len(s) != len(t):
+        return False
+    count = {}
+    for char in s:
+        count[char] = count.get(char, 0) + 1
+    for char in t:
+        if char not in count or count[char] == 0:
+            return False
+        count[char] -= 1
+    return True
+
+print(isAnagram("anagram", "nagaram"))`,
+      JavaScript: `function isAnagram(s, t) {
+    if (s.length !== t.length) return false;
+    const count = {};
+    for (let char of s) count[char] = (count[char] || 0) + 1;
+    for (let char of t) {
+        if (!count[char]) return false;
+        count[char]--;
+    }
+    return true;
+}
+console.log(isAnagram("anagram", "nagaram"));`,
+      Java: `public class Solution {
+    public boolean isAnagram(String s, String t) {
+        if (s.length() != t.length()) return false;
+        int[] counts = new int[26];
+        for (int i = 0; i < s.length(); i++) {
+            counts[s.charAt(i) - 'a']++;
+            counts[t.charAt(i) - 'a']--;
+        }
+        for (int c : counts) if (c != 0) return false;
+        return true;
+    }
+}`,
+      'C++': `class Solution {
+public:
+    bool isAnagram(string s, string t) {
+        if (s.length() != t.length()) return false;
+        int count[26] = {0};
+        for (char c : s) count[c - 'a']++;
+        for (char c : t) {
+            if (--count[c - 'a'] < 0) return false;
+        }
+        return true;
+    }
+};`
+    },
+    sampleCases: [
+      { id: 'tc1', input: 's = "anagram", t = "nagaram"', expectedOutput: 'true', explanation: 'All characters match with identical frequencies.' },
+      { id: 'tc2', input: 's = "rat", t = "car"', expectedOutput: 'false', explanation: 'Frequencies do not match.' }
+    ],
+    createdAt: '2026-08-01T10:00:00Z'
+  },
+  {
+    id: 'lc_3',
+    title: 'Longest Substring Without Repeating Characters',
+    slug: 'longest-substring-without-repeating-characters',
+    difficulty: 'Medium',
+    topics: ['Hash Table', 'String', 'Sliding Window'],
+    description: `Given a string \`s\`, find the length of the **longest substring** without repeating characters.`,
+    constraints: [
+      '0 <= s.length <= 5 * 10^4',
+      's consists of English letters, digits, symbols and spaces.'
+    ],
+    starterCode: {
+      Python: `def lengthOfLongestSubstring(s: str) -> int:
+    char_map = {}
+    left = max_len = 0
+    for right, char in enumerate(s):
+        if char in char_map and char_map[char] >= left:
+            left = char_map[char] + 1
+        char_map[char] = right
+        max_len = max(max_len, right - left + 1)
+    return max_len
+
+print(lengthOfLongestSubstring("abcabcbb"))`,
+      JavaScript: `function lengthOfLongestSubstring(s) {
+    let map = new Map(), left = 0, max = 0;
+    for (let right = 0; right < s.length; right++) {
+        if (map.has(s[right]) && map.get(s[right]) >= left) {
+            left = map.get(s[right]) + 1;
+        }
+        map.set(s[right], right);
+        max = Math.max(max, right - left + 1);
+    }
+    return max;
+}
+console.log(lengthOfLongestSubstring("abcabcbb"));`
+    },
+    sampleCases: [
+      { id: 'tc1', input: 's = "abcabcbb"', expectedOutput: '3', explanation: 'The answer is "abc", with the length of 3.' },
+      { id: 'tc2', input: 's = "bbbbb"', expectedOutput: '1', explanation: 'The answer is "b", with the length of 1.' }
+    ],
+    createdAt: '2026-08-01T10:00:00Z'
+  },
+  {
+    id: 'lc_4',
+    title: 'Container With Most Water',
+    slug: 'container-with-most-water',
+    difficulty: 'Medium',
+    topics: ['Array', 'Two Pointers', 'Greedy'],
+    description: `You are given an integer array \`height\` of length \`n\`. There are \`n\` vertical lines drawn such that the two endpoints of the \`i-th\` line are \`(i, 0)\` and \`(i, height[i])\`.
+
+Find two lines that together with the x-axis form a container, such that the container contains the most water.
+
+Return the maximum amount of water a container can store.`,
+    constraints: [
+      'n == height.length',
+      '2 <= n <= 10^5',
+      '0 <= height[i] <= 10^4'
+    ],
+    starterCode: {
+      Python: `def maxArea(height: list[int]) -> int:
+    left, right = 0, len(height) - 1
+    max_w = 0
+    while left < right:
+        h = min(height[left], height[right])
+        max_w = max(max_w, h * (right - left))
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+    return max_w
+
+print(maxArea([1,8,6,2,5,4,8,3,7]))`,
+      JavaScript: `function maxArea(height) {
+    let left = 0, right = height.length - 1, max = 0;
+    while (left < right) {
+        let h = Math.min(height[left], height[right]);
+        max = Math.max(max, h * (right - left));
+        if (height[left] < height[right]) left++;
+        else right--;
+    }
+    return max;
+}
+console.log(maxArea([1,8,6,2,5,4,8,3,7]));`
+    },
+    sampleCases: [
+      { id: 'tc1', input: 'height = [1,8,6,2,5,4,8,3,7]', expectedOutput: '49', explanation: 'Max area is between index 1 and index 8.' }
+    ],
+    createdAt: '2026-08-01T10:00:00Z'
+  },
+  {
+    id: 'lc_5',
+    title: 'Trapping Rain Water',
+    slug: 'trapping-rain-water',
+    difficulty: 'Hard',
+    topics: ['Array', 'Two Pointers', 'Dynamic Programming', 'Stack'],
+    description: `Given \`n\` non-negative integers representing an elevation map where the width of each bar is \`1\`, compute how much water it can trap after raining.`,
+    constraints: [
+      'n == height.length',
+      '1 <= n <= 2 * 10^4',
+      '0 <= height[i] <= 10^5'
+    ],
+    starterCode: {
+      Python: `def trap(height: list[int]) -> int:
+    if not height: return 0
+    l, r = 0, len(height) - 1
+    left_max, right_max = height[l], height[r]
+    water = 0
+    while l < r:
+        if left_max < right_max:
+            l += 1
+            left_max = max(left_max, height[l])
+            water += left_max - height[l]
+        else:
+            r -= 1
+            right_max = max(right_max, height[r])
+            water += right_max - height[r]
+    return water
+
+print(trap([0,1,0,2,1,0,1,3,2,1,2,1]))`
+    },
+    sampleCases: [
+      { id: 'tc1', input: 'height = [0,1,0,2,1,0,1,3,2,1,2,1]', expectedOutput: '6', explanation: 'Total trapped rain water is 6 units.' }
+    ],
+    createdAt: '2026-08-01T10:00:00Z'
+  }
+];
+
+export const SEED_CODING_SUBMISSIONS: CodingSubmission[] = [
+  {
+    id: 'sub_1',
+    studentId: 'usr_student_1',
+    studentName: 'Aarav Sharma',
+    problemId: 'lc_1',
+    problemTitle: 'Two Sum',
+    language: 'Python',
+    code: `def twoSum(nums, target):
+    hashmap = {}
+    for i, num in enumerate(nums):
+        diff = target - num
+        if diff in hashmap:
+            return [hashmap[diff], i]
+        hashmap[num] = i
+    return []`,
+    status: 'Accepted',
+    testCasesPassed: 3,
+    totalTestCases: 3,
+    executionTimeMs: 42,
+    submittedAt: '2026-08-05T14:20:00Z'
+  },
+  {
+    id: 'sub_2',
+    studentId: 'usr_student_1',
+    studentName: 'Aarav Sharma',
+    problemId: 'lc_2',
+    problemTitle: 'Valid Anagram',
+    language: 'Python',
+    code: `def isAnagram(s, t):
+    return sorted(s) == sorted(t)`,
+    status: 'Accepted',
+    testCasesPassed: 2,
+    totalTestCases: 2,
+    executionTimeMs: 55,
+    submittedAt: '2026-08-06T16:10:00Z'
+  },
+  {
+    id: 'sub_3',
+    studentId: 'usr_student_1',
+    studentName: 'Aarav Sharma',
+    problemId: 'lc_3',
+    problemTitle: 'Longest Substring Without Repeating Characters',
+    language: 'JavaScript',
+    code: `function lengthOfLongestSubstring(s) {
+    let set = new Set(), l = 0, res = 0;
+    for (let r = 0; r < s.length; r++) {
+        while (set.has(s[r])) set.delete(s[l++]);
+        set.add(s[r]);
+        res = Math.max(res, r - l + 1);
+    }
+    return res;
+}`,
+    status: 'Accepted',
+    testCasesPassed: 2,
+    totalTestCases: 2,
+    executionTimeMs: 68,
+    submittedAt: '2026-08-07T11:45:00Z'
+  }
+];
+

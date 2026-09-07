@@ -197,6 +197,45 @@ export interface CodingProfile {
   streakDays: number;
   verificationStatus: 'Imported / Verified' | 'Manual Entry';
   lastUpdated: string;
+  leetcodeAvatar?: string;
+  ranking?: number;
+  acceptanceRate?: number;
+  contributionPoints?: number;
+}
+
+export interface CodingTestCase {
+  id: string;
+  input: string;
+  expectedOutput: string;
+  explanation?: string;
+}
+
+export interface CodingProblem {
+  id: string;
+  title: string;
+  slug: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  topics: string[];
+  description: string;
+  constraints: string[];
+  starterCode: Record<string, string>; // language -> code template
+  sampleCases: CodingTestCase[];
+  createdAt: string;
+}
+
+export interface CodingSubmission {
+  id: string;
+  studentId: string;
+  studentName: string;
+  problemId: string;
+  problemTitle: string;
+  language: string;
+  code: string;
+  status: 'Accepted' | 'Wrong Answer' | 'Time Limit Exceeded' | 'Runtime Error';
+  testCasesPassed: number;
+  totalTestCases: number;
+  executionTimeMs: number;
+  submittedAt: string;
 }
 
 export interface PortfolioItem {

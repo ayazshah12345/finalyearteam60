@@ -42,8 +42,12 @@ export function Sidebar({ user, collapsed = false }: SidebarProps) {
   const mainNav = user.role === 'FACULTY' ? [
     { label: 'Faculty Command Desk', href: '/faculty', icon: Briefcase },
     { label: 'Student Roster & Evaluation', href: '/faculty', icon: UserCheck },
+    { label: 'LeetCode & Coding Practice', href: '/coding', icon: Code2 },
+    { label: 'Code Compiler Engine', href: '/compiler', icon: Terminal },
   ] : [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'LeetCode Coding Practice', href: '/coding', icon: Code2 },
+    { label: 'Code Compiler Engine', href: '/compiler', icon: Terminal },
     { label: 'Technical Courses', href: '/courses', icon: BookOpen },
     { label: 'Placement Drives', href: '/placement', icon: Building2 },
     { label: 'AI Student Chatbot', href: '/chatbot', icon: Bot },

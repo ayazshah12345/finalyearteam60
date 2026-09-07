@@ -195,7 +195,24 @@ export default function DashboardPage() {
             <Sparkles className="w-4 h-4 text-amber-500" /> VSB Student Platform Quick Tools
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Tool 0: LeetCode Practice */}
+            <Link
+              href="/coding"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md hover:border-amber-500/50 transition-all space-y-3 group"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold group-hover:scale-110 transition-all shadow-sm">
+                <Code2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors">LeetCode Coding Practice</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Connect profile, solve DSA problems, and track solved counts.</p>
+              </div>
+              <div className="text-[11px] font-bold text-amber-600 flex items-center gap-1">
+                <span>Start Practice</span> <ArrowRight className="w-3.5 h-3.5" />
+              </div>
+            </Link>
+
             {/* Tool 1: Student Update Profile */}
             <Link
               href="/profile"

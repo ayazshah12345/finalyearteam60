@@ -14,6 +14,8 @@ import {
   QuizAttempt,
   DailyReport,
   CodingProfile,
+  CodingProblem,
+  CodingSubmission,
   PortfolioItem,
   ResumeData,
   Company,
@@ -38,6 +40,8 @@ import {
   SEED_QUIZ_ATTEMPTS,
   SEED_DAILY_REPORTS,
   SEED_CODING_PROFILES,
+  SEED_CODING_PROBLEMS,
+  SEED_CODING_SUBMISSIONS,
   SEED_PORTFOLIO_ITEMS,
   SEED_RESUME,
   SEED_COMPANIES,
@@ -62,6 +66,8 @@ interface DatabaseSchema {
   quizAttempts: QuizAttempt[];
   dailyReports: DailyReport[];
   codingProfiles: CodingProfile[];
+  codingProblems: CodingProblem[];
+  codingSubmissions: CodingSubmission[];
   portfolioItems: PortfolioItem[];
   resumes: Record<string, ResumeData>; // studentId -> ResumeData
   companies: Company[];
@@ -100,13 +106,15 @@ class DatabaseStore {
         if (!Array.isArray(dbData.mockInterviews)) dbData.mockInterviews = [...SEED_MOCK_INTERVIEWS];
         if (!Array.isArray(dbData.notifications)) dbData.notifications = [...SEED_NOTIFICATIONS];
         if (!Array.isArray(dbData.auditLogs)) dbData.auditLogs = [...SEED_AUDIT_LOGS];
+        if (!Array.isArray(dbData.codingProblems)) dbData.codingProblems = [...SEED_CODING_PROBLEMS];
+        if (!Array.isArray(dbData.codingSubmissions)) dbData.codingSubmissions = [...SEED_CODING_SUBMISSIONS];
         if (!dbData.resumes) dbData.resumes = { [SEED_RESUME.studentId]: SEED_RESUME };
 
-        // Auto-merge missing 50 Placement Questions
-        const existingQIds = new Set(dbData.questions.map((q: Question) => q.id));
-        SEED_QUESTIONS.forEach(q => {
-          if (!existingQIds.has(q.id)) {
-            dbData.questions.push(q);
+        // Auto-merge missing Coding Problems
+        const existingProbIds = new Set(dbData.codingProblems.map((cp: CodingProblem) => cp.id));
+        SEED_CODING_PROBLEMS.forEach(cp => {
+          if (!existingProbIds.has(cp.id)) {
+            dbData.codingProblems.push(cp);
           }
         });
 
@@ -137,6 +145,8 @@ class DatabaseStore {
       quizAttempts: [...SEED_QUIZ_ATTEMPTS],
       dailyReports: [...SEED_DAILY_REPORTS],
       codingProfiles: [...SEED_CODING_PROFILES],
+      codingProblems: [...SEED_CODING_PROBLEMS],
+      codingSubmissions: [...SEED_CODING_SUBMISSIONS],
       portfolioItems: [...SEED_PORTFOLIO_ITEMS],
       resumes: { [SEED_RESUME.studentId]: SEED_RESUME },
       companies: [...SEED_COMPANIES],
@@ -368,9 +378,13 @@ class DatabaseStore {
     return report;
   }
 
-  // Coding Profiles
+  // Coding Profiles & LeetCode Practice
   public getCodingProfile(studentId: string): CodingProfile | undefined {
     return this.data.codingProfiles.find(cp => cp.studentId === studentId);
+  }
+
+  public getAllCodingProfiles(): CodingProfile[] {
+    return this.data.codingProfiles || [];
   }
 
   public updateCodingProfile(cp: CodingProfile) {
@@ -382,6 +396,28 @@ class DatabaseStore {
     }
     this.saveData();
     return cp;
+  }
+
+  public getCodingProblems(): CodingProblem[] {
+    return this.data.codingProblems || [];
+  }
+
+  public getCodingProblemBySlug(slug: string): CodingProblem | undefined {
+    return (this.data.codingProblems || []).find(p => p.slug === slug || p.id === slug);
+  }
+
+  public getCodingSubmissions(studentId?: string): CodingSubmission[] {
+    if (studentId) {
+      return (this.data.codingSubmissions || []).filter(s => s.studentId === studentId);
+    }
+    return this.data.codingSubmissions || [];
+  }
+
+  public addCodingSubmission(sub: CodingSubmission) {
+    if (!this.data.codingSubmissions) this.data.codingSubmissions = [];
+    this.data.codingSubmissions.unshift(sub);
+    this.saveData();
+    return sub;
   }
 
   // Portfolios & Resumes
