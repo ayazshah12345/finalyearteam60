@@ -59,7 +59,7 @@ export function Sidebar({ user, collapsed = false }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-64 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-r border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex flex-col justify-between h-[calc(100vh-38px)] sticky top-[38px] z-40 transition-all shadow-sm">
+    <aside className="w-64 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-r border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex flex-col justify-between h-screen sticky top-0 z-40 transition-all shadow-sm">
       <div className="p-4 space-y-5">
         {/* Platform Brand */}
         <div className="flex items-center gap-3 px-2 py-1">

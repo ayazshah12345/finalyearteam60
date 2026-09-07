@@ -40,7 +40,7 @@ export function TopNavbar({ user }: { user: User }) {
 
   return (
     <>
-      <header className="h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-6 flex items-center justify-between sticky top-[38px] z-30 shadow-xs">
+      <header className="h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         {/* Global Search Bar Trigger */}
         <button
           onClick={() => setSearchOpen(true)}
