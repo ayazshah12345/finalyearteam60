@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
+import { getAuthenticatedUser } from '@/lib/auth';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -10,7 +11,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   const modules = dbStore.getModulesByCourse(id);
   const lessons = dbStore.getLessonsByCourse(id);
-  const user = dbStore.getActiveUser();
+  const user = await getAuthenticatedUser(req);
 
   const userProgress = lessons.map(l => {
     const prog = dbStore.getLessonProgress(user.id, l.id);

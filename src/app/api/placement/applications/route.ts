@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
 import { authorizeRole, getAuthenticatedUser } from '@/lib/auth';
 
-export async function GET() {
-  const user = getAuthenticatedUser();
+export async function GET(req: Request) {
+  const user = await getAuthenticatedUser(req);
   if (user.role === 'STUDENT') {
     const studentApps = dbStore.getApplicationsByStudent(user.id);
     return NextResponse.json({ applications: studentApps });
@@ -14,7 +14,7 @@ export async function GET() {
 
 // Update selection status (Placement Coordinator only)
 export async function PUT(req: Request) {
-  const auth = authorizeRole(['PLACEMENT_COORDINATOR']);
+  const auth = await authorizeRole(['PLACEMENT_COORDINATOR'], req);
   if (!auth.authorized) return auth.errorResponse!;
 
   const body = await req.json();

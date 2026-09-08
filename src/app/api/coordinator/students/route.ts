@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
+import { authorizeRole } from '@/lib/auth';
 import { evaluateStudentEligibility } from '@/lib/eligibility';
 
-export async function GET() {
-  const activeUser = dbStore.getActiveUser();
+export async function GET(req: Request) {
+  const auth = await authorizeRole(['FACULTY', 'PLACEMENT_COORDINATOR'], req);
+  if (!auth.authorized) return auth.errorResponse!;
+
+  const activeUser = auth.user;
   
   // Get all registered students
   const allUsers = dbStore.getUsers();

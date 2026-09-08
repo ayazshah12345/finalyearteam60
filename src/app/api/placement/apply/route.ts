@@ -4,7 +4,7 @@ import { authorizeRole } from '@/lib/auth';
 import { evaluateStudentEligibility } from '@/lib/eligibility';
 
 export async function POST(req: Request) {
-  const auth = authorizeRole(['STUDENT']);
+  const auth = await authorizeRole(['STUDENT'], req);
   if (!auth.authorized) return auth.errorResponse!;
 
   const body = await req.json();
@@ -39,6 +39,26 @@ export async function POST(req: Request) {
   };
 
   dbStore.addOrUpdateApplication(application);
+
+  dbStore.addNotification({
+    id: `notif_apply_fac_${Date.now()}`,
+    targetRole: 'FACULTY',
+    title: `📋 Placement Application: ${auth.user.name}`,
+    message: `Student ${auth.user.name} (${auth.user.rollNumber || 'N/A'}) applied for ${drive.companyName} (${drive.roleTitle}). Eligibility: ${eligibilityEval.isEligible ? 'Eligible' : 'Not Eligible'}.`,
+    category: 'Placement',
+    read: false,
+    createdAt: new Date().toISOString()
+  });
+
+  dbStore.addNotification({
+    id: `notif_apply_coord_${Date.now()}`,
+    targetRole: 'PLACEMENT_COORDINATOR',
+    title: `📋 Drive Application: ${auth.user.name}`,
+    message: `${auth.user.name} applied for ${drive.companyName} (${drive.roleTitle}).`,
+    category: 'Placement',
+    read: false,
+    createdAt: new Date().toISOString()
+  });
 
   return NextResponse.json({
     application,

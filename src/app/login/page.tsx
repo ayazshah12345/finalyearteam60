@@ -20,6 +20,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { User } from '@/types';
+import { setSessionUser } from '@/lib/client-auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -75,6 +76,10 @@ export default function LoginPage() {
         return;
       }
 
+      if (data.activeUser) {
+        setSessionUser(data.activeUser);
+      }
+
       router.push('/dashboard');
       router.refresh();
     } catch (err) {
@@ -104,6 +109,10 @@ export default function LoginPage() {
         setError(data.error || 'Failed to authenticate Faculty.');
         setLoading(false);
         return;
+      }
+
+      if (data.activeUser) {
+        setSessionUser(data.activeUser);
       }
 
       router.push('/faculty');
@@ -147,6 +156,10 @@ export default function LoginPage() {
         setError(data.error || 'Failed to register student.');
         setLoading(false);
         return;
+      }
+
+      if (data.activeUser) {
+        setSessionUser(data.activeUser);
       }
 
       setSuccess('Account created successfully! Redirecting to Student Dashboard...');

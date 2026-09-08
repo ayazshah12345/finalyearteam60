@@ -4,7 +4,7 @@ import { authorizeRole } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
-    const auth = authorizeRole(['STUDENT']);
+    const auth = await authorizeRole(['STUDENT'], req);
     if (!auth.authorized) return auth.errorResponse!;
 
     const body = await req.json();
@@ -70,44 +70,46 @@ export async function POST(req: Request) {
 
     dbStore.addQuizAttempt(attempt);
 
-    // If proctoring violation occurred, log audit & send high priority alert to Placement Coordinator & Faculty
-    if (isTerminated || (tabSwitchCount && tabSwitchCount > 0)) {
-      dbStore.logAudit({
-        id: `aud_proc_${Date.now()}`,
-        userId: auth.user.id,
-        userName: auth.user.name,
-        role: auth.user.role,
-        action: isTerminated ? 'PROCTORING_VIOLATION_TERMINATION' : 'PROCTORING_WARNING',
-        entity: 'QuizAttempt',
-        entityId: attempt.id,
-        timestamp: new Date().toISOString(),
-        details: isTerminated
-          ? `CRITICAL PROCTORING VIOLATION: Student ${auth.user.name} (Roll: ${auth.user.rollNumber || 'N/A'}, Dept: ${auth.user.department}) was TERMINATED out of test after ${tabSwitchCount} tab-switching/window exit violations.`
-          : `PROCTORING WARNING: Student ${auth.user.name} switched tabs ${tabSwitchCount} times during daily test.`
-      });
+    // 1. Send Automatic Score Notification to Faculty Command Desk
+    dbStore.addNotification({
+      id: `notif_quiz_fac_${Date.now()}`,
+      targetRole: 'FACULTY',
+      title: isTerminated
+        ? `🚨 Proctoring Violation: ${auth.user.name}`
+        : `📝 Daily Test Submitted: ${auth.user.name} (${percentage}%)`,
+      message: isTerminated
+        ? `Student ${auth.user.name} (Roll: ${auth.user.rollNumber || 'N/A'}) was terminated for 3+ tab switches during "${quizTitle}". Score recorded: 0.`
+        : `Student ${auth.user.name} (Roll: ${auth.user.rollNumber || 'N/A'}, ${auth.user.department}) completed "${quizTitle}". Score: ${finalScore}/${maxMarks} (${percentage}%). Status: ${passed ? 'PASSED ✅' : 'NEEDS IMPROVEMENT ⚠️'}. Integrity: ${tabSwitchCount === 0 ? '100% Clean 🛡️' : `${tabSwitchCount} tab switch(es) detected ⚠️`}.`,
+      category: 'Quiz',
+      read: false,
+      createdAt: new Date().toISOString()
+    });
 
-      if (isTerminated) {
-        dbStore.addNotification({
-          id: `notif_proc_${Date.now()}`,
-          targetRole: 'PLACEMENT_COORDINATOR',
-          title: '🚨 Cheating & Proctoring Violation Alert',
-          message: `Student ${auth.user.name} (${auth.user.rollNumber || 'N/A'} - ${auth.user.department}) was automatically terminated out of Daily Test due to 3+ tab-switch violations. Score recorded: 0.`,
-          category: 'Placement',
-          read: false,
-          createdAt: new Date().toISOString()
-        });
+    // 2. Send Automatic Notification to Placement Coordinator Desk
+    dbStore.addNotification({
+      id: `notif_quiz_coord_${Date.now()}`,
+      targetRole: 'PLACEMENT_COORDINATOR',
+      title: `📊 Test Score: ${auth.user.name} - ${percentage}%`,
+      message: `${auth.user.name} (Roll: ${auth.user.rollNumber || 'N/A'}) scored ${finalScore}/${maxMarks} (${percentage}%) on "${quizTitle}". Status: ${passed ? 'PASSED' : 'NEEDS IMPROVEMENT'}.`,
+      category: 'Placement',
+      read: false,
+      createdAt: new Date().toISOString()
+    });
 
-        dbStore.addNotification({
-          id: `notif_proc_fac_${Date.now()}`,
-          targetRole: 'FACULTY',
-          title: '🚨 Student Proctoring Violation Terminated',
-          message: `Student ${auth.user.name} (${auth.user.rollNumber || 'N/A'}) was terminated from Daily Test for tab switching 3+ times.`,
-          category: 'Quiz',
-          read: false,
-          createdAt: new Date().toISOString()
-        });
-      }
-    }
+    // 3. Log Audit Trail
+    dbStore.logAudit({
+      id: `aud_proc_${Date.now()}`,
+      userId: auth.user.id,
+      userName: auth.user.name,
+      role: auth.user.role,
+      action: isTerminated ? 'PROCTORING_VIOLATION_TERMINATION' : 'TEST_COMPLETED',
+      entity: 'QuizAttempt',
+      entityId: attempt.id,
+      timestamp: new Date().toISOString(),
+      details: isTerminated
+        ? `CRITICAL PROCTORING VIOLATION: Student ${auth.user.name} (Roll: ${auth.user.rollNumber || 'N/A'}, Dept: ${auth.user.department}) was TERMINATED out of test after ${tabSwitchCount} tab-switching violations.`
+        : `Student ${auth.user.name} (Roll: ${auth.user.rollNumber || 'N/A'}) completed test "${quizTitle}" with score ${finalScore}/${maxMarks} (${percentage}%, ${passed ? 'Passed' : 'Failed'}).`
+    });
 
     return NextResponse.json({ attempt, quizQuestions });
   } catch (err: any) {

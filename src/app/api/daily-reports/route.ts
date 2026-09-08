@@ -9,7 +9,7 @@ export async function GET() {
 
 // Student submit daily report
 export async function POST(req: Request) {
-  const auth = authorizeRole(['STUDENT']);
+  const auth = await authorizeRole(['STUDENT'], req);
   if (!auth.authorized) return auth.errorResponse!;
 
   const body = await req.json();
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
 // Faculty review daily report
 export async function PUT(req: Request) {
-  const auth = authorizeRole(['FACULTY']);
+  const auth = await authorizeRole(['FACULTY'], req);
   if (!auth.authorized) return auth.errorResponse!;
 
   const body = await req.json();

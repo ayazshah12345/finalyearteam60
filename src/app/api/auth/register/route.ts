@@ -141,7 +141,31 @@ export async function POST(req: Request) {
       details: `New student self-registered. Name: ${newStudent.name}, Roll: ${newStudent.rollNumber}, CGPA: ${newStudent.cgpa}, Backlogs: ${newStudent.backlogs}`
     });
 
-    return NextResponse.json({ success: true, activeUser: newStudent });
+    // Notify Faculty of new student registration
+    dbStore.addNotification({
+      id: `notif_reg_${Date.now()}`,
+      targetRole: 'FACULTY',
+      title: `🎓 New Student Registered: ${newStudent.name}`,
+      message: `Student ${newStudent.name} (${newStudent.rollNumber}, ${newStudent.department}) created an account. CGPA: ${newStudent.cgpa}, Backlogs: ${newStudent.backlogs}`,
+      category: 'System',
+      read: false,
+      createdAt: new Date().toISOString()
+    });
+
+    const res = NextResponse.json({ success: true, activeUser: newStudent });
+    res.cookies.set('sgip_session_user_id', newStudent.id, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: 'lax',
+      httpOnly: false
+    });
+    res.cookies.set('sgip_session_role', 'STUDENT', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: 'lax',
+      httpOnly: false
+    });
+    return res;
   } catch (error: any) {
     console.error('Registration Error:', error);
     return NextResponse.json({ error: 'Failed to process student registration.' }, { status: 500 });

@@ -25,6 +25,26 @@ import {
 
 export const SEED_USERS: User[] = [
   {
+    id: 'usr_student_1787857636457',
+    name: 'syed ayaz shah',
+    email: 'syedayazshahsyeds@gmail.com',
+    role: 'STUDENT',
+    department: 'AI & Data Science',
+    rollNumber: '922523243111',
+    semester: 6,
+    batch: '2022-2026',
+    cgpa: 8.5,
+    backlogs: 0,
+    bio: 'VSB Engineering College Student - AI & Data Science',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+    password: 'password123',
+    skills: ['Python', 'Data Structures', 'Web Development'],
+    xp: 250,
+    level: 1,
+    streak: 1,
+    createdAt: '2026-08-27T19:07:16.457Z'
+  },
+  {
     id: 'usr_faculty_manivannan',
     name: 'Prof. Manivannan',
     email: 'manivanan.vsb@gmail.com',
@@ -33,6 +53,17 @@ export const SEED_USERS: User[] = [
     department: 'Computer Science & Engineering',
     avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=250&q=80',
     bio: 'Senior Faculty Member & Academic Coordinator, VSB Engineering College.',
+    createdAt: '2026-08-01T10:00:00Z'
+  },
+  {
+    id: 'usr_coord_1',
+    name: 'Dr. S. K. Narayanan',
+    email: 'placement@vsb.ac.in',
+    password: 'coordinator@vsb2026',
+    role: 'PLACEMENT_COORDINATOR',
+    department: 'Training & Placement Division',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
+    bio: 'Dean of Training & Corporate Placement Relations, VSB Engineering College.',
     createdAt: '2026-08-01T10:00:00Z'
   }
 ];

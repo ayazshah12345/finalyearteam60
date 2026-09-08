@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
 import { getAuthenticatedUser } from '@/lib/auth';
 
-export async function GET() {
-  const user = getAuthenticatedUser();
+export async function GET(req: Request) {
+  const user = await getAuthenticatedUser(req);
   let resume = dbStore.getResume(user.id);
 
   if (!resume) {
@@ -24,30 +24,34 @@ export async function GET() {
           role: 'Full Stack Developer Trainee',
           period: '2023 - Present',
           points: [
-            'Built responsive web applications with Next.js and RESTful API endpoints.',
-            'Optimized SQL database query performance and implemented automated data validation.'
+            'Architected full-stack enterprise portals with Next.js, Prisma, and PostgreSQL.',
+            'Collaborated with senior software architects on algorithmic challenge evaluation engines.'
           ]
         }
       ],
       projects: [
         {
-          title: 'Campus Growth & Placement Intelligence System (SGIP)',
-          tech: 'Next.js, TypeScript, TailwindCSS',
+          title: 'Student Growth Intelligence Platform (SGIP)',
+          tech: 'Next.js, TypeScript, TailwindCSS, PostgreSQL, Prisma',
           points: [
-            'Architected full-stack campus management platform with AI mock interview evaluator.',
-            'Implemented real-time proctored testing engine with tab-switch detection and camera presence monitoring.'
+            'Production-ready AI placement intelligence system featuring automated proctoring, LeetCode sync, and dynamic ATS resume generation.',
+            'Architected full-stack enterprise campus management workflows and student performance analytics.'
           ]
         }
       ],
       education: [
         {
-          institution: 'V.S.B. Engineering College (Karur)',
-          degree: `B.E. ${user.department || 'Computer Science and Engineering'}`,
-          year: '2021 - 2025',
-          cgpa: `${user.cgpa || 8.4} / 10.0`
+          institution: 'VSB Engineering College, Karur',
+          degree: 'B.E. Computer Science & Engineering',
+          year: '2022 - 2026',
+          cgpa: `${user.cgpa || 8.4} CGPA`
         }
       ],
-      certifications: ['AWS Certified Cloud Practitioner', 'LeetCode 300+ Problems Badge'],
+      certifications: [
+        'Google Cloud Certified Associate Cloud Engineer',
+        'HackerRank Problem Solving (Advanced) Gold Badge',
+        'DeepLearning.AI Generative AI Fundamentals'
+      ],
       updatedAt: new Date().toISOString()
     };
 
@@ -58,7 +62,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const user = getAuthenticatedUser();
+  const user = await getAuthenticatedUser(req);
   const body = await req.json();
 
   const resumeData = {

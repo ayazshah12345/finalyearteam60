@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { dbStore } from '@/lib/db-store';
 import { prisma } from '@/lib/prisma';
 import { getSupabaseClient } from '@/lib/supabase/admin';
@@ -6,7 +7,7 @@ import { User } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   // 1. Sync from Supabase via Prisma ORM
   try {
     const dbUsers = await prisma.user.findMany();
@@ -66,9 +67,75 @@ export async function GET() {
     }
   }
 
-  const activeUser = dbStore.getActiveUser();
+  // 3. Inspect Session Cookie and Header to determine precise active user
+  let activeUser: User | null = null;
+  try {
+    const cookieStore = await cookies();
+    const sessionUserId = cookieStore.get('sgip_session_user_id')?.value;
+    const headerUserId = req.headers.get('x-user-id');
+    const url = new URL(req.url);
+    const paramUserId = url.searchParams.get('userId');
+
+    const targetId = paramUserId || headerUserId || sessionUserId;
+    if (targetId) {
+      let found = dbStore.getUserById(targetId);
+      if (!found) {
+        try {
+          const dbUser = await prisma.user.findUnique({ where: { id: targetId } });
+          if (dbUser) {
+            found = {
+              id: dbUser.id,
+              name: dbUser.name,
+              email: dbUser.email,
+              role: dbUser.role as any,
+              department: dbUser.department,
+              batch: dbUser.batch || '2022-2026',
+              semester: dbUser.semester || 6,
+              rollNumber: dbUser.rollNumber || undefined,
+              avatarUrl: dbUser.avatarUrl || undefined,
+              cgpa: dbUser.cgpa || 8.0,
+              backlogs: dbUser.backlogs || 0,
+              bio: dbUser.bio || 'VSB Student',
+              createdAt: dbUser.createdAt.toISOString()
+            };
+            dbStore.addUser(found);
+          }
+        } catch (e) {}
+      }
+
+      if (found) {
+        activeUser = found;
+        dbStore.setActiveUser(found.id);
+      }
+    }
+  } catch (cookieErr) {
+    console.warn('Cookie reading warning:', cookieErr);
+  }
+
+  if (!activeUser) {
+    activeUser = dbStore.getActiveUser();
+  }
+
   const allUsers = dbStore.getUsers();
-  return NextResponse.json({ activeUser, allUsers });
+  const res = NextResponse.json({ activeUser, allUsers });
+
+  // Ensure persistent cookie is refreshed
+  if (activeUser) {
+    res.cookies.set('sgip_session_user_id', activeUser.id, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      sameSite: 'lax',
+      httpOnly: false
+    });
+    res.cookies.set('sgip_session_role', activeUser.role, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: 'lax',
+      httpOnly: false
+    });
+  }
+
+  return res;
 }
 
 export async function POST(req: Request) {
@@ -127,27 +194,43 @@ export async function POST(req: Request) {
           };
           dbStore.addUser(targetUser);
         }
-      } catch (e) {
-        console.warn('Prisma POST login search warning:', e);
+      } catch (dbErr) {
+        try {
+          const supabase = getSupabaseClient();
+          const term = (identifier || rollNumber || email || '').trim().toLowerCase();
+          const { data: supaUsers } = await supabase.from('User').select('*');
+          const found = supaUsers?.find((u: any) => 
+            u.id === userId ||
+            u.email?.toLowerCase() === term ||
+            u.rollNumber?.toLowerCase() === term
+          );
+          if (found) {
+            targetUser = {
+              id: found.id,
+              name: found.name,
+              email: found.email,
+              role: found.role,
+              department: found.department,
+              batch: found.batch || '2022-2026',
+              semester: found.semester || 6,
+              rollNumber: found.rollNumber || undefined,
+              avatarUrl: found.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+              cgpa: found.cgpa || 8.0,
+              backlogs: found.backlogs || 0,
+              bio: found.bio || 'VSB Student',
+              password: found.password || undefined,
+              createdAt: found.createdAt || new Date().toISOString(),
+            };
+            dbStore.addUser(targetUser);
+          }
+        } catch (spErr) {
+          console.warn('Supabase fallback error:', spErr);
+        }
       }
     }
 
     if (!targetUser) {
-      return NextResponse.json({ error: 'User record not found. Please check your credentials or click Sign Up if you are a new student.' }, { status: 404 });
-    }
-
-    // Faculty Credential Checks
-    if (targetUser.role === 'FACULTY') {
-      const expectedEmail = 'manivanan.vsb@gmail.com';
-      const expectedPass = 'manivannan@vsb2027';
-
-      if (!userId && email && email.trim().toLowerCase() !== expectedEmail) {
-        return NextResponse.json({ error: 'Invalid faculty email address.' }, { status: 401 });
-      }
-
-      if (!userId && password && password !== expectedPass) {
-        return NextResponse.json({ error: 'Incorrect faculty password.' }, { status: 401 });
-      }
+      return NextResponse.json({ error: 'User record not found with the provided credentials.' }, { status: 404 });
     }
 
     // Student Credential Checks
@@ -176,14 +259,46 @@ export async function POST(req: Request) {
       details: `Authenticated user session for ${targetUser.name} (${targetUser.role})`
     });
 
-    return NextResponse.json({ success: true, activeUser: updatedUser });
+    const res = NextResponse.json({ success: true, activeUser: updatedUser });
+    
+    // Set persistent session cookies for both Student and Faculty
+    res.cookies.set('sgip_session_user_id', targetUser.id, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      sameSite: 'lax',
+      httpOnly: false
+    });
+    res.cookies.set('sgip_session_role', targetUser.role, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: 'lax',
+      httpOnly: false
+    });
+
+    return res;
   } catch (err) {
     return NextResponse.json({ error: 'Failed to process login request.' }, { status: 500 });
   }
 }
 
+export async function DELETE() {
+  const res = NextResponse.json({ success: true, message: 'Logged out successfully' });
+  res.cookies.set('sgip_session_user_id', '', { path: '/', maxAge: 0 });
+  res.cookies.set('sgip_session_role', '', { path: '/', maxAge: 0 });
+  return res;
+}
+
 export async function PUT(req: Request) {
-  const activeUser = dbStore.getActiveUser();
+  const cookieStore = await cookies();
+  const sessionUserId = cookieStore.get('sgip_session_user_id')?.value;
+  const headerUserId = req.headers.get('x-user-id');
+  const targetSessionId = headerUserId || sessionUserId;
+
+  let activeUser = targetSessionId ? dbStore.getUserById(targetSessionId) : null;
+  if (!activeUser) {
+    activeUser = dbStore.getActiveUser();
+  }
+
   if (!activeUser) {
     return NextResponse.json({ error: 'Unauthorized. Session missing.' }, { status: 401 });
   }
@@ -228,6 +343,17 @@ export async function PUT(req: Request) {
       console.warn('Supabase JS SDK update fallback:', spErr);
     }
   }
+
+  // Notify Faculty about student profile updates
+  dbStore.addNotification({
+    id: `notif_prof_${Date.now()}`,
+    targetRole: 'FACULTY',
+    title: `👤 Student Profile Updated: ${updatedUser?.name || targetId}`,
+    message: `Student ${updatedUser?.name} updated profile. CGPA: ${updatedUser?.cgpa}, Arrears: ${updatedUser?.backlogs}, Dept: ${updatedUser?.department}`,
+    category: 'System',
+    read: false,
+    createdAt: new Date().toISOString()
+  });
 
   dbStore.logAudit({
     id: `aud_${Date.now()}`,

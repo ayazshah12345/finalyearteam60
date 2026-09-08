@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
+import { getAuthenticatedUser } from '@/lib/auth';
 import { MockInterviewSession, MockInterviewRoundQuestion } from '@/types';
 
 export async function POST(req: Request) {
   try {
-    const activeUser = dbStore.getActiveUser();
+    const activeUser = await getAuthenticatedUser(req);
     if (!activeUser || activeUser.role !== 'STUDENT') {
       return NextResponse.json({ error: 'Only logged in students can submit mock interviews.' }, { status: 401 });
     }

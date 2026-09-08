@@ -5,6 +5,7 @@ import { User } from '@/types';
 import { DemoRoleSwitcher } from '@/components/shell/DemoRoleSwitcher';
 import { Sidebar } from '@/components/shell/Sidebar';
 import { TopNavbar } from '@/components/shell/TopNavbar';
+import { authFetch, setSessionUser } from '@/lib/client-auth';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -16,9 +17,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const fetchSession = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await authFetch('/api/auth/me');
       const data = await res.json();
-      setUser(data.activeUser);
+      if (data.activeUser) {
+        setUser(data.activeUser);
+        setSessionUser(data.activeUser);
+      } else {
+        window.location.href = '/login';
+      }
     } catch (e) {
       console.error(e);
     }

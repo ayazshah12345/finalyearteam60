@@ -3,7 +3,7 @@ import { dbStore } from '@/lib/db-store';
 import { authorizeRole } from '@/lib/auth';
 
 export async function POST(req: Request) {
-  const auth = authorizeRole(['STUDENT']);
+  const auth = await authorizeRole(['STUDENT'], req);
   if (!auth.authorized) return auth.errorResponse!;
 
   const body = await req.json();

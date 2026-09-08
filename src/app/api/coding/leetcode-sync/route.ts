@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
-    const user = getAuthenticatedUser();
+    const user = await getAuthenticatedUser(req);
     const body = await req.json();
     const username = (body.username || '').trim();
 

@@ -8,7 +8,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const auth = authorizeRole(['FACULTY']);
+  const auth = await authorizeRole(['FACULTY'], req);
   if (!auth.authorized) return auth.errorResponse!;
 
   const body = await req.json();

@@ -176,8 +176,13 @@ class DatabaseStore {
 
   // Active Session / Role Switcher
   public getActiveUser(): User {
-    const user = this.data.users.find(u => u.id === this.data.activeUserId);
-    if (user) return user;
+    if (this.data.activeUserId) {
+      const user = this.data.users.find(u => u.id === this.data.activeUserId);
+      if (user) return user;
+    }
+    // Fallback to registered student
+    const student = this.data.users.find(u => u.role === 'STUDENT');
+    if (student) return student;
     if (this.data.users && this.data.users.length > 0) return this.data.users[0];
     return SEED_USERS[0];
   }

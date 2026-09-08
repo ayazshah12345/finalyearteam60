@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, GrowthScoreBreakdown, PlacementReadinessBreakdown } from '@/types';
 import { evaluateStudentEligibility } from '@/lib/eligibility';
+import { authFetch, setSessionUser } from '@/lib/client-auth';
 import {
   Flame,
   Zap,
@@ -97,11 +98,18 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const authRes = await fetch('/api/auth/me');
+      const authRes = await authFetch('/api/auth/me');
       const authData = await authRes.json();
-      setUser(authData.activeUser);
 
-      const analyticsRes = await fetch('/api/analytics');
+      if (!authData.activeUser) {
+        window.location.href = '/login';
+        return;
+      }
+
+      setUser(authData.activeUser);
+      setSessionUser(authData.activeUser);
+
+      const analyticsRes = await authFetch('/api/analytics');
       const analyticsData = await analyticsRes.json();
 
       if (authData.activeUser.role === 'STUDENT') {
@@ -109,7 +117,7 @@ export default function DashboardPage() {
         setReadiness(analyticsData.readiness);
 
         // Fetch placement drives for company details & eligibility check
-        const drivesRes = await fetch('/api/placement/drives');
+        const drivesRes = await authFetch('/api/placement/drives');
         if (drivesRes.ok) {
           const drivesData = await drivesRes.json();
           setDrives(drivesData.drives || []);

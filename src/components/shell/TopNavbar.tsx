@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { User } from '@/types';
-import { Search, Bell, Sun, Moon, Sparkles, ShieldCheck, Menu } from 'lucide-react';
+import { Search, Bell, Sun, Moon, Sparkles, ShieldCheck, Menu, LogOut } from 'lucide-react';
 import { GlobalSearchModal } from './GlobalSearchModal';
 import { NotificationDrawer } from './NotificationDrawer';
+import { clearSession } from '@/lib/client-auth';
 
 interface TopNavbarProps {
   user: User;
@@ -133,13 +134,20 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
               </>
             )}
 
-            <a
-              href="/login"
-              className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-xs font-bold transition-all flex items-center gap-1.5"
-              title="Student Login Portal"
+            <button
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/me', { method: 'DELETE' });
+                } catch (e) {}
+                clearSession();
+                window.location.href = '/login';
+              }}
+              className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Sign Out"
             >
-              <span>Login Portal</span>
-            </a>
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
       </header>

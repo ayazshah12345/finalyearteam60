@@ -31,6 +31,7 @@ import {
   Code2
 } from 'lucide-react';
 import Link from 'next/link';
+import { authFetch } from '@/lib/client-auth';
 
 export default function FacultyPortalPage() {
   const [faculty, setFaculty] = useState<User | null>(null);
@@ -84,40 +85,45 @@ export default function FacultyPortalPage() {
     setLoading(true);
     try {
       // 1. Get Faculty Persona
-      const authRes = await fetch('/api/auth/me');
+      const authRes = await authFetch('/api/auth/me');
       const authData = await authRes.json();
       setFaculty(authData.activeUser);
 
+      if (!authData.activeUser || authData.activeUser.role === 'STUDENT') {
+        setLoading(false);
+        return;
+      }
+
       // 2. Get All Student Records
-      const coordRes = await fetch('/api/coordinator/students');
+      const coordRes = await authFetch('/api/coordinator/students');
       if (coordRes.ok) {
         const coordData = await coordRes.json();
         setStudents(coordData.studentRecords || []);
       }
 
       // 3. Get All Mock Interviews
-      const miRes = await fetch('/api/interview/history');
+      const miRes = await authFetch('/api/interview/history');
       if (miRes.ok) {
         const miData = await miRes.json();
         setMockInterviews(miData.interviews || []);
       }
 
       // 4. Get All Placement Drives
-      const driveRes = await fetch('/api/placement/drives');
+      const driveRes = await authFetch('/api/placement/drives');
       if (driveRes.ok) {
         const driveData = await driveRes.json();
         setDrives(driveData.drives || []);
       }
 
       // 5. Get All Student Daily Test Attempts
-      const quizRes = await fetch('/api/quizzes/attempts?studentId=ALL');
+      const quizRes = await authFetch('/api/quizzes/attempts?studentId=ALL');
       if (quizRes.ok) {
         const quizData = await quizRes.json();
         setAttempts(quizData.attempts || []);
       }
 
       // 6. Get All Student LeetCode Coding Profiles & Submissions
-      const codingRes = await fetch('/api/coding?view=all');
+      const codingRes = await authFetch('/api/coding?view=all');
       if (codingRes.ok) {
         const codingData = await codingRes.json();
         setAllCodingProfiles(codingData.allProfiles || []);

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
+import { getAuthenticatedUser } from '@/lib/auth';
 
 export async function GET(req: Request) {
-  const activeUser = dbStore.getActiveUser();
+  const activeUser = await getAuthenticatedUser(req);
   if (!activeUser) {
     return NextResponse.json({ error: 'Unauthorized. Session missing.' }, { status: 401 });
   }

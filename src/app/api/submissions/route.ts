@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
 // Student submit assignment
 export async function POST(req: Request) {
-  const auth = authorizeRole(['STUDENT']);
+  const auth = await authorizeRole(['STUDENT'], req);
   if (!auth.authorized) return auth.errorResponse!;
 
   const body = await req.json();
@@ -37,12 +37,23 @@ export async function POST(req: Request) {
   };
 
   dbStore.addOrUpdateSubmission(submission);
+
+  dbStore.addNotification({
+    id: `notif_sub_${Date.now()}`,
+    targetRole: 'FACULTY',
+    title: `📤 Assignment Submitted: ${auth.user.name}`,
+    message: `${auth.user.name} submitted assignment for evaluation.`,
+    category: 'Assignment',
+    read: false,
+    createdAt: new Date().toISOString()
+  });
+
   return NextResponse.json({ submission });
 }
 
 // Faculty grade submission
 export async function PUT(req: Request) {
-  const auth = authorizeRole(['FACULTY']);
+  const auth = await authorizeRole(['FACULTY'], req);
   if (!auth.authorized) return auth.errorResponse!;
 
   const body = await req.json();

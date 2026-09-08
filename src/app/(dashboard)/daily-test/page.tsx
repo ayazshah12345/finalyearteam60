@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Quiz, Question, QuizAttempt, User } from '@/types';
+import { authFetch } from '@/lib/client-auth';
 import {
   HelpCircle,
   Clock,
@@ -268,17 +269,17 @@ export default function DailyTestPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const authRes = await fetch('/api/auth/me');
+      const authRes = await authFetch('/api/auth/me');
       const authData = await authRes.json();
       setUser(authData.activeUser);
 
-      const quizRes = await fetch('/api/quizzes');
+      const quizRes = await authFetch('/api/quizzes');
       const quizData = await quizRes.json();
       setQuizzes(quizData.quizzes || []);
       setQuestions(quizData.questions || []);
 
       if (authData.activeUser?.id) {
-        const attemptsRes = await fetch(`/api/quizzes/attempts?studentId=${authData.activeUser.id}`);
+        const attemptsRes = await authFetch(`/api/quizzes/attempts?studentId=${authData.activeUser.id}`);
         if (attemptsRes.ok) {
           const attemptsData = await attemptsRes.json();
           setAttempts(attemptsData.attempts || []);
@@ -398,7 +399,7 @@ export default function DailyTestPage() {
     setAttempts((prev) => [terminatedAttempt, ...prev]);
 
     try {
-      await fetch('/api/quizzes/attempt', {
+      await authFetch('/api/quizzes/attempt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -458,7 +459,7 @@ export default function DailyTestPage() {
     setAttempts((prev) => [newAttempt, ...prev]);
 
     try {
-      await fetch('/api/quizzes/attempt', {
+      await authFetch('/api/quizzes/attempt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

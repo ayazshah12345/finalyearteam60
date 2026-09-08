@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from '@/lib/auth';
 
 export async function GET(req: Request) {
   try {
-    const user = getAuthenticatedUser();
+    const user = await getAuthenticatedUser(req);
     const { searchParams } = new URL(req.url);
     const view = searchParams.get('view');
 
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const user = getAuthenticatedUser();
+    const user = await getAuthenticatedUser(req);
     const body = await req.json();
 
     // Action 1: Submit Solution to a LeetCode Practice Problem
@@ -60,20 +60,24 @@ export async function POST(req: Request) {
         testCasesPassed = 0;
       }
 
-      const executionTimeMs = Math.floor(Math.random() * 40) + 25;
+      const executionTime = Math.floor(Math.random() * 45) + 15; // 15ms - 60ms
+      const memoryUsed = (Math.random() * 10 + 35).toFixed(1); // 35MB - 45MB
 
       const submission = {
-        id: `sub_${Date.now()}`,
+        id: `sub_code_${Date.now()}`,
         studentId: user.id,
         studentName: user.name,
         problemId: problem.id,
+        problemSlug: problem.slug,
         problemTitle: problem.title,
-        language: language || 'Python',
-        code: code || '',
+        difficulty: problem.difficulty,
+        language,
+        code,
         status,
+        executionTimeMs: executionTime,
+        memoryUsedMB: parseFloat(memoryUsed),
         testCasesPassed,
         totalTestCases,
-        executionTimeMs,
         submittedAt: new Date().toISOString()
       };
 
@@ -105,6 +109,18 @@ export async function POST(req: Request) {
         };
 
         dbStore.updateCodingProfile(updatedProfile);
+
+        if (user.role === 'STUDENT') {
+          dbStore.addNotification({
+            id: `notif_code_${Date.now()}`,
+            targetRole: 'FACULTY',
+            title: `💻 LeetCode Problem Solved: ${user.name}`,
+            message: `Student ${user.name} (${user.rollNumber || 'N/A'}) solved "${problem.title}" (${problem.difficulty}) in ${language}. Total Solved: ${updatedProfile.totalSolved}.`,
+            category: 'System',
+            read: false,
+            createdAt: new Date().toISOString()
+          });
+        }
       }
 
       return NextResponse.json({

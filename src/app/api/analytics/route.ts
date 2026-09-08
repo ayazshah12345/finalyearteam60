@@ -3,8 +3,8 @@ import { getAuthenticatedUser } from '@/lib/auth';
 import { calculateSGIPGrowthScore, calculatePlacementReadinessScore } from '@/lib/scoring';
 import { dbStore } from '@/lib/db-store';
 
-export async function GET() {
-  const user = getAuthenticatedUser();
+export async function GET(req: Request) {
+  const user = await getAuthenticatedUser(req);
 
   if (user.role === 'STUDENT') {
     const growth = calculateSGIPGrowthScore(user.id);

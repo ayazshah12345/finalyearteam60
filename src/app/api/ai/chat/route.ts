@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
+import { getAuthenticatedUser } from '@/lib/auth';
 import { evaluateStudentEligibility } from '@/lib/eligibility';
 
 export async function POST(req: Request) {
   try {
-    const activeUser = dbStore.getActiveUser();
+    const activeUser = await getAuthenticatedUser(req);
     const body = await req.json();
     const { query, isTestActive } = body;
 

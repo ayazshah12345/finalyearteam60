@@ -5,7 +5,7 @@ import { getAuthenticatedUser } from '@/lib/auth';
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get('q') || '').trim().toLowerCase();
-  const user = getAuthenticatedUser();
+  const user = await getAuthenticatedUser(req);
 
   if (!q) {
     return NextResponse.json({ courses: [], assignments: [], drives: [], questions: [] });
