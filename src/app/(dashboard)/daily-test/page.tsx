@@ -45,6 +45,10 @@ interface TestingModule {
   totalQuestionsCount: number;
   icon: string;
   badgeColor: string;
+  isFacultyCreated?: boolean;
+  creatorName?: string;
+  questionIds?: string[];
+  createdAt?: string;
 }
 
 export default function DailyTestPage() {
@@ -336,11 +340,20 @@ export default function DailyTestPage() {
   const handleStartModuleTest = (mod: TestingModule) => {
     let filteredQs: Question[] = [];
 
-    if (mod.subjectFilter === 'ALL_50') {
+    if (mod.questionIds && mod.questionIds.length > 0) {
+      filteredQs = questions.filter(q => mod.questionIds!.includes(q.id));
+      if (filteredQs.length === 0) {
+        filteredQs = questions.filter(q => q.subject.toLowerCase().includes(mod.subjectFilter.toLowerCase()));
+      }
+    } else if (mod.subjectFilter === 'ALL_50') {
       filteredQs = [...questions];
     } else {
       filteredQs = questions.filter(q => q.subject.toLowerCase().includes(mod.subjectFilter.toLowerCase()));
       if (filteredQs.length === 0) filteredQs = questions.slice(0, mod.totalQuestionsCount);
+    }
+
+    if (filteredQs.length === 0 && questions.length > 0) {
+      filteredQs = questions.slice(0, Math.min(mod.totalQuestionsCount || 5, questions.length));
     }
 
     setActiveModule(mod);
@@ -487,6 +500,31 @@ export default function DailyTestPage() {
   const answeredCount = Object.keys(selectedAnswers).length;
   const reviewCount = Object.values(markedForReview).filter(Boolean).length;
 
+  // Convert any quizzes returned from /api/quizzes into testing modules!
+  const facultyTestModules: TestingModule[] = quizzes.map((qz) => {
+    const qzQuestions = questions.filter(q => qz.questionIds?.includes(q.id));
+    const count = qzQuestions.length > 0 ? qzQuestions.length : (qz.questionIds?.length || 0);
+
+    const isCoding = qz.title.toLowerCase().includes('coding') || qz.subject?.toLowerCase().includes('coding');
+    const isAptitude = qz.title.toLowerCase().includes('aptitude') || qz.subject?.toLowerCase().includes('aptitude');
+
+    return {
+      id: qz.id,
+      title: qz.title,
+      shortName: qz.title.length > 20 ? qz.title.substring(0, 20) + '...' : qz.title,
+      subjectFilter: qz.subject || qz.title,
+      description: qz.description || `Faculty Uploaded Daily Test authored by ${(qz as any).creatorName || 'Faculty'}. Fullscreen proctoring with 3 warnings is enforced.`,
+      durationMins: qz.durationMinutes || 15,
+      totalQuestionsCount: count,
+      icon: isCoding ? '💻' : isAptitude ? '🧮' : '⚡',
+      badgeColor: 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white',
+      isFacultyCreated: true,
+      creatorName: (qz as any).creatorName || 'Faculty',
+      questionIds: qz.questionIds || [],
+      createdAt: qz.createdAt
+    };
+  });
+
   if (loading || !user) {
     return (
       <div className="py-16 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
@@ -525,6 +563,75 @@ export default function DailyTestPage() {
       {/* Main Content Area */}
       {!isTestActive ? (
         <div className="space-y-8">
+          {/* FACULTY UPLOADED DAILY TESTS */}
+          {facultyTestModules.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                      <Zap className="w-5 h-5 text-amber-500 fill-amber-500" /> Faculty Uploaded Daily Tests:
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Assigned and published by department faculty. Fullscreen mode with 3 proctoring warnings is strictly enforced.
+                  </p>
+                </div>
+
+                <span className="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-950 px-3 py-1 rounded-full border border-amber-200">
+                  {facultyTestModules.length} Faculty Test(s) Live
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {facultyTestModules.map((mod) => (
+                  <div
+                    key={mod.id}
+                    className="bg-white dark:bg-slate-900 border-2 border-indigo-500/40 dark:border-indigo-500/30 rounded-3xl p-5 shadow-lg hover-lift flex flex-col justify-between space-y-4 relative overflow-hidden"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-xs">
+                          {mod.subjectFilter}
+                        </span>
+                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" /> {mod.durationMins} Mins
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">
+                          Prof. {mod.creatorName || 'Faculty'}
+                        </div>
+                        <h4 className="text-base font-extrabold text-slate-900 dark:text-white leading-snug">
+                          {mod.title}
+                        </h4>
+                      </div>
+
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+                        {mod.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                        {mod.totalQuestionsCount} Questions
+                      </span>
+
+                      <button
+                        onClick={() => handleStartModuleTest(mod)}
+                        className="px-4 py-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+                      >
+                        <Camera className="w-3.5 h-3.5 text-amber-300" /> Start Proctored Test
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 8 WORKING DAILY TESTING MODULE CARDS */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">

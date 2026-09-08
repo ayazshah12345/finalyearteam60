@@ -27,3 +27,6 @@ Thumbs.db
 
 # Database Local Store (If any)
 /data/sgip-db.json
+
+.vercel
+.env*

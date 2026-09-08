@@ -281,6 +281,12 @@ export default function FacultyPortalPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3">
+            <Link
+              href="/faculty/test"
+              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 border border-indigo-400/30"
+            >
+              <Zap className="w-4 h-4 text-amber-400" /> Create / Upload Test
+            </Link>
             <button
               onClick={() => setShowDriveModal(true)}
               className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 shrink-0"
@@ -379,6 +385,14 @@ export default function FacultyPortalPage() {
           <Building2 className="w-4 h-4" />
           <span>Placement Drives ({drives.length})</span>
         </button>
+
+        <Link
+          href="/faculty/test"
+          className="px-4 sm:px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 shrink-0 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800/80"
+        >
+          <Zap className="w-4 h-4 text-amber-500" />
+          <span>+ Create & Upload Test</span>
+        </Link>
       </div>
 
       {/* TAB 1: STUDENT ROSTER & REGNO SEARCH */}

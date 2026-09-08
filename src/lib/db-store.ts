@@ -347,6 +347,12 @@ class DatabaseStore {
     return quiz;
   }
 
+  public deleteQuiz(id: string) {
+    this.data.quizzes = this.data.quizzes.filter(q => q.id !== id);
+    this.saveData();
+    return true;
+  }
+
   public addQuizAttempt(attempt: QuizAttempt) {
     this.data.quizAttempts.unshift(attempt);
     this.saveData();

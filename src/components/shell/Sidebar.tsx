@@ -26,7 +26,8 @@ import {
   Terminal,
   Mic,
   TrendingUp,
-  X
+  X,
+  CheckSquare
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -44,6 +45,7 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
 
   const mainNav = user.role === 'FACULTY' ? [
     { label: 'Faculty Command Desk', href: '/faculty', icon: Briefcase },
+    { label: 'Test', href: '/faculty/test', icon: CheckSquare },
     { label: 'Student Roster & Evaluation', href: '/faculty', icon: UserCheck },
   ] : [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
