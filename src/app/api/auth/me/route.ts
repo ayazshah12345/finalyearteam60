@@ -273,20 +273,11 @@ export async function PUT(req: Request) {
   const cookieStore = await cookies();
   const sessionUserId = cookieStore.get('sgip_session_user_id')?.value;
   const headerUserId = req.headers.get('x-user-id');
-  const targetSessionId = headerUserId || sessionUserId;
-
-  let activeUser = targetSessionId ? dbStore.getUserById(targetSessionId) : null;
-  if (!activeUser) {
-    activeUser = dbStore.getActiveUser();
-  }
-
-  if (!activeUser) {
-    return NextResponse.json({ error: 'Unauthorized. Session missing.' }, { status: 401 });
-  }
-
   const body = await req.json();
+
   const {
     studentId,
+    email,
     name,
     cgpa,
     backlogs,
@@ -302,24 +293,160 @@ export async function PUT(req: Request) {
     classSection,
     bio
   } = body;
-  
-  const targetId = studentId || activeUser.id;
-  const currentStudentRecord = dbStore.getUserById(targetId) || activeUser;
-  const existingBio = parseStudentBio(currentStudentRecord.bio);
+
+  const targetSessionId = studentId || headerUserId || sessionUserId;
+  const supabase = getSupabaseClient();
+
+  // 1. Locate student in PostgreSQL Supabase directly
+  let supaUser: any = null;
+  try {
+    if (targetSessionId) {
+      const { data } = await supabase.from('User').select('*').eq('id', targetSessionId).maybeSingle();
+      if (data) supaUser = data;
+    }
+    if (!supaUser && email) {
+      const { data } = await supabase.from('User').select('*').ilike('email', email.trim()).maybeSingle();
+      if (data) supaUser = data;
+    }
+    if (!supaUser && rollNumber) {
+      const { data } = await supabase.from('User').select('*').ilike('rollNumber', rollNumber.trim()).maybeSingle();
+      if (data) supaUser = data;
+    }
+  } catch (e) {
+    console.warn('Supabase initial lookup error:', e);
+  }
+
+  // 2. Locate student in in-memory dbStore as fallback context
+  let localUser = targetSessionId ? dbStore.getUserById(targetSessionId) : null;
+  if (!localUser && email) localUser = dbStore.getUserByEmail(email);
+  if (!localUser && supaUser) {
+    localUser = {
+      id: supaUser.id,
+      name: supaUser.name,
+      email: supaUser.email,
+      role: supaUser.role as any,
+      department: supaUser.department,
+      batch: supaUser.batch || '2022-2026',
+      semester: supaUser.semester || 6,
+      rollNumber: supaUser.rollNumber,
+      avatarUrl: '/vsb-logo.png',
+      cgpa: supaUser.cgpa ?? 8.0,
+      backlogs: supaUser.backlogs ?? 0,
+      bio: supaUser.bio,
+      createdAt: supaUser.createdAt || new Date().toISOString()
+    };
+    dbStore.addUser(localUser);
+  }
+
+  if (!localUser && !supaUser) {
+    localUser = dbStore.getActiveUser();
+  }
+
+  const existingBio = parseStudentBio(supaUser?.bio || localUser?.bio);
 
   const studentDetails = {
     about: bio !== undefined ? bio : existingBio.about,
-    phoneNumber: phoneNumber !== undefined ? phoneNumber : (currentStudentRecord.phoneNumber || existingBio.phoneNumber),
-    parentName: parentName !== undefined ? parentName : (currentStudentRecord.parentName || existingBio.parentName),
-    parentPhone: parentPhone !== undefined ? parentPhone : (currentStudentRecord.parentPhone || existingBio.parentPhone),
-    bloodGroup: bloodGroup !== undefined ? bloodGroup : (currentStudentRecord.bloodGroup || existingBio.bloodGroup),
-    currentYear: currentYear !== undefined ? currentYear : (currentStudentRecord.currentYear || existingBio.currentYear),
-    classSection: classSection !== undefined ? classSection : (currentStudentRecord.classSection || existingBio.classSection)
+    phoneNumber: phoneNumber !== undefined ? phoneNumber : (localUser?.phoneNumber || existingBio.phoneNumber),
+    parentName: parentName !== undefined ? parentName : (localUser?.parentName || existingBio.parentName),
+    parentPhone: parentPhone !== undefined ? parentPhone : (localUser?.parentPhone || existingBio.parentPhone),
+    bloodGroup: bloodGroup !== undefined ? bloodGroup : (localUser?.bloodGroup || existingBio.bloodGroup),
+    currentYear: currentYear !== undefined ? currentYear : (localUser?.currentYear || existingBio.currentYear),
+    classSection: classSection !== undefined ? classSection : (localUser?.classSection || existingBio.classSection)
   };
 
   const packedBio = JSON.stringify(studentDetails);
 
-  const updates: Partial<User> = {
+  const parsedCgpa = cgpa !== undefined && cgpa !== '' ? parseFloat(cgpa) : (supaUser?.cgpa ?? localUser?.cgpa ?? 8.0);
+  const parsedBacklogs = backlogs !== undefined && backlogs !== '' ? parseInt(backlogs) : (supaUser?.backlogs ?? localUser?.backlogs ?? 0);
+  const parsedSemester = semester !== undefined && semester !== '' ? parseInt(semester) : (supaUser?.semester ?? localUser?.semester ?? 6);
+
+  const dbUpdatePayload: any = {
+    name: (name !== undefined && name.trim() !== '') ? name.trim() : (supaUser?.name || localUser?.name),
+    department: (department !== undefined && department.trim() !== '') ? department.trim() : (supaUser?.department || localUser?.department || 'AI & Data Science'),
+    rollNumber: (rollNumber !== undefined && rollNumber.trim() !== '') ? rollNumber.trim() : (supaUser?.rollNumber || localUser?.rollNumber),
+    semester: parsedSemester,
+    batch: (batch !== undefined && batch.trim() !== '') ? batch.trim() : (supaUser?.batch || localUser?.batch || '2022-2026'),
+    cgpa: parsedCgpa,
+    backlogs: parsedBacklogs,
+    bio: packedBio,
+    avatarUrl: '/vsb-logo.png',
+    updatedAt: new Date().toISOString()
+  };
+
+  let savedSupabaseUser = null;
+
+  // 3. Save directly to Supabase PostgreSQL database
+  try {
+    if (supaUser) {
+      const { data: updatedData, error: updateErr } = await supabase
+        .from('User')
+        .update(dbUpdatePayload)
+        .eq('id', supaUser.id)
+        .select()
+        .single();
+
+      if (updateErr) {
+        console.error('Supabase update error:', updateErr);
+        throw new Error(updateErr.message);
+      }
+      savedSupabaseUser = updatedData;
+    } else {
+      // User not yet in Supabase table - insert as registered student
+      const newUserId = targetSessionId || `usr_student_${Date.now()}`;
+      const insertPayload = {
+        id: newUserId,
+        email: email || localUser?.email || 'student@vsb.ac.in',
+        role: 'STUDENT',
+        ...dbUpdatePayload,
+        createdAt: new Date().toISOString()
+      };
+      const { data: insertedData, error: insertErr } = await supabase
+        .from('User')
+        .insert(insertPayload)
+        .select()
+        .single();
+
+      if (insertErr) {
+        console.error('Supabase insert error:', insertErr);
+        throw new Error(insertErr.message);
+      }
+      savedSupabaseUser = insertedData;
+    }
+
+    // Also record profile update in PostgreSQL AuditLog
+    await supabase.from('AuditLog').insert({
+      id: `prof_upd_${Date.now()}`,
+      userId: savedSupabaseUser?.id || targetSessionId,
+      userName: dbUpdatePayload.name,
+      role: 'STUDENT',
+      action: 'PROFILE_UPDATED',
+      details: JSON.stringify({
+        ...studentDetails,
+        ...dbUpdatePayload
+      }),
+      timestamp: new Date().toISOString()
+    });
+  } catch (dbErr: any) {
+    console.error('Database persistence failure:', dbErr);
+    return NextResponse.json({
+      error: `Failed to save changes to database: ${dbErr?.message || 'Unknown database error'}`
+    }, { status: 500 });
+  }
+
+  // 4. Update in-memory dbStore with the exact saved record
+  const finalUserId = savedSupabaseUser?.id || supaUser?.id || localUser?.id || targetSessionId;
+  const formattedUser: User = {
+    id: finalUserId,
+    name: dbUpdatePayload.name,
+    email: savedSupabaseUser?.email || supaUser?.email || localUser?.email || email,
+    role: 'STUDENT',
+    department: dbUpdatePayload.department,
+    batch: dbUpdatePayload.batch,
+    semester: dbUpdatePayload.semester,
+    rollNumber: dbUpdatePayload.rollNumber,
+    avatarUrl: '/vsb-logo.png',
+    cgpa: dbUpdatePayload.cgpa,
+    backlogs: dbUpdatePayload.backlogs,
     bio: packedBio,
     phoneNumber: studentDetails.phoneNumber,
     parentName: studentDetails.parentName,
@@ -327,68 +454,39 @@ export async function PUT(req: Request) {
     bloodGroup: studentDetails.bloodGroup,
     currentYear: studentDetails.currentYear,
     classSection: studentDetails.classSection,
-    avatarUrl: '/vsb-logo.png'
+    createdAt: savedSupabaseUser?.createdAt || supaUser?.createdAt || new Date().toISOString()
   };
 
-  if (name !== undefined && name.trim() !== '') updates.name = name.trim();
-  if (cgpa !== undefined && cgpa !== '') updates.cgpa = parseFloat(cgpa);
-  if (backlogs !== undefined && backlogs !== '') updates.backlogs = parseInt(backlogs);
-  if (department !== undefined && department.trim() !== '') updates.department = department.trim();
-  if (semester !== undefined && semester !== '') updates.semester = parseInt(semester);
-  if (rollNumber !== undefined && rollNumber.trim() !== '') updates.rollNumber = rollNumber.trim();
-  if (batch !== undefined && batch.trim() !== '') updates.batch = batch.trim();
-
-  const updatedUser = dbStore.updateUser(targetId, updates);
-
-  // Sync profile update with PostgreSQL Supabase & Prisma
-  try {
-    const supabase = getSupabaseClient();
-    const dbUpdatePayload: any = {
-      name: updates.name || currentStudentRecord.name,
-      department: updates.department || currentStudentRecord.department,
-      rollNumber: updates.rollNumber || currentStudentRecord.rollNumber,
-      semester: updates.semester !== undefined ? updates.semester : currentStudentRecord.semester,
-      batch: updates.batch || currentStudentRecord.batch,
-      cgpa: updates.cgpa !== undefined ? updates.cgpa : currentStudentRecord.cgpa,
-      backlogs: updates.backlogs !== undefined ? updates.backlogs : currentStudentRecord.backlogs,
-      bio: packedBio,
-      avatarUrl: '/vsb-logo.png'
-    };
-
-    await supabase.from('User').update(dbUpdatePayload).eq('id', targetId);
-
-    // Also record profile update in PostgreSQL AuditLog
-    await supabase.from('AuditLog').insert({
-      id: `prof_upd_${Date.now()}`,
-      userId: targetId,
-      userName: updates.name || currentStudentRecord.name,
-      role: currentStudentRecord.role || 'STUDENT',
-      action: 'PROFILE_UPDATED',
-      details: JSON.stringify({
-        ...studentDetails,
-        name: updates.name,
-        cgpa: updates.cgpa,
-        backlogs: updates.backlogs,
-        department: updates.department,
-        semester: updates.semester,
-        rollNumber: updates.rollNumber
-      }),
-      timestamp: new Date().toISOString()
-    });
-  } catch (spErr) {
-    console.warn('Supabase profile update warning:', spErr);
+  if (dbStore.getUserById(finalUserId)) {
+    dbStore.updateUser(finalUserId, formattedUser);
+  } else {
+    dbStore.addUser(formattedUser);
   }
 
-  // Notify Faculty about student profile updates
+  // 5. Notify Faculty about student profile updates
   dbStore.addNotification({
     id: `notif_prof_${Date.now()}`,
     targetRole: 'FACULTY',
-    title: `👤 Student Profile Updated: ${updatedUser?.name || targetId}`,
-    message: `Student ${updatedUser?.name} updated profile. Phone: ${studentDetails.phoneNumber || 'N/A'}, Parents: ${studentDetails.parentName || 'N/A'}, CGPA: ${updatedUser?.cgpa}, Arrears: ${updatedUser?.backlogs}, Class: ${studentDetails.classSection || 'N/A'}`,
+    title: `👤 Student Profile Updated: ${formattedUser.name}`,
+    message: `Student ${formattedUser.name} updated profile. Phone: ${studentDetails.phoneNumber || 'N/A'}, Parents: ${studentDetails.parentName || 'N/A'}, CGPA: ${formattedUser.cgpa}, Arrears: ${formattedUser.backlogs}, Class: ${studentDetails.classSection || 'N/A'}`,
     category: 'System',
     read: false,
     createdAt: new Date().toISOString()
   });
 
-  return NextResponse.json({ success: true, user: updatedUser });
+  const res = NextResponse.json({
+    success: true,
+    user: formattedUser,
+    message: 'Profile and academic records saved to Supabase PostgreSQL database successfully.'
+  });
+
+  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.cookies.set('sgip_session_user_id', formattedUser.id, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30,
+    sameSite: 'lax',
+    httpOnly: false
+  });
+
+  return res;
 }

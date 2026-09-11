@@ -21,7 +21,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
-import { authFetch } from '@/lib/client-auth';
+import { authFetch, setSessionUser } from '@/lib/client-auth';
 
 export default function StudentProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -112,6 +112,8 @@ export default function StudentProfilePage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          studentId: user?.id,
+          email: user?.email || email,
           name: name.trim(),
           phoneNumber: phoneNumber.trim(),
           cgpa: parsedCgpa,
@@ -132,16 +134,24 @@ export default function StudentProfilePage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setErrorMsg(data.error || 'Failed to update student profile.');
+        setErrorMsg(data.error || 'Failed to update student profile in database.');
       } else {
-        setUser(data.user);
-        setSuccessMsg('Student profile updated successfully! All academic and guardian records are now synchronized.');
+        if (data.user) {
+          setUser(data.user);
+          setSessionUser({
+            id: data.user.id,
+            role: data.user.role,
+            name: data.user.name,
+            email: data.user.email
+          });
+        }
+        setSuccessMsg('✓ Student profile & guardian details saved directly to college database! All records are synchronized.');
         setTimeout(() => {
           setSuccessMsg(null);
-        }, 3500);
+        }, 4000);
       }
-    } catch (err) {
-      setErrorMsg('Network error while saving profile.');
+    } catch (err: any) {
+      setErrorMsg(`Network or server error while saving to database: ${err?.message || ''}`);
     } finally {
       setSaving(false);
     }
