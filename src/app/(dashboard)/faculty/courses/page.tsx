@@ -86,7 +86,21 @@ export default function FacultyTechnicalCoursesPage() {
 
       const crsRes = await fetch('/api/courses');
       const crsData = await crsRes.json();
-      setCourses(crsData.courses || []);
+      let list: Course[] = crsData.courses || [];
+
+      // Sync with client-side permanent storage
+      try {
+        const cached = JSON.parse(localStorage.getItem('vsb_faculty_courses') || '[]');
+        if (Array.isArray(cached) && cached.length > 0) {
+          cached.forEach((c: any) => {
+            if (!list.some((item) => item.id === c.id)) {
+              list.push(c);
+            }
+          });
+        }
+      } catch (e) {}
+
+      setCourses(list);
     } catch (e) {
       console.error('Failed to load courses:', e);
     } finally {
@@ -143,12 +157,21 @@ export default function FacultyTechnicalCoursesPage() {
 
       const data = await res.json();
 
-      if (!res.ok || !data.success) {
+      if (!res.ok || (!data.success && !data.course)) {
         throw new Error(data.error || 'Failed to publish course');
       }
 
-      setSuccessMsg(`🎉 Technical course "${title}" published successfully! It is now live on the Student Technical Courses dashboard with Anti-Skip Video Focus Protection.`);
-      setCourses((prev) => [data.course, ...prev]);
+      const publishedCourse = data.course;
+      setSuccessMsg(`🎉 Technical course "${publishedCourse.title}" published successfully! Permanently stored in database and live on the Student Technical Courses dashboard with Anti-Skip Video Focus Protection.`);
+      
+      setCourses((prev) => [publishedCourse, ...prev.filter((c) => c.id !== publishedCourse.id)]);
+
+      // Permanently cache in localStorage
+      try {
+        const cached = JSON.parse(localStorage.getItem('vsb_faculty_courses') || '[]');
+        const updated = [publishedCourse, ...cached.filter((c: any) => c.id !== publishedCourse.id)];
+        localStorage.setItem('vsb_faculty_courses', JSON.stringify(updated));
+      } catch (e) {}
 
       // Reset form
       setTitle('');

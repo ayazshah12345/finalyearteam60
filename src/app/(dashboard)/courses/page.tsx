@@ -58,7 +58,21 @@ export default function CoursesPage() {
 
       const res = await fetch('/api/courses');
       const data = await res.json();
-      setCourses(data.courses || []);
+      let list: Course[] = data.courses || [];
+
+      // Sync with client-side permanent storage
+      try {
+        const cached = JSON.parse(localStorage.getItem('vsb_faculty_courses') || '[]');
+        if (Array.isArray(cached) && cached.length > 0) {
+          cached.forEach((c: any) => {
+            if (!list.some((item) => item.id === c.id)) {
+              list.push(c);
+            }
+          });
+        }
+      } catch (e) {}
+
+      setCourses(list);
     } catch (e) {
       console.error(e);
     } finally {
@@ -240,10 +254,14 @@ export default function CoursesPage() {
           <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Loading Technical Courses Catalog...</div>
         </div>
       ) : filteredCourses.length === 0 ? (
-        <div className="py-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 space-y-3">
-          <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No Technical Courses Found</h3>
-          <p className="text-xs text-slate-500">Try adjusting your search query or selecting a different category filter.</p>
+        <div className="py-20 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 space-y-3">
+          <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto border border-indigo-200/60 dark:border-indigo-800/60">
+            <BookOpen className="w-7 h-7" />
+          </div>
+          <h3 className="text-base font-black text-slate-800 dark:text-slate-200">No Technical Courses Uploaded Yet</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Technical courses will appear here as soon as faculty members upload and publish them from the Faculty Command Desk.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -244,19 +244,52 @@ export default function CourseDetailPage() {
     try {
       const res = await fetch(`/api/courses/${courseId}`);
       const data = await res.json();
-      setCourse(data.course);
-      setModules(data.modules || []);
-      setLessons(data.lessons || []);
-      setProgressPercent(data.progressPercent || 0);
+      
+      if (data.course) {
+        setCourse(data.course);
+        setModules(data.modules || []);
+        setLessons(data.lessons || []);
+        setProgressPercent(data.progressPercent || 0);
 
-      const progMap: Record<string, boolean> = {};
-      data.userProgress?.forEach((p: any) => {
-        progMap[p.lessonId] = p.completed;
-      });
-      setUserProgress(progMap);
+        const progMap: Record<string, boolean> = {};
+        data.userProgress?.forEach((p: any) => {
+          progMap[p.lessonId] = p.completed;
+        });
+        setUserProgress(progMap);
 
-      if (data.lessons && data.lessons.length > 0) {
-        setActiveLesson(data.lessons[0]);
+        if (data.lessons && data.lessons.length > 0) {
+          setActiveLesson(data.lessons[0]);
+        }
+      } else {
+        // Fallback to client cached course
+        try {
+          const cached = JSON.parse(localStorage.getItem('vsb_faculty_courses') || '[]');
+          const found = cached.find((item: any) => item.id === courseId);
+          if (found) {
+            setCourse(found);
+            const fallbackMod = {
+              id: `mod_${found.id}`,
+              courseId: found.id,
+              title: `${found.title} - Foundation Curriculum`,
+              description: 'Core video lecture & practice notes',
+              order: 1
+            };
+            const fallbackLesson = {
+              id: `lsn_${found.id}`,
+              courseId: found.id,
+              moduleId: fallbackMod.id,
+              title: found.title,
+              description: found.description,
+              durationMinutes: found.durationHours ? found.durationHours * 60 : 45,
+              videoUrl: found.videoUrl || '',
+              order: 1,
+              createdAt: found.createdAt || new Date().toISOString()
+            };
+            setModules([fallbackMod]);
+            setLessons([fallbackLesson]);
+            setActiveLesson(fallbackLesson);
+          }
+        } catch (err) {}
       }
     } catch (e) {
       console.error(e);

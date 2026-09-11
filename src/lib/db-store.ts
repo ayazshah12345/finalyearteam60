@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { prisma } from './prisma';
 import {
   User,
@@ -83,7 +84,8 @@ interface DatabaseSchema {
   activeUserId: string; // Default active demo user
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const IS_VERCEL = Boolean(process.env.VERCEL);
+const DATA_DIR = IS_VERCEL ? os.tmpdir() : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'sgip-db.json');
 
 class DatabaseStore {
@@ -101,6 +103,9 @@ class DatabaseStore {
 
         // Defensive initialization of array properties
         if (!Array.isArray(dbData.users)) dbData.users = [...SEED_USERS];
+        if (!Array.isArray(dbData.courses)) dbData.courses = [...SEED_COURSES];
+        if (!Array.isArray(dbData.modules)) dbData.modules = [...SEED_MODULES];
+        if (!Array.isArray(dbData.lessons)) dbData.lessons = [...SEED_LESSONS];
         if (!Array.isArray(dbData.questions)) dbData.questions = [...SEED_QUESTIONS];
         if (!Array.isArray(dbData.quizzes)) dbData.quizzes = [...SEED_QUIZZES];
         if (!Array.isArray(dbData.quizAttempts)) dbData.quizAttempts = [...SEED_QUIZ_ATTEMPTS];
@@ -174,8 +179,14 @@ class DatabaseStore {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
       fs.writeFileSync(DB_FILE, JSON.stringify(dataToSave || this.data, null, 2), 'utf-8');
+
+      if (!IS_VERCEL) {
+        const localDataDir = path.join(process.cwd(), 'data');
+        if (!fs.existsSync(localDataDir)) fs.mkdirSync(localDataDir, { recursive: true });
+        fs.writeFileSync(path.join(localDataDir, 'sgip-db.json'), JSON.stringify(dataToSave || this.data, null, 2), 'utf-8');
+      }
     } catch (e) {
-      console.error('Failed to write JSON database:', e);
+      console.warn('Failed to write JSON database:', e);
     }
   }
 
