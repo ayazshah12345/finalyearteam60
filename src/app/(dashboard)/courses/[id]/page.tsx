@@ -188,6 +188,34 @@ export default function CourseDetailPage() {
     }
   }, [activeLesson?.id]);
 
+  // Candidate Auth State
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const authRes = await authFetch('/api/auth/me');
+        if (authRes.ok) {
+          const authData = await authRes.json();
+          if (authData.activeUser) {
+            setCurrentUser(authData.activeUser);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      if (typeof window !== 'undefined') {
+        try {
+          const cachedStr = localStorage.getItem('sgip_session_user');
+          if (cachedStr) {
+            setCurrentUser(JSON.parse(cachedStr));
+          }
+        } catch (e) {}
+      }
+    };
+    fetchUser();
+  }, []);
+
   // Malpractice Reporting Handler
   const lastReportTimeRef = useRef(0);
   const reportMalpractice = async (
@@ -195,8 +223,28 @@ export default function CourseDetailPage() {
     details?: any
   ) => {
     const now = Date.now();
-    if (now - lastReportTimeRef.current < 4000) return;
+    if (now - lastReportTimeRef.current < 3000) return;
     lastReportTimeRef.current = now;
+
+    let studentId = currentUser?.id;
+    let studentEmail = currentUser?.email;
+    let studentName = currentUser?.name;
+    let studentRollNumber = currentUser?.rollNumber;
+    let studentDepartment = currentUser?.department;
+
+    if (!studentId && typeof window !== 'undefined') {
+      try {
+        const cachedStr = localStorage.getItem('sgip_session_user');
+        if (cachedStr) {
+          const cached = JSON.parse(cachedStr);
+          studentId = cached.id || studentId;
+          studentEmail = cached.email || studentEmail;
+          studentName = cached.name || studentName;
+          studentRollNumber = cached.rollNumber || studentRollNumber;
+          studentDepartment = cached.department || studentDepartment;
+        }
+      } catch (e) {}
+    }
 
     try {
       await authFetch('/api/malpractice', {
@@ -209,6 +257,11 @@ export default function CourseDetailPage() {
           courseTitle: course?.title,
           lessonId: activeLesson?.id,
           lessonTitle: activeLesson?.title,
+          studentId,
+          studentEmail,
+          studentName,
+          studentRollNumber,
+          studentDepartment,
           ...details
         })
       });

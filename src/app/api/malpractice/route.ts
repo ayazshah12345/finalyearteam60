@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
 import { getAuthenticatedUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getSupabaseClient } from '@/lib/supabase/admin';
 import { MalpracticeIncident } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -14,30 +15,56 @@ export async function GET(req: Request) {
     const status = searchParams.get('status');
     const since = searchParams.get('since');
 
-    // Sync registered students from PostgreSQL Prisma into dbStore
+    const supabase = getSupabaseClient();
+
+    // 1. Fetch registered students directly from PostgreSQL Supabase
     try {
-      const dbStudents = await prisma.user.findMany({
-        where: { role: 'STUDENT' }
-      });
-      dbStudents.forEach((u) => {
-        dbStore.addUser({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: 'STUDENT',
-          department: u.department,
-          batch: u.batch || '2022-2026',
-          semester: u.semester || 6,
-          rollNumber: u.rollNumber || undefined,
-          avatarUrl: u.avatarUrl || undefined,
-          cgpa: u.cgpa || 8.0,
-          backlogs: u.backlogs || 0,
-          bio: u.bio || 'VSB Student',
-          createdAt: u.createdAt.toISOString()
+      const { data: dbStudents } = await supabase
+        .from('User')
+        .select('*')
+        .eq('role', 'STUDENT');
+
+      if (dbStudents && dbStudents.length > 0) {
+        dbStudents.forEach((u: any) => {
+          dbStore.addUser({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: 'STUDENT',
+            department: u.department,
+            batch: u.batch || '2022-2026',
+            semester: u.semester || 6,
+            rollNumber: u.rollNumber || undefined,
+            avatarUrl: u.avatarUrl || undefined,
+            cgpa: u.cgpa || 8.0,
+            backlogs: u.backlogs || 0,
+            bio: u.bio || 'VSB Student',
+            createdAt: u.createdAt ? new Date(u.createdAt).toISOString() : new Date().toISOString()
+          });
         });
-      });
+      }
     } catch (e) {
-      // Prisma offline/fallback
+      // Supabase fetch fallback to Prisma / dbStore
+      try {
+        const pStudents = await prisma.user.findMany({ where: { role: 'STUDENT' } });
+        pStudents.forEach((u) => {
+          dbStore.addUser({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: 'STUDENT',
+            department: u.department,
+            batch: u.batch || '2022-2026',
+            semester: u.semester || 6,
+            rollNumber: u.rollNumber || undefined,
+            avatarUrl: u.avatarUrl || undefined,
+            cgpa: u.cgpa || 8.0,
+            backlogs: u.backlogs || 0,
+            bio: u.bio || 'VSB Student',
+            createdAt: u.createdAt.toISOString()
+          });
+        });
+      } catch (pe) {}
     }
 
     // Identify registered students
@@ -46,12 +73,52 @@ export async function GET(req: Request) {
     const registeredRolls = new Set(
       registeredStudents.map((s) => s.rollNumber).filter((r): r is string => Boolean(r))
     );
+    const registeredEmails = new Set(
+      registeredStudents.map((s) => s.email.toLowerCase()).filter(Boolean)
+    );
 
-    // Only include incidents belonging to registered candidates
-    let incidents = dbStore.getMalpracticeIncidents().filter(
-      (i) =>
-        registeredIds.has(i.studentId) ||
-        (i.studentRollNumber && registeredRolls.has(i.studentRollNumber))
+    // 2. Fetch persistent malpractice incidents directly from PostgreSQL Supabase AuditLog
+    const dbIncidentsMap = new Map<string, MalpracticeIncident>();
+
+    try {
+      const { data: dbLogs } = await supabase
+        .from('AuditLog')
+        .select('*')
+        .eq('action', 'MALPRACTICE_RECORDED')
+        .order('timestamp', { ascending: false });
+
+      if (dbLogs && dbLogs.length > 0) {
+        for (const row of dbLogs) {
+          try {
+            const parsed = JSON.parse(row.details);
+            if (parsed && parsed.id) {
+              // Ensure student belongs to registered users
+              if (
+                registeredIds.has(parsed.studentId) ||
+                (parsed.studentRollNumber && registeredRolls.has(parsed.studentRollNumber)) ||
+                (parsed.studentEmail && registeredEmails.has(parsed.studentEmail.toLowerCase()))
+              ) {
+                dbIncidentsMap.set(parsed.id, parsed);
+              }
+            }
+          } catch (e) {}
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase AuditLog fetch warning:', e);
+    }
+
+    // Merge in-memory / local incidents
+    const localIncidents = dbStore.getMalpracticeIncidents();
+    for (const inc of localIncidents) {
+      if (!dbIncidentsMap.has(inc.id)) {
+        dbIncidentsMap.set(inc.id, inc);
+      }
+    }
+
+    // Convert map to array sorted by timestamp descending
+    let incidents = Array.from(dbIncidentsMap.values()).sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
     if (category && category !== 'ALL') {
@@ -64,6 +131,21 @@ export async function GET(req: Request) {
       incidents = incidents.filter((i) => i.status === status);
     }
 
+    // Fetch latest global noted timestamp from Supabase
+    let lastNotedAt = dbStore.getLastMalpracticeNotedAt();
+    try {
+      const { data: latestNoted } = await supabase
+        .from('AuditLog')
+        .select('timestamp')
+        .eq('action', 'MALPRACTICE_DESK_NOTED')
+        .order('timestamp', { ascending: false })
+        .limit(1);
+
+      if (latestNoted && latestNoted.length > 0 && latestNoted[0].timestamp) {
+        lastNotedAt = new Date(latestNoted[0].timestamp).toISOString();
+      }
+    } catch (e) {}
+
     let unnotedCount = 0;
     if (since && since.trim().length > 0) {
       const sinceTime = new Date(since).getTime();
@@ -72,13 +154,15 @@ export async function GET(req: Request) {
           (i) => new Date(i.timestamp).getTime() > sinceTime
         ).length;
       } else {
-        unnotedCount = dbStore.getUnnotedMalpracticeCount();
+        unnotedCount = incidents.filter(
+          (i) => !lastNotedAt || new Date(i.timestamp).getTime() > new Date(lastNotedAt).getTime()
+        ).length;
       }
     } else {
-      unnotedCount = dbStore.getUnnotedMalpracticeCount();
+      unnotedCount = incidents.filter(
+        (i) => !lastNotedAt || new Date(i.timestamp).getTime() > new Date(lastNotedAt).getTime()
+      ).length;
     }
-
-    const lastNotedAt = dbStore.getLastMalpracticeNotedAt();
 
     return NextResponse.json(
       { incidents, unnotedCount, lastNotedAt },
@@ -104,10 +188,30 @@ export async function POST(req: Request) {
   try {
     const user = await getAuthenticatedUser(req);
     const body = await req.json();
+    const supabase = getSupabaseClient();
 
     if (body.action === 'MARK_NOTED') {
       dbStore.markAllMalpracticeNoted();
       const nowIso = new Date().toISOString();
+
+      // Persist noted marker in PostgreSQL Supabase AuditLog
+      try {
+        const facultyUser = user || dbStore.getUsers().find((u) => u.role === 'FACULTY');
+        if (facultyUser) {
+          await supabase.from('AuditLog').insert({
+            id: `noted_${Date.now()}`,
+            userId: facultyUser.id,
+            userName: facultyUser.name,
+            role: 'FACULTY',
+            action: 'MALPRACTICE_DESK_NOTED',
+            details: JSON.stringify({ notedAt: nowIso }),
+            timestamp: nowIso
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to record MALPRACTICE_DESK_NOTED to Supabase:', e);
+      }
+
       return NextResponse.json(
         { success: true, unnotedCount: 0, lastNotedAt: nowIso },
         {
@@ -118,44 +222,56 @@ export async function POST(req: Request) {
       );
     }
 
-    // Resolve the student
-    let targetStudentId = body.studentId || (user?.role === 'STUDENT' ? user.id : null);
-    let studentUser = targetStudentId ? dbStore.getUserById(targetStudentId) : null;
+    // 1. Resolve registered student from Supabase / Prisma / dbStore
+    let studentUser: any = null;
 
-    if (!studentUser && targetStudentId) {
+    // Check by body.studentEmail first
+    if (body.studentEmail) {
       try {
-        const dbU = await prisma.user.findUnique({ where: { id: targetStudentId } });
-        if (dbU) {
-          studentUser = {
-            id: dbU.id,
-            name: dbU.name,
-            email: dbU.email,
-            role: dbU.role as any,
-            department: dbU.department,
-            batch: dbU.batch || '2022-2026',
-            semester: dbU.semester || 6,
-            rollNumber: dbU.rollNumber || undefined,
-            avatarUrl: dbU.avatarUrl || undefined,
-            cgpa: dbU.cgpa || 8.0,
-            backlogs: dbU.backlogs || 0,
-            bio: dbU.bio || 'VSB Student',
-            createdAt: dbU.createdAt.toISOString()
-          };
-          dbStore.addUser(studentUser);
-        }
+        const { data } = await supabase
+          .from('User')
+          .select('*')
+          .ilike('email', body.studentEmail.trim())
+          .single();
+        if (data) studentUser = data;
       } catch (e) {}
     }
 
+    // Check by body.studentId
+    if (!studentUser && body.studentId) {
+      try {
+        const { data } = await supabase
+          .from('User')
+          .select('*')
+          .eq('id', body.studentId)
+          .single();
+        if (data) studentUser = data;
+      } catch (e) {}
+    }
+
+    // Check by session user
     if (!studentUser && user?.role === 'STUDENT') {
       studentUser = user;
     }
 
-    // If still no registered student found, find first registered student
+    // Check dbStore
+    if (!studentUser && body.studentId) {
+      studentUser = dbStore.getUserById(body.studentId);
+    }
+
+    // Check Prisma
+    if (!studentUser && body.studentEmail) {
+      try {
+        const pUser = await prisma.user.findFirst({
+          where: { email: { equals: body.studentEmail.trim(), mode: 'insensitive' } }
+        });
+        if (pUser) studentUser = pUser;
+      } catch (e) {}
+    }
+
+    // Fallback to active registered student
     if (!studentUser) {
-      const registeredStudent = dbStore.getUsers().find((u) => u.role === 'STUDENT');
-      if (registeredStudent) {
-        studentUser = registeredStudent;
-      }
+      studentUser = dbStore.getUsers().find((u) => u.role === 'STUDENT');
     }
 
     if (!studentUser) {
@@ -199,13 +315,14 @@ export async function POST(req: Request) {
       severity = 'MEDIUM';
     }
 
-    const incident: MalpracticeIncident = {
+    const incident: MalpracticeIncident & { studentEmail?: string } = {
       id: `mal_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       studentId: studentUser.id,
       studentName: studentUser.name,
       studentRollNumber: studentUser.rollNumber || body.studentRollNumber || 'N/A',
       studentDepartment: studentUser.department || 'AI & Data Science',
       studentAvatarUrl: studentUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+      studentEmail: studentUser.email || body.studentEmail,
       category,
       type,
       title: body.title || defaultTitle,
@@ -224,6 +341,26 @@ export async function POST(req: Request) {
       }
     };
 
+    // 2. Save permanently into PostgreSQL Supabase AuditLog table
+    try {
+      const { error: dbError } = await supabase.from('AuditLog').insert({
+        id: incident.id,
+        userId: studentUser.id,
+        userName: studentUser.name,
+        role: 'STUDENT',
+        action: 'MALPRACTICE_RECORDED',
+        details: JSON.stringify(incident),
+        timestamp: incident.timestamp
+      });
+
+      if (dbError) {
+        console.error('Supabase AuditLog insert error:', dbError);
+      }
+    } catch (dbErr) {
+      console.error('Database connection error during malpractice insert:', dbErr);
+    }
+
+    // 3. Cache into dbStore
     dbStore.addMalpracticeIncident(incident);
 
     // Send high-priority alert notification to faculty
@@ -235,19 +372,6 @@ export async function POST(req: Request) {
       category: 'System',
       read: false,
       createdAt: new Date().toISOString()
-    });
-
-    // Log to audit trail
-    dbStore.logAudit({
-      id: `aud_mal_${Date.now()}`,
-      userId: incident.studentId,
-      userName: incident.studentName,
-      role: 'STUDENT',
-      action: 'MALPRACTICE_RECORDED',
-      entity: 'MalpracticeIncident',
-      entityId: incident.id,
-      timestamp: incident.timestamp,
-      details: `[${incident.category}] ${incident.title}: ${incident.description}`
     });
 
     return NextResponse.json(
@@ -267,6 +391,7 @@ export async function PATCH(req: Request) {
   try {
     const body = await req.json();
     const { id, ids, status } = body;
+    const supabase = getSupabaseClient();
 
     const targetIds: string[] = ids || (id ? [id] : []);
 
@@ -274,9 +399,30 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Incident id/ids and status are required' }, { status: 400 });
     }
 
+    // 1. Update in local dbStore
     const updated = dbStore.updateMalpracticeIncidentStatus(targetIds, status);
-    if (!updated) {
-      return NextResponse.json({ error: 'No matching incidents found' }, { status: 404 });
+
+    // 2. Update permanently in PostgreSQL Supabase AuditLog table
+    try {
+      const { data: currentLogs } = await supabase
+        .from('AuditLog')
+        .select('*')
+        .in('id', targetIds);
+
+      if (currentLogs && currentLogs.length > 0) {
+        for (const log of currentLogs) {
+          try {
+            const parsed = JSON.parse(log.details);
+            parsed.status = status;
+            await supabase
+              .from('AuditLog')
+              .update({ details: JSON.stringify(parsed) })
+              .eq('id', log.id);
+          } catch (pe) {}
+        }
+      }
+    } catch (dbErr) {
+      console.warn('Failed to update Supabase AuditLog records:', dbErr);
     }
 
     return NextResponse.json(
