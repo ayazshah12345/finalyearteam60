@@ -786,6 +786,72 @@ export const SEED_PLACEMENT_DRIVES: PlacementDrive[] = [
     },
     published: true,
     createdAt: '2026-08-03T10:00:00Z'
+  },
+  {
+    id: 'drv_zoho_2026',
+    companyId: 'cmp_zoho',
+    companyName: 'Zoho Corporation',
+    companyLogoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/71/Zoho_Corporation_2023_logo.svg',
+    roleTitle: 'Software Development Engineer',
+    jobDescription: 'Design enterprise SaaS modules, solve complex algorithmic challenges, and create resilient backend architectures.',
+    packageLPA: 9.0,
+    location: 'Chennai / Tenkasi',
+    driveDate: '2026-09-15',
+    deadlineDate: '2026-09-08',
+    eligibility: {
+      minCgpa: 7.0,
+      maxBacklogs: 1,
+      allowedDepartments: ['Computer Science & Engineering', 'AI & Data Science', 'Information Technology', 'ECE', 'EEE'],
+      graduationYear: '2026',
+      requiredSkills: ['C', 'C++', 'Java', 'Data Structures', 'OOPs', 'Problem Solving'],
+      minCourseCompletionPercent: 60
+    },
+    published: true,
+    createdAt: '2026-08-10T10:00:00Z'
+  },
+  {
+    id: 'drv_aws_2026',
+    companyId: 'cmp_amazon',
+    companyName: 'Amazon Web Services (AWS)',
+    companyLogoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg',
+    roleTitle: 'Cloud Support Engineer - Linux & DevOps',
+    jobDescription: 'Troubleshoot complex enterprise cloud architectures, build automation pipelines, and optimize AWS cloud deployments.',
+    packageLPA: 19.5,
+    location: 'Bengaluru / Hyderabad',
+    driveDate: '2026-09-22',
+    deadlineDate: '2026-09-14',
+    eligibility: {
+      minCgpa: 7.5,
+      maxBacklogs: 0,
+      allowedDepartments: ['Computer Science & Engineering', 'AI & Data Science', 'Information Technology'],
+      graduationYear: '2026',
+      requiredSkills: ['Linux', 'Networking', 'Python', 'AWS Services', 'Docker'],
+      minCourseCompletionPercent: 75
+    },
+    published: true,
+    createdAt: '2026-08-12T10:00:00Z'
+  },
+  {
+    id: 'drv_tcs_2026',
+    companyId: 'cmp_tcs',
+    companyName: 'TCS Digital & Prime',
+    companyLogoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Tata_Consultancy_Services_Logo.svg',
+    roleTitle: 'Digital Systems Engineer (R&D Track)',
+    jobDescription: 'High-growth elite engineering cohort focusing on full stack modern web applications, AI copilots, and cloud architecture.',
+    packageLPA: 9.5,
+    location: 'Chennai / Bengaluru / Pan India',
+    driveDate: '2026-09-28',
+    deadlineDate: '2026-09-20',
+    eligibility: {
+      minCgpa: 7.0,
+      maxBacklogs: 0,
+      allowedDepartments: ['Computer Science & Engineering', 'AI & Data Science', 'Information Technology', 'ECE'],
+      graduationYear: '2026',
+      requiredSkills: ['Data Structures', 'Python', 'SQL', 'Algorithms'],
+      minCourseCompletionPercent: 65
+    },
+    published: true,
+    createdAt: '2026-08-15T10:00:00Z'
   }
 ];
 

@@ -244,6 +244,12 @@ class DatabaseStore {
     return this.data.modules.filter(m => m.courseId === courseId).sort((a, b) => a.order - b.order);
   }
 
+  public addModule(module: Module) {
+    this.data.modules.push(module);
+    this.saveData();
+    return module;
+  }
+
   public getLessonsByCourse(courseId: string): Lesson[] {
     return this.data.lessons.filter(l => l.courseId === courseId).sort((a, b) => a.order - b.order);
   }

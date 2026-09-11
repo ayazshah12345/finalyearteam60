@@ -46,6 +46,8 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
   const mainNav = user.role === 'FACULTY' ? [
     { label: 'Faculty Command Desk', href: '/faculty', icon: Briefcase },
     { label: 'Student Profiles', href: '/faculty/students', icon: UserCheck },
+    { label: 'Add Technical Course', href: '/faculty/courses', icon: BookOpen },
+    { label: 'Create Placement Drive', href: '/faculty/drives', icon: Building2 },
     { label: 'Test', href: '/faculty/test', icon: CheckSquare },
   ] : [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },

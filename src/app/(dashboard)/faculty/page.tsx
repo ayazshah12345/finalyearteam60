@@ -29,7 +29,8 @@ import {
   FileCode,
   Briefcase,
   Code2,
-  CheckSquare
+  CheckSquare,
+  BookOpen
 } from 'lucide-react';
 import Link from 'next/link';
 import { authFetch } from '@/lib/client-auth';
@@ -282,25 +283,31 @@ export default function FacultyPortalPage() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Link
               href="/faculty/students"
-              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 shrink-0"
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0"
             >
               <Users className="w-4 h-4" /> Student Profiles
             </Link>
             <Link
-              href="/faculty/test"
-              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 border border-indigo-400/30"
+              href="/faculty/courses"
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-indigo-400/30"
             >
-              <CheckSquare className="w-4 h-4 text-indigo-200" /> Create / Upload Test
+              <BookOpen className="w-4 h-4 text-indigo-200" /> Add Technical Course
             </Link>
-            <button
-              onClick={() => setShowDriveModal(true)}
-              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 shrink-0"
+            <Link
+              href="/faculty/drives"
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 font-bold"
             >
               <Plus className="w-4 h-4" /> Create Placement Drive
-            </button>
+            </Link>
+            <Link
+              href="/faculty/test"
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-indigo-400/30"
+            >
+              <CheckSquare className="w-4 h-4 text-indigo-200" /> Test Desk
+            </Link>
           </div>
         </div>
       </div>
