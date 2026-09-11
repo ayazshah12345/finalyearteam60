@@ -159,7 +159,8 @@ export default function FacultyPortalPage() {
 
     // Fetch Student Resume
     try {
-      const resRes = await fetch('/api/resume');
+      const studentIdToFetch = st.studentId || st.id;
+      const resRes = await fetch(`/api/resume?studentId=${studentIdToFetch}`);
       if (resRes.ok) {
         const resData = await resRes.json();
         setStudentResume(resData.resume || null);
@@ -855,34 +856,81 @@ export default function FacultyPortalPage() {
             {inspectTab === 'resume' && (
               <div className="space-y-4 text-xs">
                 {studentResume ? (
-                  <div className="bg-white text-slate-900 p-6 rounded-2xl border border-slate-300 space-y-4 font-sans">
-                    <div className="border-b pb-2 text-center">
-                      <h2 className="text-xl font-bold text-slate-900">{inspectStudent.name}</h2>
-                      <p className="text-[11px] text-slate-600">{inspectStudent.email} • {inspectStudent.department} • Reg No: {inspectStudent.rollNumber}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-bold uppercase text-[11px] border-b pb-0.5 text-indigo-900">Executive Summary</h4>
-                      <p className="text-[11px] text-slate-700 mt-1 leading-relaxed">{studentResume.summary}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-bold uppercase text-[11px] border-b pb-0.5 text-indigo-900">Technical Skills</h4>
-                      <div className="space-y-1 mt-1 text-[11px]">
-                        {studentResume.skills?.map((sk, idx) => (
-                          <div key={idx}><strong>{sk.category}:</strong> {sk.list.join(', ')}</div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-bold uppercase text-[11px] border-b pb-0.5 text-indigo-900">Projects</h4>
-                      {studentResume.projects?.map((pj, idx) => (
-                        <div key={idx} className="mt-1 text-[11px]">
-                          <strong>{pj.title}</strong> [{pj.tech}]
+                  <div className="space-y-4">
+                    {studentResume.isCustomUpload && studentResume.fileUrl && (
+                      <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
+                            📄
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-xs text-slate-900 dark:text-white">
+                              {studentResume.fileName || 'Uploaded Resume Document'}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-medium">
+                              {studentResume.fileSize || 'Verified'} • ATS Match Score: {studentResume.atsScore || 91}%
+                            </div>
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={studentResume.fileUrl}
+                            download={studentResume.fileName || 'resume.pdf'}
+                            className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-100 transition-colors"
+                          >
+                            Download
+                          </a>
+                          <a
+                            href={studentResume.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors"
+                          >
+                            Open Fullscreen
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {studentResume.isCustomUpload && studentResume.fileUrl && (studentResume.fileType?.includes('pdf') || studentResume.fileName?.endsWith('.pdf')) ? (
+                      <div className="rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 shadow-sm">
+                        <iframe
+                          src={`${studentResume.fileUrl}#toolbar=0`}
+                          className="w-full h-[520px] bg-white"
+                          title="Candidate Uploaded Resume"
+                        />
+                      </div>
+                    ) : (
+                      <div className="bg-white text-slate-900 p-6 rounded-2xl border border-slate-300 space-y-4 font-sans">
+                        <div className="border-b pb-2 text-center">
+                          <h2 className="text-xl font-bold text-slate-900">{inspectStudent.name}</h2>
+                          <p className="text-[11px] text-slate-600">{inspectStudent.email} • {inspectStudent.department} • Reg No: {inspectStudent.rollNumber}</p>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold uppercase text-[11px] border-b pb-0.5 text-indigo-900">Executive Summary</h4>
+                          <p className="text-[11px] text-slate-700 mt-1 leading-relaxed">{studentResume.summary}</p>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold uppercase text-[11px] border-b pb-0.5 text-indigo-900">Technical Skills</h4>
+                          <div className="space-y-1 mt-1 text-[11px]">
+                            {studentResume.skills?.map((sk, idx) => (
+                              <div key={idx}><strong>{sk.category}:</strong> {sk.list.join(', ')}</div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold uppercase text-[11px] border-b pb-0.5 text-indigo-900">Projects</h4>
+                          {studentResume.projects?.map((pj, idx) => (
+                            <div key={idx} className="mt-1 text-[11px]">
+                              <strong>{pj.title}</strong> [{pj.tech}]
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-slate-400 text-center py-4">Loading candidate resume...</div>

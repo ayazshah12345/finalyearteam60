@@ -263,6 +263,13 @@ export interface ResumeData {
   education: { institution: string; degree: string; year: string; cgpa: string }[];
   certifications: string[];
   updatedAt: string;
+  isCustomUpload?: boolean;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: string;
+  fileType?: string;
+  uploadedAt?: string;
+  atsScore?: number;
 }
 
 export interface Company {
