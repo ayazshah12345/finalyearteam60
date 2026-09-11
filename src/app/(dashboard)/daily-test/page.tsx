@@ -229,7 +229,7 @@ export default function DailyTestPage() {
 
       // Log real-time incident to faculty malpractice desk
       try {
-        fetch('/api/malpractice', {
+        authFetch('/api/malpractice', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -238,7 +238,11 @@ export default function DailyTestPage() {
             count: nextCount,
             quizId: activeModule?.id,
             quizTitle: activeModule?.title,
-            severity: nextCount >= 3 ? 'HIGH' : 'MEDIUM'
+            severity: nextCount >= 3 ? 'HIGH' : 'MEDIUM',
+            studentId: user?.id,
+            studentName: user?.name,
+            studentRollNumber: user?.rollNumber,
+            studentDepartment: user?.department
           })
         })
           .then(() => {
@@ -415,7 +419,7 @@ export default function DailyTestPage() {
       id: `att_term_${Date.now()}`,
       quizId: activeModule?.id || 'mod_all',
       quizTitle: activeModule?.title || 'Daily Testing Assessment',
-      studentId: user?.id || 'usr_student_1',
+      studentId: user?.id || '',
       studentName: user?.name || 'Student',
       answers: selectedAnswers,
       score: 0,
@@ -476,7 +480,7 @@ export default function DailyTestPage() {
       id: `att_${Date.now()}`,
       quizId: activeModule?.id || 'mod_all',
       quizTitle: activeModule?.title || 'Daily Testing Assessment',
-      studentId: user?.id || 'usr_student_1',
+      studentId: user?.id || '',
       studentName: user?.name || 'Student',
       answers: selectedAnswers,
       score,

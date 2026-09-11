@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
 import { authorizeRole } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 import { evaluateStudentEligibility } from '@/lib/eligibility';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   const auth = await authorizeRole(['FACULTY', 'PLACEMENT_COORDINATOR'], req);
@@ -9,9 +12,35 @@ export async function GET(req: Request) {
 
   const activeUser = auth.user;
   
-  // Get all registered students
+  // Sync legitimately registered students from PostgreSQL database
+  try {
+    const dbStudents = await prisma.user.findMany({
+      where: { role: 'STUDENT' }
+    });
+    dbStudents.forEach((u) => {
+      dbStore.addUser({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: 'STUDENT',
+        department: u.department,
+        batch: u.batch || '2022-2026',
+        semester: u.semester || 6,
+        rollNumber: u.rollNumber || undefined,
+        avatarUrl: u.avatarUrl || undefined,
+        cgpa: u.cgpa || 8.0,
+        backlogs: u.backlogs || 0,
+        bio: u.bio || 'VSB Student',
+        createdAt: u.createdAt.toISOString()
+      });
+    });
+  } catch (e) {
+    // fallback
+  }
+
+  // Get all registered students from dbStore
   const allUsers = dbStore.getUsers();
-  const students = allUsers.filter(u => u.role === 'STUDENT');
+  const students = allUsers.filter((u) => u.role === 'STUDENT');
 
   // Get all quiz attempts & placement drives
   const allAttempts = dbStore.getAllQuizAttempts();
@@ -72,10 +101,17 @@ export async function GET(req: Request) {
     };
   });
 
-  return NextResponse.json({
-    coordinator: activeUser,
-    totalRegisteredStudents: students.length,
-    studentRecords,
-    drivesCount: drives.length
-  });
+  return NextResponse.json(
+    {
+      coordinator: activeUser,
+      totalRegisteredStudents: students.length,
+      studentRecords,
+      drivesCount: drives.length
+    },
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      }
+    }
+  );
 }

@@ -278,106 +278,14 @@ export const SEED_QUIZZES: Quiz[] = [
   }
 ];
 
-export const SEED_QUIZ_ATTEMPTS: QuizAttempt[] = [
-  {
-    id: 'qa_1',
-    quizId: 'qz_dsa_1',
-    quizTitle: 'Comprehensive DSA Mid-Term Quiz',
-    studentId: 'usr_student_1',
-    studentName: 'Aarav Sharma',
-    answers: { 'q_1': 'B', 'q_2': 'C', 'q_3': 'B' },
-    score: 10,
-    totalMarks: 10,
-    percentage: 100,
-    passed: true,
-    timeSpentSeconds: 840,
-    startedAt: '2026-08-03T10:00:00Z',
-    completedAt: '2026-08-03T10:14:00Z'
-  }
-];
-
-export const SEED_DAILY_REPORTS: DailyReport[] = [
-  {
-    id: 'dr_1',
-    studentId: 'usr_student_1',
-    studentName: 'Aarav Sharma',
-    department: 'Computer Science & Engineering',
-    date: '2026-08-07',
-    studyHours: 4.5,
-    topicsLearned: ['N-Queens Backtracking', 'Next.js App Router API Routes', 'Quantitative Aptitude Series'],
-    completedTasks: ['Watched Recursion Lesson 101', 'Solved 3 Medium LeetCode Questions', 'Submitted DSA Assignment 1'],
-    codingProblemsSolved: 3,
-    reflection: 'Felt confident with bitmask optimization in recursion. Need to revise Dijkstra edge relaxation proofs.',
-    tomorrowPlan: 'Attempt Graph Shortest Path problems on LeetCode and practice timed aptitude quiz.',
-    facultyComment: 'Great momentum, Aarav! Keep up the consistency in your daily reports.',
-    reviewedBy: 'Dr. Ramesh Verma',
-    status: 'Reviewed',
-    createdAt: '2026-08-07T18:30:00Z'
-  }
-];
-
-export const SEED_CODING_PROFILES: CodingProfile[] = [
-  {
-    id: 'cp_1',
-    studentId: 'usr_student_1',
-    leetcodeUsername: 'aarav_codes',
-    hackerrankUsername: 'aarav_sharma',
-    codechefUsername: 'aarav_dev',
-    codeforcesUsername: 'aarav_s',
-    geeksforgeeksUsername: 'aarav_gfg',
-    totalSolved: 312,
-    easyCount: 140,
-    mediumCount: 145,
-    hardCount: 27,
-    contestRating: 1785,
-    streakDays: 14,
-    verificationStatus: 'Imported / Verified',
-    lastUpdated: '2026-08-07T20:00:00Z'
-  },
-  {
-    id: 'cp_2',
-    studentId: 'usr_student_2',
-    leetcodeUsername: 'rahul_k',
-    totalSolved: 45,
-    easyCount: 30,
-    mediumCount: 14,
-    hardCount: 1,
-    contestRating: 1320,
-    streakDays: 2,
-    verificationStatus: 'Manual Entry',
-    lastUpdated: '2026-08-05T12:00:00Z'
-  }
-];
-
-export const SEED_PORTFOLIO_ITEMS: PortfolioItem[] = [
-  {
-    id: 'pf_1',
-    studentId: 'usr_student_1',
-    type: 'CERTIFICATE',
-    title: 'Advanced Data Structures & Algorithms Mastery',
-    description: 'Certified completion of 42-hour intensive DSA program with distinction.',
-    date: '2026-08-05',
-    tags: ['DSA', 'Algorithms', 'Certification'],
-    autoSynced: true,
-    publicVisible: true
-  },
-  {
-    id: 'pf_2',
-    studentId: 'usr_student_1',
-    type: 'PROJECT',
-    title: 'Distributed Cloud Log Search Engine',
-    description: 'Built a high-performance log indexing engine in Go & React handling 100k events/sec.',
-    date: '2026-07-20',
-    tags: ['Go', 'React', 'Distributed Systems'],
-    linkUrl: 'https://github.com/aaravsharma/log-engine',
-    autoSynced: false,
-    publicVisible: true
-  }
-];
+export const SEED_QUIZ_ATTEMPTS: QuizAttempt[] = [];
+export const SEED_DAILY_REPORTS: DailyReport[] = [];
+export const SEED_CODING_PROFILES: CodingProfile[] = [];
+export const SEED_PORTFOLIO_ITEMS: PortfolioItem[] = [];
 
 export const SEED_RESUME: ResumeData = {
   id: 'res_1',
-  studentId: 'usr_student_1',
+  studentId: 'usr_student_1787857636457',
   title: 'Full Stack Software Engineer - 2026',
   template: 'ATS Resume',
   summary: 'Detail-oriented Computer Science undergrad with strong foundations in Data Structures, Next.js, Cloud Architecture, and Problem Solving (300+ LeetCode solved). Seeking SDE roles in high-growth engineering teams.',
@@ -563,31 +471,7 @@ export const SEED_PLACEMENT_DRIVES: PlacementDrive[] = [
   }
 ];
 
-export const SEED_APPLICATIONS: PlacementApplication[] = [
-  {
-    id: 'app_1',
-    driveId: 'drv_google_2026',
-    companyName: 'Google Cloud India',
-    roleTitle: 'Software Development Engineer I (SDE-1)',
-    packageLPA: 24.5,
-    studentId: 'usr_student_1',
-    studentName: 'Aarav Sharma',
-    studentRollNumber: '21CS104',
-    department: 'Computer Science & Engineering',
-    cgpaSnapshot: 8.4,
-    backlogsSnapshot: 0,
-    isEligible: true,
-    eligibilityReasons: [
-      'CGPA 8.4 satisfies min required 7.5',
-      '0 Active backlogs satisfies criteria',
-      'Department Computer Science & Engineering is allowed',
-      'Required skills (DSA, C++, Python, SQL) verified'
-    ],
-    status: 'Technical Interview',
-    appliedAt: '2026-08-02T14:00:00Z',
-    interviewSchedule: '2026-08-26 11:00 AM IST (Google Meet Link)'
-  }
-];
+export const SEED_APPLICATIONS: PlacementApplication[] = [];
 
 export const SEED_KNOWLEDGE_SOURCES: AIKnowledgeSource[] = [
   {
@@ -608,116 +492,11 @@ export const SEED_KNOWLEDGE_SOURCES: AIKnowledgeSource[] = [
   }
 ];
 
-export const SEED_NOTIFICATIONS: Notification[] = [
-  {
-    id: 'nt_1',
-    targetUserId: 'usr_student_1',
-    title: 'Placement Drive Released!',
-    message: 'Google Cloud India has launched SDE-1 placement drive for 2026 batch (24.5 LPA). Check your eligibility now.',
-    category: 'Placement',
-    read: false,
-    createdAt: '2026-08-01T10:00:00Z'
-  },
-  {
-    id: 'nt_2',
-    targetUserId: 'usr_student_1',
-    title: 'Assignment Graded',
-    message: 'Dr. Ramesh Verma graded your submission for Assignment 1: N-Queens & Graph Shortest Path (95/100).',
-    category: 'Assignment',
-    read: true,
-    createdAt: '2026-08-05T10:00:00Z'
-  }
-];
+export const SEED_NOTIFICATIONS: Notification[] = [];
 
-export const SEED_AUDIT_LOGS: AuditLog[] = [
-  {
-    id: 'aud_1',
-    userId: 'usr_faculty_1',
-    userName: 'Dr. Ramesh Verma',
-    role: 'FACULTY',
-    action: 'GRADE_ASSIGNMENT',
-    entity: 'Submission',
-    entityId: 'sub_1',
-    timestamp: '2026-08-05T10:00:00Z',
-    details: 'Graded student Aarav Sharma submission for Assignment 1: 95/100'
-  },
-  {
-    id: 'aud_2',
-    userId: 'usr_placement_1',
-    userName: 'Prof. Sunita Rao',
-    role: 'PLACEMENT_COORDINATOR',
-    action: 'CREATE_PLACEMENT_DRIVE',
-    entity: 'PlacementDrive',
-    entityId: 'drv_google_2026',
-    timestamp: '2026-08-01T10:00:00Z',
-    details: 'Created drive for Google Cloud India (24.5 LPA, min CGPA 7.5)'
-  }
-];
+export const SEED_AUDIT_LOGS: AuditLog[] = [];
 
-export const SEED_MOCK_INTERVIEWS: any[] = [
-  {
-    id: 'int_1',
-    studentId: 'usr_student_1',
-    studentName: 'Aarav Sharma',
-    studentRollNumber: '21CS104',
-    department: 'Computer Science & Engineering',
-    targetRole: 'Full Stack Software Engineer',
-    skillsEvaluated: ['Python', 'SQL', 'Data Structures', 'System Design'],
-    resumeSummary: 'CS Senior with 8.8 CGPA, proficient in Python, React, SQL, and DSA.',
-    overallScore: 86,
-    technicalScore: 88,
-    communicationScore: 85,
-    logicScore: 84,
-    confidenceScore: 87,
-    hiringRecommendation: 'Strong Hire',
-    feedbackSummary: 'Demonstrated solid grasp of Python memory management, GIL, indexing in PostgreSQL, and BFS/DFS graph traversals. Excellent clarity in speech.',
-    strengthAreas: ['Python Mutability & Decorators', 'SQL B-Tree Indexing', 'Clear Verbal Articulation'],
-    weaknessAreas: ['Distributed Caching (Redis eviction policies)'],
-    transcript: [
-      {
-        round: 1,
-        roundTitle: 'Candidate Background & Resume Introduction',
-        question: 'Tell me about yourself and your key technical projects listed in your resume.',
-        studentAnswer: 'I am a final year CSE student with 8.8 CGPA. I built a full-stack SGIP platform using Next.js, Python, and SQL with AI assistance.',
-        feedback: 'Excellent concise elevator pitch highlighting technical skills and project metrics.',
-        score: 90
-      },
-      {
-        round: 2,
-        roundTitle: 'Technical Core & Language Concepts',
-        question: 'Explain how Python manages memory and what the Global Interpreter Lock (GIL) does.',
-        studentAnswer: 'Python uses reference counting and garbage collection for cycle detection. The GIL ensures only one thread executes bytecode at a time.',
-        feedback: 'Accurate explanation of reference counting and thread locking mechanics in CPython.',
-        score: 85
-      },
-      {
-        round: 3,
-        roundTitle: 'Data Structures & Algorithmic Logic',
-        question: 'How would you detect a cycle in a directed graph efficiently?',
-        studentAnswer: 'I would use depth-first search with 3 node states: unvisited, visiting (in current recursion stack), and visited. If we hit a visiting node, a cycle exists.',
-        feedback: 'Correct 3-color graph cycle detection algorithm.',
-        score: 88
-      },
-      {
-        round: 4,
-        roundTitle: 'System Design & Architecture',
-        question: 'How would you design a real-time notification service for 100k active students?',
-        studentAnswer: 'Use WebSocket connections for live delivery with a Redis Pub/Sub backend and queue fallbacks using Celery or BullMQ for offline push notifications.',
-        feedback: 'Solid architectural proposal balancing WebSockets and message queues.',
-        score: 82
-      },
-      {
-        round: 5,
-        roundTitle: 'HR & Behavioral Competency',
-        question: 'Describe a situation where a technical project deadline was tight. How did you prioritize?',
-        studentAnswer: 'I broke down requirements into core MVP features vs nice-to-haves, automated unit testing early, and communicated progress daily.',
-        feedback: 'Demonstrates strong agile teamwork and risk mitigation strategy.',
-        score: 85
-      }
-    ],
-    completedAt: '2026-08-26T14:30:00Z'
-  }
-];
+export const SEED_MOCK_INTERVIEWS: any[] = [];
 
 export const SEED_CODING_PROBLEMS: CodingProblem[] = [
   {
@@ -969,23 +748,23 @@ console.log(maxArea([1,8,6,2,5,4,8,3,7]));`
       '0 <= height[i] <= 10^5'
     ],
     starterCode: {
-      Python: `def trap(height: list[int]) -> int:
-    if not height: return 0
-    l, r = 0, len(height) - 1
-    left_max, right_max = height[l], height[r]
-    water = 0
-    while l < r:
-        if left_max < right_max:
-            l += 1
-            left_max = max(left_max, height[l])
-            water += left_max - height[l]
-        else:
-            r -= 1
-            right_max = max(right_max, height[r])
-            water += right_max - height[r]
-    return water
-
-print(trap([0,1,0,2,1,0,1,3,2,1,2,1]))`
+      python: `class Solution:
+    def trap(self, height: List[int]) -> int:
+        pass`,
+      javascript: `var trap = function(height) {
+    
+};`,
+      cpp: `class Solution {
+public:
+    int trap(vector<int>& height) {
+        
+    }
+};`,
+      java: `class Solution {
+    public int trap(int[] height) {
+        return 0;
+    }
+};`
     },
     sampleCases: [
       { id: 'tc1', input: 'height = [0,1,0,2,1,0,1,3,2,1,2,1]', expectedOutput: '6', explanation: 'Total trapped rain water is 6 units.' }
@@ -994,154 +773,6 @@ print(trap([0,1,0,2,1,0,1,3,2,1,2,1]))`
   }
 ];
 
-export const SEED_CODING_SUBMISSIONS: CodingSubmission[] = [
-  {
-    id: 'sub_1',
-    studentId: 'usr_student_1',
-    studentName: 'Aarav Sharma',
-    problemId: 'lc_1',
-    problemTitle: 'Two Sum',
-    language: 'Python',
-    code: `def twoSum(nums, target):
-    hashmap = {}
-    for i, num in enumerate(nums):
-        diff = target - num
-        if diff in hashmap:
-            return [hashmap[diff], i]
-        hashmap[num] = i
-    return []`,
-    status: 'Accepted',
-    testCasesPassed: 3,
-    totalTestCases: 3,
-    executionTimeMs: 42,
-    submittedAt: '2026-08-05T14:20:00Z'
-  },
-  {
-    id: 'sub_2',
-    studentId: 'usr_student_1',
-    studentName: 'Aarav Sharma',
-    problemId: 'lc_2',
-    problemTitle: 'Valid Anagram',
-    language: 'Python',
-    code: `def isAnagram(s, t):
-    return sorted(s) == sorted(t)`,
-    status: 'Accepted',
-    testCasesPassed: 2,
-    totalTestCases: 2,
-    executionTimeMs: 55,
-    submittedAt: '2026-08-06T16:10:00Z'
-  },
-  {
-    id: 'sub_3',
-    studentId: 'usr_student_1',
-    studentName: 'Aarav Sharma',
-    problemId: 'lc_3',
-    problemTitle: 'Longest Substring Without Repeating Characters',
-    language: 'JavaScript',
-    code: `function lengthOfLongestSubstring(s) {
-    let set = new Set(), l = 0, res = 0;
-    for (let r = 0; r < s.length; r++) {
-        while (set.has(s[r])) set.delete(s[l++]);
-        set.add(s[r]);
-        res = Math.max(res, r - l + 1);
-    }
-    return res;
-}`,
-    status: 'Accepted',
-    testCasesPassed: 2,
-    totalTestCases: 2,
-    executionTimeMs: 68,
-    submittedAt: '2026-08-07T11:45:00Z'
-  }
-];
+export const SEED_CODING_SUBMISSIONS: CodingSubmission[] = [];
 
-export const SEED_MALPRACTICE_INCIDENTS: MalpracticeIncident[] = [
-  {
-    id: 'mal_1',
-    studentId: 'usr_student_1',
-    studentName: 'Aarav Sharma',
-    studentRollNumber: '22CS101',
-    studentDepartment: 'Computer Science & Engineering',
-    studentAvatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=250&q=80',
-    category: 'TEST_SESSION',
-    type: 'TAB_SWITCH',
-    title: 'Test Window Focus Loss / Tab Switching',
-    description: 'Student switched browser tabs 3 consecutive times during proctored Daily Test Assessment.',
-    severity: 'HIGH',
-    contextTitle: '🔥 Module 8: Full 50-Question Master Placement Assessment',
-    contextId: 'mod_all',
-    timestamp: '2026-09-10T14:32:00Z',
-    status: 'REPORTED',
-    details: {
-      strikes: 3,
-      browser: 'Chrome 128 / Windows',
-      event: 'VisibilityChange hidden'
-    }
-  },
-  {
-    id: 'mal_2',
-    studentId: 'usr_student_2',
-    studentName: 'Diya Patel',
-    studentRollNumber: '22AD104',
-    studentDepartment: 'AI & Data Science',
-    studentAvatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=250&q=80',
-    category: 'VIDEO_TAMPERING',
-    type: 'VIDEO_SPEEDUP_ATTEMPT',
-    title: 'Attempted Fast Playback Rate (2.0x Acceleration)',
-    description: 'Student attempted to accelerate YouTube technical video lecture to 2.0x playback speed to bypass minimum watch duration.',
-    severity: 'MEDIUM',
-    contextTitle: 'Full-Stack Web Engineering with Next.js - Server Components Lecture',
-    contextId: 'crs_web_fullstack',
-    timestamp: '2026-09-10T16:15:00Z',
-    status: 'WARNING_ISSUED',
-    details: {
-      attemptedSpeed: 2.0,
-      enforcedSpeed: 1.0,
-      platform: 'YouTube Embedded Player'
-    }
-  },
-  {
-    id: 'mal_3',
-    studentId: 'usr_student_3',
-    studentName: 'Rohan Iyer',
-    studentRollNumber: '22IT109',
-    studentDepartment: 'Information Technology',
-    studentAvatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
-    category: 'VIDEO_TAMPERING',
-    type: 'VIDEO_SEEK_TAMPER',
-    title: 'Video Scrubber Fast-Forward Tampering',
-    description: 'Student repeatedly dragged the scrubber forward past watched timeline (jumped from 0:45 to 14:20) in an attempt to mark the lesson complete.',
-    severity: 'MEDIUM',
-    contextTitle: 'Data Structures & Algorithms in C++ - Graph BFS/DFS Implementation',
-    contextId: 'crs_dsa_cpp',
-    timestamp: '2026-09-11T08:40:00Z',
-    status: 'REPORTED',
-    details: {
-      attemptedSeekSec: 860,
-      legitimateWatchedSec: 45,
-      actionTaken: 'Auto-reverted to 45s via Focus Guard'
-    }
-  },
-  {
-    id: 'mal_4',
-    studentId: 'usr_student_4',
-    studentName: 'Ananya Deshmukh',
-    studentRollNumber: '22EC115',
-    studentDepartment: 'Electronics & Communication Engineering',
-    studentAvatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=250&q=80',
-    category: 'TEST_SESSION',
-    type: 'FULLSCREEN_EXIT',
-    title: 'Exited Proctored Fullscreen Environment',
-    description: 'Exited test fullscreen window and opened secondary display window during C++ Systems Module test.',
-    severity: 'HIGH',
-    contextTitle: 'Module 3: C++ Data Structures & Systems Module',
-    contextId: 'mod_cpp',
-    timestamp: '2026-09-11T09:12:00Z',
-    status: 'REPORTED',
-    details: {
-      event: 'FullscreenExit',
-      windowState: 'Unfocused'
-    }
-  }
-];
-
+export const SEED_MALPRACTICE_INCIDENTS: MalpracticeIncident[] = [];

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Course, Module, Lesson } from '@/types';
+import { authFetch } from '@/lib/client-auth';
 import {
   Play,
   CheckCircle2,
@@ -198,7 +199,7 @@ export default function CourseDetailPage() {
     lastReportTimeRef.current = now;
 
     try {
-      await fetch('/api/malpractice', {
+      await authFetch('/api/malpractice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

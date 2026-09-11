@@ -135,7 +135,9 @@ export default function FacultyPortalPage() {
 
       // 7. Get Unnoted Malpractice Count
       try {
-        const malRes = await fetch('/api/malpractice');
+        const lastViewedAt = typeof window !== 'undefined' ? localStorage.getItem('vsb_malpractice_viewed_at') || '' : '';
+        const url = lastViewedAt ? `/api/malpractice?since=${encodeURIComponent(lastViewedAt)}` : '/api/malpractice';
+        const malRes = await fetch(url, { cache: 'no-store' });
         if (malRes.ok) {
           const malData = await malRes.json();
           setUnnotedMalpracticeCount(malData.unnotedCount || 0);

@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
 import { getAuthenticatedUser } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 import { MalpracticeIncident } from '@/types';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {
@@ -9,8 +12,47 @@ export async function GET(req: Request) {
     const category = searchParams.get('category');
     const studentId = searchParams.get('studentId');
     const status = searchParams.get('status');
+    const since = searchParams.get('since');
 
-    let incidents = dbStore.getMalpracticeIncidents();
+    // Sync registered students from PostgreSQL Prisma into dbStore
+    try {
+      const dbStudents = await prisma.user.findMany({
+        where: { role: 'STUDENT' }
+      });
+      dbStudents.forEach((u) => {
+        dbStore.addUser({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: 'STUDENT',
+          department: u.department,
+          batch: u.batch || '2022-2026',
+          semester: u.semester || 6,
+          rollNumber: u.rollNumber || undefined,
+          avatarUrl: u.avatarUrl || undefined,
+          cgpa: u.cgpa || 8.0,
+          backlogs: u.backlogs || 0,
+          bio: u.bio || 'VSB Student',
+          createdAt: u.createdAt.toISOString()
+        });
+      });
+    } catch (e) {
+      // Prisma offline/fallback
+    }
+
+    // Identify registered students
+    const registeredStudents = dbStore.getUsers().filter((u) => u.role === 'STUDENT');
+    const registeredIds = new Set(registeredStudents.map((s) => s.id));
+    const registeredRolls = new Set(
+      registeredStudents.map((s) => s.rollNumber).filter((r): r is string => Boolean(r))
+    );
+
+    // Only include incidents belonging to registered candidates
+    let incidents = dbStore.getMalpracticeIncidents().filter(
+      (i) =>
+        registeredIds.has(i.studentId) ||
+        (i.studentRollNumber && registeredRolls.has(i.studentRollNumber))
+    );
 
     if (category && category !== 'ALL') {
       incidents = incidents.filter((i) => i.category === category);
@@ -22,13 +64,39 @@ export async function GET(req: Request) {
       incidents = incidents.filter((i) => i.status === status);
     }
 
-    const unnotedCount = dbStore.getUnnotedMalpracticeCount();
+    let unnotedCount = 0;
+    if (since && since.trim().length > 0) {
+      const sinceTime = new Date(since).getTime();
+      if (!isNaN(sinceTime)) {
+        unnotedCount = incidents.filter(
+          (i) => new Date(i.timestamp).getTime() > sinceTime
+        ).length;
+      } else {
+        unnotedCount = dbStore.getUnnotedMalpracticeCount();
+      }
+    } else {
+      unnotedCount = dbStore.getUnnotedMalpracticeCount();
+    }
+
     const lastNotedAt = dbStore.getLastMalpracticeNotedAt();
 
-    return NextResponse.json({ incidents, unnotedCount, lastNotedAt });
+    return NextResponse.json(
+      { incidents, unnotedCount, lastNotedAt },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+        }
+      }
+    );
   } catch (err: any) {
     console.error('Failed to get malpractice incidents:', err);
-    return NextResponse.json({ error: 'Failed to retrieve malpractice incidents' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to retrieve malpractice incidents' },
+      {
+        status: 500,
+        headers: { 'Cache-Control': 'no-store' }
+      }
+    );
   }
 }
 
@@ -39,15 +107,67 @@ export async function POST(req: Request) {
 
     if (body.action === 'MARK_NOTED') {
       dbStore.markAllMalpracticeNoted();
-      return NextResponse.json({ success: true, unnotedCount: 0 });
+      const nowIso = new Date().toISOString();
+      return NextResponse.json(
+        { success: true, unnotedCount: 0, lastNotedAt: nowIso },
+        {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate'
+          }
+        }
+      );
     }
 
-    const studentId = body.studentId || user?.id || 'usr_student_1';
-    const studentUser = dbStore.getUserById(studentId) || user;
+    // Resolve the student
+    let targetStudentId = body.studentId || (user?.role === 'STUDENT' ? user.id : null);
+    let studentUser = targetStudentId ? dbStore.getUserById(targetStudentId) : null;
+
+    if (!studentUser && targetStudentId) {
+      try {
+        const dbU = await prisma.user.findUnique({ where: { id: targetStudentId } });
+        if (dbU) {
+          studentUser = {
+            id: dbU.id,
+            name: dbU.name,
+            email: dbU.email,
+            role: dbU.role as any,
+            department: dbU.department,
+            batch: dbU.batch || '2022-2026',
+            semester: dbU.semester || 6,
+            rollNumber: dbU.rollNumber || undefined,
+            avatarUrl: dbU.avatarUrl || undefined,
+            cgpa: dbU.cgpa || 8.0,
+            backlogs: dbU.backlogs || 0,
+            bio: dbU.bio || 'VSB Student',
+            createdAt: dbU.createdAt.toISOString()
+          };
+          dbStore.addUser(studentUser);
+        }
+      } catch (e) {}
+    }
+
+    if (!studentUser && user?.role === 'STUDENT') {
+      studentUser = user;
+    }
+
+    // If still no registered student found, find first registered student
+    if (!studentUser) {
+      const registeredStudent = dbStore.getUsers().find((u) => u.role === 'STUDENT');
+      if (registeredStudent) {
+        studentUser = registeredStudent;
+      }
+    }
+
+    if (!studentUser) {
+      return NextResponse.json(
+        { error: 'No registered student identified for this incident.' },
+        { status: 400 }
+      );
+    }
 
     const category = body.category === 'VIDEO_TAMPERING' ? 'VIDEO_TAMPERING' : 'TEST_SESSION';
     const type = body.type || (category === 'VIDEO_TAMPERING' ? 'VIDEO_SPEEDUP_ATTEMPT' : 'TAB_SWITCH');
-    
+
     // Auto generate descriptive titles if not explicitly passed
     let defaultTitle = 'Malpractice Incident Detected';
     let defaultDesc = 'Academic integrity violation recorded.';
@@ -59,12 +179,12 @@ export async function POST(req: Request) {
       severity = 'MEDIUM';
     } else if (type === 'VIDEO_SEEK_TAMPER') {
       defaultTitle = 'Video Scrubber Fast-Forward Tampering';
-      defaultDesc = `Student repeatedly attempted to swipe/drag video timeline ahead to skip lecture content in "${body.lessonTitle || body.courseTitle || 'Technical Lecture'}". Scrubber was automatically snapped back by Focus Guard.`;
+      defaultDesc = `Student repeatedly attempted to swipe/drag video timeline ahead to skip lecture content in "${body.lessonTitle || body.courseTitle || 'Technical Lecture'}". Scrubber was automatically snapped back to 0s by Focus Guard.`;
       severity = 'MEDIUM';
     } else if (type === 'TAB_SWITCH') {
       defaultTitle = `Test Focus Loss / Tab Switching (Strike #${body.count || 1})`;
       defaultDesc = `Student switched away from the proctored test window or opened another browser tab during "${body.quizTitle || 'Daily Test Assessment'}".`;
-      severity = (body.count && body.count >= 3) ? 'HIGH' : 'MEDIUM';
+      severity = body.count && body.count >= 3 ? 'HIGH' : 'MEDIUM';
     } else if (type === 'TEST_TERMINATION') {
       defaultTitle = 'Critical Test Termination for Proctoring Violations';
       defaultDesc = `Student was disqualified and terminated with 0 marks due to repeated tab switching/focus loss during "${body.quizTitle || 'Daily Test Assessment'}".`;
@@ -81,11 +201,11 @@ export async function POST(req: Request) {
 
     const incident: MalpracticeIncident = {
       id: `mal_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      studentId: studentUser?.id || studentId,
-      studentName: studentUser?.name || body.studentName || 'Student',
-      studentRollNumber: studentUser?.rollNumber || body.studentRollNumber || '22CS101',
-      studentDepartment: studentUser?.department || body.studentDepartment || 'Computer Science & Engineering',
-      studentAvatarUrl: studentUser?.avatarUrl || body.studentAvatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+      studentId: studentUser.id,
+      studentName: studentUser.name,
+      studentRollNumber: studentUser.rollNumber || body.studentRollNumber || 'N/A',
+      studentDepartment: studentUser.department || 'AI & Data Science',
+      studentAvatarUrl: studentUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
       category,
       type,
       title: body.title || defaultTitle,
@@ -130,10 +250,16 @@ export async function POST(req: Request) {
       details: `[${incident.category}] ${incident.title}: ${incident.description}`
     });
 
-    return NextResponse.json({ success: true, incident });
+    return NextResponse.json(
+      { success: true, incident },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (err: any) {
     console.error('Failed to record malpractice incident:', err);
-    return NextResponse.json({ error: 'Failed to record malpractice incident' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to record malpractice incident' },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } }
+    );
   }
 }
 
@@ -153,9 +279,15 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'No matching incidents found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, count: targetIds.length, status });
+    return NextResponse.json(
+      { success: true, count: targetIds.length, status },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (err: any) {
     console.error('Failed to update incident:', err);
-    return NextResponse.json({ error: 'Failed to update incident' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to update incident' },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } }
+    );
   }
 }

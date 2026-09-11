@@ -116,6 +116,12 @@ export default function FacultyMalpracticeDeskPage() {
   const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    // Once faculty enters the malpractice desk, reset the navigation count immediately & start fresh
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vsb_malpractice_viewed_at', new Date().toISOString());
+      window.dispatchEvent(new CustomEvent('malpracticeNoted'));
+    }
+    handleMarkAllNoted(false);
     fetchMalpracticeData();
   }, []);
 
@@ -126,15 +132,10 @@ export default function FacultyMalpracticeDeskPage() {
       const authData = await authRes.json();
       setFaculty(authData.activeUser);
 
-      const res = await fetch('/api/malpractice');
+      const res = await fetch('/api/malpractice', { cache: 'no-store' });
       const data = await res.json();
       setIncidents(data.incidents || []);
-      setUnnotedCount(data.unnotedCount || 0);
-
-      // Automatically acknowledge / mark noted on opening the desk
-      if (data.unnotedCount > 0) {
-        handleMarkAllNoted(false);
-      }
+      setUnnotedCount(0); // Faculty is currently on the page inspecting incidents
     } catch (e) {
       console.error('Failed to load malpractice records:', e);
     } finally {
@@ -144,13 +145,16 @@ export default function FacultyMalpracticeDeskPage() {
 
   const handleMarkAllNoted = async (showToastNotice = true) => {
     try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('vsb_malpractice_viewed_at', new Date().toISOString());
+        window.dispatchEvent(new CustomEvent('malpracticeNoted'));
+      }
       await fetch('/api/malpractice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'MARK_NOTED' })
       });
       setUnnotedCount(0);
-      window.dispatchEvent(new CustomEvent('malpracticeNoted'));
       if (showToastNotice) {
         showToast('✓ Malpractice desk noted! Notification counter reset to 0 (starts fresh).');
       }

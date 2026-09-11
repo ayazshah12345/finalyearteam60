@@ -117,7 +117,13 @@ class DatabaseStore {
         if (!Array.isArray(dbData.auditLogs)) dbData.auditLogs = [...SEED_AUDIT_LOGS];
         if (!Array.isArray(dbData.codingProblems)) dbData.codingProblems = [...SEED_CODING_PROBLEMS];
         if (!Array.isArray(dbData.codingSubmissions)) dbData.codingSubmissions = [...SEED_CODING_SUBMISSIONS];
-        if (!Array.isArray(dbData.malpracticeIncidents)) dbData.malpracticeIncidents = [...SEED_MALPRACTICE_INCIDENTS];
+        if (!Array.isArray(dbData.malpracticeIncidents)) {
+          dbData.malpracticeIncidents = [...SEED_MALPRACTICE_INCIDENTS];
+        } else {
+          dbData.malpracticeIncidents = dbData.malpracticeIncidents.filter(
+            (i: any) => !['mal_1', 'mal_2', 'mal_3', 'mal_4'].includes(i.id)
+          );
+        }
         if (!dbData.resumes) dbData.resumes = { [SEED_RESUME.studentId]: SEED_RESUME };
 
         // Auto-merge missing Coding Problems
@@ -583,11 +589,30 @@ class DatabaseStore {
 
   // Malpractice Incident Tracking
   public getMalpracticeIncidents(): MalpracticeIncident[] {
-    return this.data.malpracticeIncidents || [];
+    const rawList = (this.data.malpracticeIncidents || []).filter(
+      (i) => !['mal_1', 'mal_2', 'mal_3', 'mal_4'].includes(i.id)
+    );
+    const registeredStudents = (this.data.users || []).filter((u) => u.role === 'STUDENT');
+    const validStudentIds = new Set(registeredStudents.map((s) => s.id));
+    const validRollNumbers = new Set(
+      registeredStudents.map((s) => s.rollNumber).filter((r): r is string => Boolean(r))
+    );
+
+    return rawList.filter(
+      (i) =>
+        validStudentIds.has(i.studentId) ||
+        (i.studentRollNumber && validRollNumbers.has(i.studentRollNumber))
+    );
   }
 
-  public getUnnotedMalpracticeCount(): number {
-    const list = this.data.malpracticeIncidents || [];
+  public getUnnotedMalpracticeCount(since?: string): number {
+    const list = this.getMalpracticeIncidents();
+    if (since) {
+      const sinceTime = new Date(since).getTime();
+      if (!isNaN(sinceTime)) {
+        return list.filter((i) => new Date(i.timestamp).getTime() > sinceTime).length;
+      }
+    }
     const lastNoted = this.data.lastMalpracticeNotedAt;
     if (!lastNoted) {
       return list.filter((i) => !i.noted).length;

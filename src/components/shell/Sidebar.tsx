@@ -45,18 +45,44 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
   useEffect(() => {
     if (user.role !== 'FACULTY') return;
 
+    if (pathname.startsWith('/faculty/malpractice')) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('vsb_malpractice_viewed_at', new Date().toISOString());
+      }
+      setMalpracticeBadgeCount(0);
+      return;
+    }
+
     const fetchMalpracticeCount = async () => {
       try {
-        const res = await fetch('/api/malpractice');
-        const data = await res.json();
-        setMalpracticeBadgeCount(data.unnotedCount || 0);
+        if (pathname.startsWith('/faculty/malpractice')) {
+          setMalpracticeBadgeCount(0);
+          return;
+        }
+
+        const lastViewedAt = typeof window !== 'undefined'
+          ? localStorage.getItem('vsb_malpractice_viewed_at') || ''
+          : '';
+
+        const url = lastViewedAt
+          ? `/api/malpractice?since=${encodeURIComponent(lastViewedAt)}`
+          : '/api/malpractice';
+
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          setMalpracticeBadgeCount(data.unnotedCount || 0);
+        }
       } catch (e) {}
     };
 
     fetchMalpracticeCount();
-    const interval = setInterval(fetchMalpracticeCount, 5000);
+    const interval = setInterval(fetchMalpracticeCount, 4000);
 
     const handleNotedEvent = () => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('vsb_malpractice_viewed_at', new Date().toISOString());
+      }
       setMalpracticeBadgeCount(0);
     };
 
@@ -72,7 +98,7 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
       window.removeEventListener('malpracticeNoted', handleNotedEvent);
       window.removeEventListener('malpracticeLogged', handleLoggedEvent);
     };
-  }, [user.role]);
+  }, [user.role, pathname]);
 
   const isRole = (role: string) => user.role === role;
 
@@ -172,7 +198,16 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={onCloseMobile}
+                  onClick={() => {
+                    if (item.href === '/faculty/malpractice') {
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('vsb_malpractice_viewed_at', new Date().toISOString());
+                        window.dispatchEvent(new CustomEvent('malpracticeNoted'));
+                      }
+                      setMalpracticeBadgeCount(0);
+                    }
+                    if (onCloseMobile) onCloseMobile();
+                  }}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
                       ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-200/60 dark:shadow-none'
