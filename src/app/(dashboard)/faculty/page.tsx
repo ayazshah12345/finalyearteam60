@@ -28,7 +28,8 @@ import {
   Layers,
   FileCode,
   Briefcase,
-  Code2
+  Code2,
+  CheckSquare
 } from 'lucide-react';
 import Link from 'next/link';
 import { authFetch } from '@/lib/client-auth';
@@ -283,10 +284,16 @@ export default function FacultyPortalPage() {
 
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <Link
-              href="/faculty/test"
-              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 border border-indigo-400/30"
+              href="/faculty/students"
+              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 shrink-0"
             >
-              <Zap className="w-4 h-4 text-amber-400" /> Create / Upload Test
+              <Users className="w-4 h-4" /> Student Profiles
+            </Link>
+            <Link
+              href="/faculty/test"
+              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 border border-indigo-400/30"
+            >
+              <CheckSquare className="w-4 h-4 text-indigo-200" /> Create / Upload Test
             </Link>
             <button
               onClick={() => setShowDriveModal(true)}
@@ -348,7 +355,7 @@ export default function FacultyPortalPage() {
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>Student Roster & RegNo Search ({filteredStudents.length})</span>
+          <span>Student Profiles ({filteredStudents.length})</span>
         </button>
 
         <button
@@ -389,10 +396,10 @@ export default function FacultyPortalPage() {
 
         <Link
           href="/faculty/test"
-          className="px-4 sm:px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 shrink-0 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800/80"
+          className="px-4 sm:px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 shrink-0 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white border border-slate-200 dark:border-slate-700 shadow-sm"
         >
-          <Zap className="w-4 h-4 text-amber-500" />
-          <span>+ Create & Upload Test</span>
+          <CheckSquare className="w-4 h-4 text-indigo-500 group-hover:text-white" />
+          <span>Manage Tests</span>
         </Link>
       </div>
 
@@ -525,13 +532,13 @@ export default function FacultyPortalPage() {
                           )}
                         </td>
 
-                        {/* Inspect Action */}
+                        {/* View Student Profile Action */}
                         <td className="p-4 text-right">
                           <button
                             onClick={() => handleInspectStudent(st)}
-                            className="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all inline-flex items-center gap-1.5"
+                            className="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all inline-flex items-center gap-1.5 active:scale-95"
                           >
-                            <Eye className="w-3.5 h-3.5" /> Inspect Reports & Resume
+                            <Eye className="w-4 h-4" /> View Profile
                           </button>
                         </td>
                       </tr>

@@ -45,8 +45,8 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
 
   const mainNav = user.role === 'FACULTY' ? [
     { label: 'Faculty Command Desk', href: '/faculty', icon: Briefcase },
+    { label: 'Student Profiles', href: '/faculty/students', icon: UserCheck },
     { label: 'Test', href: '/faculty/test', icon: CheckSquare },
-    { label: 'Student Roster & Evaluation', href: '/faculty', icon: UserCheck },
   ] : [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'LeetCode Coding Practice', href: '/coding', icon: Code2 },
@@ -128,7 +128,10 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
             <div className="px-2 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Navigation</div>
             {mainNav.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const isActive =
+                item.href === '/faculty' || item.href === '/dashboard'
+                  ? pathname === item.href
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}
