@@ -81,7 +81,19 @@ export async function POST(req: Request) {
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      const mimeType = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream');
+      const mimeType =
+        file.type ||
+        (file.name.match(/\.(png)$/i)
+          ? 'image/png'
+          : file.name.match(/\.(jpe?g)$/i)
+          ? 'image/jpeg'
+          : file.name.match(/\.(webp)$/i)
+          ? 'image/webp'
+          : file.name.match(/\.(svg)$/i)
+          ? 'image/svg+xml'
+          : file.name.endsWith('.pdf')
+          ? 'application/pdf'
+          : 'application/octet-stream');
       const base64Data = buffer.toString('base64');
       const fileUrl = `data:${mimeType};base64,${base64Data}`;
 
@@ -125,7 +137,7 @@ export async function POST(req: Request) {
         fileUrl,
         fileName: file.name,
         fileSize: (file.size / 1024).toFixed(1) + ' KB',
-        fileType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'),
+        fileType: mimeType,
         uploadedAt: new Date().toISOString(),
         atsScore: Math.floor(Math.random() * 10) + 89, // 89-98%
         updatedAt: new Date().toISOString()

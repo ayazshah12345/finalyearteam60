@@ -255,7 +255,7 @@ export default function ResumeBuilderPage() {
             onClick={() => fileInputRef.current?.click()}
             className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95"
           >
-            <Upload className="w-4 h-4" /> {hasCustomUpload ? 'Update / Replace Resume' : 'Upload Resume Document'}
+            <Upload className="w-4 h-4" /> {hasCustomUpload ? 'Update / Replace Resume' : 'Upload Resume (PDF / Image)'}
           </button>
           <button
             onClick={handleSave}
@@ -277,7 +277,7 @@ export default function ResumeBuilderPage() {
         type="file"
         ref={fileInputRef}
         onChange={handleFileUpload}
-        accept=".pdf,.docx,.doc,.txt,.png,.jpg"
+        accept=".pdf,.png,.jpg,.jpeg,.webp,.svg,.bmp,.docx,.doc,.txt,image/*,application/pdf"
         className="hidden"
       />
 
@@ -312,10 +312,10 @@ export default function ResumeBuilderPage() {
           <div className="bg-white dark:bg-slate-900 border-2 border-indigo-500/40 rounded-3xl p-6 shadow-md space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
-                <FileUp className="w-4 h-4" /> Resume Document Upload
+                <FileUp className="w-4 h-4" /> Resume Document / Image Upload
               </span>
               <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                PDF / DOCX / TXT
+                PDF / PNG / JPG / WEBP
               </span>
             </div>
 
@@ -328,10 +328,10 @@ export default function ResumeBuilderPage() {
                 <Upload className="w-6 h-6" />
               </div>
               <div className="text-xs font-extrabold text-slate-900 dark:text-white">
-                {hasCustomUpload ? 'Click to Replace or Upload New Resume' : 'Click to Upload or Drag & Drop Resume'}
+                {hasCustomUpload ? 'Click to Replace or Upload New Resume (PDF / Image)' : 'Click to Upload or Drag & Drop Resume (PDF or Image)'}
               </div>
               <p className="text-[11px] text-slate-500">
-                Supports PDF, DOCX, or TXT formats (Automatically loads in preview)
+                Supports PDF or Images (PNG, JPG, JPEG, WEBP) - Automatically loads in preview
               </p>
             </div>
 
@@ -564,13 +564,26 @@ export default function ResumeBuilderPage() {
                     title={resume.fileName || 'Uploaded Resume PDF'}
                   />
                 ) : resume.fileType?.startsWith('image/') ||
-                  resume.fileName?.match(/\.(jpg|jpeg|png|webp)$/i) ? (
-                  <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-h-[780px] overflow-auto">
-                    <img
-                      src={resume.fileUrl}
-                      alt={resume.fileName || 'Uploaded Resume'}
-                      className="max-w-full h-auto mx-auto rounded-xl object-contain shadow-md"
-                    />
+                  resume.fileName?.match(/\.(jpg|jpeg|png|webp|svg|bmp|gif)$/i) ? (
+                  <div className="w-full p-3 sm:p-6 bg-slate-200/50 dark:bg-slate-950/80 rounded-2xl flex flex-col items-center justify-center max-h-[820px] overflow-auto">
+                    <div className="bg-white p-2 sm:p-4 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full">
+                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 text-[10px] text-slate-500 font-bold">
+                        <span>🖼️ {resume.fileName}</span>
+                        <a
+                          href={resume.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-indigo-600 hover:underline flex items-center gap-1"
+                        >
+                          View Full Size ↗
+                        </a>
+                      </div>
+                      <img
+                        src={resume.fileUrl}
+                        alt={resume.fileName || 'Uploaded Resume'}
+                        className="max-w-full h-auto max-h-[720px] mx-auto rounded-lg object-contain shadow-sm"
+                      />
+                    </div>
                   </div>
                 ) : (
                   /* Fallback for DOCX / TXT / Other formats */

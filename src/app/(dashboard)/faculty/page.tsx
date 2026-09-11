@@ -900,6 +900,14 @@ export default function FacultyPortalPage() {
                           title="Candidate Uploaded Resume"
                         />
                       </div>
+                    ) : studentResume.isCustomUpload && studentResume.fileUrl && (studentResume.fileType?.startsWith('image/') || studentResume.fileName?.match(/\.(jpg|jpeg|png|webp|svg)$/i)) ? (
+                      <div className="rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-700 shadow-sm bg-slate-100 dark:bg-slate-950 p-4 flex justify-center max-h-[550px] overflow-auto">
+                        <img
+                          src={studentResume.fileUrl}
+                          alt={studentResume.fileName || 'Candidate Resume Image'}
+                          className="max-w-full h-auto rounded-lg shadow-md max-h-[500px] object-contain"
+                        />
+                      </div>
                     ) : (
                       <div className="bg-white text-slate-900 p-6 rounded-2xl border border-slate-300 space-y-4 font-sans">
                         <div className="border-b pb-2 text-center">
