@@ -240,7 +240,13 @@ export default function DailyTestPage() {
             quizTitle: activeModule?.title,
             severity: nextCount >= 3 ? 'HIGH' : 'MEDIUM'
           })
-        }).catch((e) => console.warn('Malpractice log error:', e));
+        })
+          .then(() => {
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('malpracticeLogged'));
+            }
+          })
+          .catch((e) => console.warn('Malpractice log error:', e));
       } catch (err) {}
 
       return nextCount;

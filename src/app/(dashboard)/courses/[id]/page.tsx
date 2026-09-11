@@ -104,12 +104,12 @@ export default function CourseDetailPage() {
     // For already completed lessons: requirement already met!
     const isAlreadyCompleted = userProgress[activeLesson.id];
     const durationMin = activeLesson.durationMinutes || 15;
-    // For smooth learning validation: require 60 seconds (or 45 seconds if small)
-    const targetSec = isAlreadyCompleted ? 0 : Math.min(60, Math.max(30, Math.floor(durationMin * 3)));
+    // Default to lesson duration in seconds until metadata/player duration is loaded
+    const defaultSec = isAlreadyCompleted ? 0 : Math.max(60, Math.floor(durationMin * 60));
     
-    setRequiredSeconds(targetSec);
-    setWatchedSeconds(isAlreadyCompleted ? targetSec : 0);
-    maxWatchedRef.current = isAlreadyCompleted ? targetSec : 0;
+    setRequiredSeconds(defaultSec);
+    setWatchedSeconds(isAlreadyCompleted ? defaultSec : 0);
+    maxWatchedRef.current = isAlreadyCompleted ? defaultSec : 0;
     setIsPlaying(false);
     setSecurityNotice(null);
 
@@ -132,9 +132,35 @@ export default function CourseDetailPage() {
                 fs: 1
               },
               events: {
+                onReady: (event: any) => {
+                  try {
+                    const dur = event.target.getDuration();
+                    if (!isAlreadyCompleted && dur && dur > 0) {
+                      setRequiredSeconds(Math.floor(dur));
+                    }
+                  } catch (e) {}
+                },
                 onStateChange: (event: any) => {
                   // 1 is PLAYING, 2 is PAUSED, 0 is ENDED
                   setIsPlaying(event.data === 1);
+                  if (event.data === 0) {
+                    // Video finished playing to the end!
+                    try {
+                      const dur = ytPlayerRef.current?.getDuration?.() || requiredSeconds;
+                      if (dur > 0) {
+                        setRequiredSeconds(Math.floor(dur));
+                        setWatchedSeconds(Math.floor(dur));
+                        maxWatchedRef.current = Math.floor(dur);
+                      }
+                    } catch (e) {}
+                  } else if (event.data === 1) {
+                    try {
+                      const dur = event.target.getDuration();
+                      if (!isAlreadyCompleted && dur && dur > 0) {
+                        setRequiredSeconds(Math.floor(dur));
+                      }
+                    } catch (e) {}
+                  }
                 },
                 onPlaybackRateChange: (event: any) => {
                   // Lock speed to 1.0x (normal speed)
@@ -185,27 +211,42 @@ export default function CourseDetailPage() {
           ...details
         })
       });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('malpracticeLogged'));
+      }
     } catch (e) {
       console.warn('Failed to log video malpractice:', e);
     }
   };
 
-  // Anti-skip continuous interval monitoring
+  // Anti-skip continuous interval monitoring until the end of every video
   useEffect(() => {
     let interval: any = null;
 
     if (isPlaying) {
       interval = setInterval(() => {
+        const isAlreadyCompleted = activeLesson ? userProgress[activeLesson.id] : false;
+        if (isAlreadyCompleted) return; // If lesson is already completed, candidate has full navigation freedom
+
         if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
           try {
             const currentSec = ytPlayerRef.current.getCurrentTime();
-            // If user jumped ahead beyond the furthest watched point + 2.5s
-            if (currentSec > maxWatchedRef.current + 2.5) {
-              ytPlayerRef.current.seekTo(maxWatchedRef.current, true);
-              flashSecurityNotice('⏩ Swiping / Fast-forwarding is restricted. Please watch progressively.');
+            const dur = typeof ytPlayerRef.current.getDuration === 'function' ? ytPlayerRef.current.getDuration() : 0;
+            if (dur > 0 && Math.abs(requiredSeconds - Math.floor(dur)) > 2) {
+              setRequiredSeconds(Math.floor(dur));
+            }
+
+            // If user attempts to jump or seek forward beyond watched point
+            if (currentSec > maxWatchedRef.current + 2.0) {
+              // Reset to starting point as requested
+              ytPlayerRef.current.seekTo(0, true);
+              maxWatchedRef.current = 0;
+              setWatchedSeconds(0);
+              flashSecurityNotice('⏩ Forwarding is restricted! Video restarted from the beginning. Please watch sequentially until the end.');
               reportMalpractice('VIDEO_SEEK_TAMPER', {
                 attemptedSec: Math.floor(currentSec),
-                maxAllowedSec: Math.floor(maxWatchedRef.current)
+                maxAllowedSec: 0,
+                lessonTitle: activeLesson?.title
               });
             } else {
               if (currentSec > maxWatchedRef.current) {
@@ -230,7 +271,7 @@ export default function CourseDetailPage() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isPlaying, activeLesson?.id]);
+  }, [isPlaying, activeLesson?.id, userProgress, requiredSeconds]);
 
   const flashSecurityNotice = (msg: string) => {
     setSecurityNotice(msg);
@@ -301,9 +342,9 @@ export default function CourseDetailPage() {
   const handleMarkComplete = async () => {
     if (!activeLesson || !course) return;
 
-    // Strict Anti-Skip Guard check
+    // Strict Anti-Skip Guard check: must watch until end of video
     const isCompleted = userProgress[activeLesson.id];
-    if (!isCompleted && watchedSeconds < requiredSeconds) {
+    if (!isCompleted && watchedSeconds < Math.max(1, requiredSeconds - 3)) {
       setShowSkipBlockedToast(true);
       setTimeout(() => setShowSkipBlockedToast(false), 4500);
       return;
@@ -358,7 +399,7 @@ export default function CourseDetailPage() {
   }
 
   const isCompleted = activeLesson ? !!userProgress[activeLesson.id] : false;
-  const isWatchRequirementMet = isCompleted || watchedSeconds >= requiredSeconds;
+  const isWatchRequirementMet = isCompleted || (requiredSeconds > 0 && watchedSeconds >= Math.max(1, requiredSeconds - 3));
   const watchProgressPct = Math.min(100, Math.round((watchedSeconds / (requiredSeconds || 1)) * 100));
   const ytId = activeLesson ? extractYouTubeId(activeLesson.videoUrl) : null;
   const isDirect = activeLesson ? isDirectVideo(activeLesson.videoUrl) : false;
@@ -501,7 +542,7 @@ export default function CourseDetailPage() {
                   ) : (
                     <span className="flex items-center gap-1 text-amber-300 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-800/60">
                       <Lock className="w-3.5 h-3.5 text-amber-400" /> Focus Locked (
-                      {requiredSeconds - watchedSeconds}s left)
+                      {formatDurationSec(Math.max(0, requiredSeconds - watchedSeconds))} left)
                     </span>
                   )}
                 </div>
@@ -530,6 +571,12 @@ export default function CourseDetailPage() {
                     controls
                     controlsList="nodownload noplaybackrate"
                     disablePictureInPicture
+                    onLoadedMetadata={(e) => {
+                      const dur = e.currentTarget.duration;
+                      if (!userProgress[activeLesson.id] && dur && isFinite(dur) && dur > 0) {
+                        setRequiredSeconds(Math.floor(dur));
+                      }
+                    }}
                     onRateChange={() => {
                       if (videoElRef.current && videoElRef.current.playbackRate > 1.0) {
                         videoElRef.current.playbackRate = 1.0;
@@ -538,23 +585,36 @@ export default function CourseDetailPage() {
                       }
                     }}
                     onSeeking={() => {
-                      if (videoElRef.current && videoElRef.current.currentTime > maxWatchedRef.current + 2.0) {
-                        videoElRef.current.currentTime = maxWatchedRef.current;
-                        flashSecurityNotice('⏩ Swiping and skipping forward are locked. Please watch progressively.');
+                      if (!userProgress[activeLesson.id] && videoElRef.current && videoElRef.current.currentTime > maxWatchedRef.current + 1.5) {
+                        videoElRef.current.currentTime = 0;
+                        maxWatchedRef.current = 0;
+                        setWatchedSeconds(0);
+                        flashSecurityNotice('⏩ Forwarding is restricted! Video restarted from the beginning. Please watch sequentially until the end.');
                         reportMalpractice('VIDEO_SEEK_TAMPER', {
                           attemptedSec: Math.floor(videoElRef.current.currentTime),
-                          maxAllowedSec: Math.floor(maxWatchedRef.current)
+                          maxAllowedSec: 0,
+                          lessonTitle: activeLesson.title
                         });
                       }
                     }}
                     onTimeUpdate={() => {
                       if (videoElRef.current) {
-                        if (videoElRef.current.currentTime > maxWatchedRef.current + 2.0) {
-                          videoElRef.current.currentTime = maxWatchedRef.current;
+                        if (!userProgress[activeLesson.id] && videoElRef.current.currentTime > maxWatchedRef.current + 1.5) {
+                          videoElRef.current.currentTime = 0;
+                          maxWatchedRef.current = 0;
+                          setWatchedSeconds(0);
                         } else {
                           maxWatchedRef.current = Math.max(maxWatchedRef.current, videoElRef.current.currentTime);
                           setWatchedSeconds(Math.floor(maxWatchedRef.current));
                         }
+                      }
+                    }}
+                    onEnded={() => {
+                      if (videoElRef.current && videoElRef.current.duration) {
+                        const dur = Math.floor(videoElRef.current.duration);
+                        setWatchedSeconds(dur);
+                        setRequiredSeconds(dur);
+                        maxWatchedRef.current = dur;
                       }
                     }}
                     onPlay={() => setIsPlaying(true)}
@@ -624,9 +684,8 @@ export default function CourseDetailPage() {
                   <div className="flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
                     <span>
-                      <strong>Controlled Learning Lock:</strong> You must watch the lecture without skipping for at least{' '}
-                      <strong>{requiredSeconds} seconds</strong> to mark this lesson complete. (Currently:{' '}
-                      {watchedSeconds}s).
+                      <strong>Controlled Learning Lock:</strong> You must watch the lecture without skipping until the end of the video ({formatDurationSec(requiredSeconds)}) to mark this lesson complete. (Currently watched:{' '}
+                      {formatDurationSec(watchedSeconds)}).
                     </span>
                   </div>
                 </div>
@@ -667,7 +726,7 @@ export default function CourseDetailPage() {
                     ) : (
                       <>
                         <Lock className="w-4 h-4" />
-                        <span>Locked ({requiredSeconds - watchedSeconds}s left)</span>
+                        <span>Locked ({formatDurationSec(Math.max(0, requiredSeconds - watchedSeconds))} left)</span>
                       </>
                     )}
                   </button>

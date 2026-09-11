@@ -449,5 +449,6 @@ export interface MalpracticeIncident {
   contextId?: string;
   timestamp: string;
   status: 'REPORTED' | 'WARNING_ISSUED' | 'DISMISSED';
+  noted?: boolean;
   details?: Record<string, any>;
 }

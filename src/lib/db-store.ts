@@ -81,6 +81,7 @@ interface DatabaseSchema {
   auditLogs: AuditLog[];
   mockInterviews: MockInterviewSession[];
   malpracticeIncidents: MalpracticeIncident[];
+  lastMalpracticeNotedAt?: string;
   activeUserId: string; // Default active demo user
 }
 
@@ -585,20 +586,52 @@ class DatabaseStore {
     return this.data.malpracticeIncidents || [];
   }
 
+  public getUnnotedMalpracticeCount(): number {
+    const list = this.data.malpracticeIncidents || [];
+    const lastNoted = this.data.lastMalpracticeNotedAt;
+    if (!lastNoted) {
+      return list.filter((i) => !i.noted).length;
+    }
+    const lastNotedTime = new Date(lastNoted).getTime();
+    return list.filter((i) => !i.noted && new Date(i.timestamp).getTime() > lastNotedTime).length;
+  }
+
+  public markAllMalpracticeNoted(): void {
+    const now = new Date().toISOString();
+    this.data.lastMalpracticeNotedAt = now;
+    if (Array.isArray(this.data.malpracticeIncidents)) {
+      this.data.malpracticeIncidents.forEach((i) => {
+        i.noted = true;
+      });
+    }
+    this.saveData();
+  }
+
+  public getLastMalpracticeNotedAt(): string | null {
+    return this.data.lastMalpracticeNotedAt || null;
+  }
+
   public addMalpracticeIncident(incident: MalpracticeIncident): MalpracticeIncident {
     if (!this.data.malpracticeIncidents) this.data.malpracticeIncidents = [];
+    incident.noted = false;
     this.data.malpracticeIncidents.unshift(incident);
     this.saveData();
     return incident;
   }
 
   public updateMalpracticeIncidentStatus(
-    id: string,
+    idOrIds: string | string[],
     status: 'REPORTED' | 'WARNING_ISSUED' | 'DISMISSED'
   ): boolean {
-    const inc = (this.data.malpracticeIncidents || []).find((i) => i.id === id);
-    if (inc) {
-      inc.status = status;
+    const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+    let changed = false;
+    (this.data.malpracticeIncidents || []).forEach((i) => {
+      if (ids.includes(i.id)) {
+        i.status = status;
+        changed = true;
+      }
+    });
+    if (changed) {
       this.saveData();
       return true;
     }

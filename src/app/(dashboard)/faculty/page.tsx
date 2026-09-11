@@ -78,6 +78,7 @@ export default function FacultyPortalPage() {
 
   // Modal 3: View Mock Interview Transcript
   const [selectedInterviewTranscript, setSelectedInterviewTranscript] = useState<MockInterviewSession | null>(null);
+  const [unnotedMalpracticeCount, setUnnotedMalpracticeCount] = useState<number>(0);
 
   useEffect(() => {
     fetchFacultyData();
@@ -131,6 +132,15 @@ export default function FacultyPortalPage() {
         setAllCodingProfiles(codingData.allProfiles || []);
         setAllCodingSubmissions(codingData.allSubmissions || []);
       }
+
+      // 7. Get Unnoted Malpractice Count
+      try {
+        const malRes = await fetch('/api/malpractice');
+        if (malRes.ok) {
+          const malData = await malRes.json();
+          setUnnotedMalpracticeCount(malData.unnotedCount || 0);
+        }
+      } catch (err) {}
     } catch (e) {
       console.error(e);
     } finally {
@@ -304,9 +314,15 @@ export default function FacultyPortalPage() {
             </Link>
             <Link
               href="/faculty/malpractice"
-              className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-rose-500/30"
+              className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 shrink-0 border border-rose-500/30"
             >
-              <ShieldAlert className="w-4 h-4" /> Malpractice
+              <ShieldAlert className="w-4 h-4" />
+              <span>Malpractice</span>
+              {unnotedMalpracticeCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white text-rose-600 shadow-xs animate-pulse">
+                  {unnotedMalpracticeCount}
+                </span>
+              )}
             </Link>
             <Link
               href="/faculty/test"

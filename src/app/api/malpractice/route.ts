@@ -22,7 +22,10 @@ export async function GET(req: Request) {
       incidents = incidents.filter((i) => i.status === status);
     }
 
-    return NextResponse.json({ incidents });
+    const unnotedCount = dbStore.getUnnotedMalpracticeCount();
+    const lastNotedAt = dbStore.getLastMalpracticeNotedAt();
+
+    return NextResponse.json({ incidents, unnotedCount, lastNotedAt });
   } catch (err: any) {
     console.error('Failed to get malpractice incidents:', err);
     return NextResponse.json({ error: 'Failed to retrieve malpractice incidents' }, { status: 500 });
@@ -33,6 +36,11 @@ export async function POST(req: Request) {
   try {
     const user = await getAuthenticatedUser(req);
     const body = await req.json();
+
+    if (body.action === 'MARK_NOTED') {
+      dbStore.markAllMalpracticeNoted();
+      return NextResponse.json({ success: true, unnotedCount: 0 });
+    }
 
     const studentId = body.studentId || user?.id || 'usr_student_1';
     const studentUser = dbStore.getUserById(studentId) || user;
@@ -132,18 +140,20 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, status } = body;
+    const { id, ids, status } = body;
 
-    if (!id || !status) {
-      return NextResponse.json({ error: 'Incident id and status are required' }, { status: 400 });
+    const targetIds: string[] = ids || (id ? [id] : []);
+
+    if (targetIds.length === 0 || !status) {
+      return NextResponse.json({ error: 'Incident id/ids and status are required' }, { status: 400 });
     }
 
-    const updated = dbStore.updateMalpracticeIncidentStatus(id, status);
+    const updated = dbStore.updateMalpracticeIncidentStatus(targetIds, status);
     if (!updated) {
-      return NextResponse.json({ error: 'Incident not found' }, { status: 404 });
+      return NextResponse.json({ error: 'No matching incidents found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, id, status });
+    return NextResponse.json({ success: true, count: targetIds.length, status });
   } catch (err: any) {
     console.error('Failed to update incident:', err);
     return NextResponse.json({ error: 'Failed to update incident' }, { status: 500 });

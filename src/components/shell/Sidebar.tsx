@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { User } from '@/types';
@@ -40,6 +40,39 @@ interface SidebarProps {
 
 export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
+  const [malpracticeBadgeCount, setMalpracticeBadgeCount] = React.useState<number>(0);
+
+  useEffect(() => {
+    if (user.role !== 'FACULTY') return;
+
+    const fetchMalpracticeCount = async () => {
+      try {
+        const res = await fetch('/api/malpractice');
+        const data = await res.json();
+        setMalpracticeBadgeCount(data.unnotedCount || 0);
+      } catch (e) {}
+    };
+
+    fetchMalpracticeCount();
+    const interval = setInterval(fetchMalpracticeCount, 5000);
+
+    const handleNotedEvent = () => {
+      setMalpracticeBadgeCount(0);
+    };
+
+    const handleLoggedEvent = () => {
+      fetchMalpracticeCount();
+    };
+
+    window.addEventListener('malpracticeNoted', handleNotedEvent);
+    window.addEventListener('malpracticeLogged', handleLoggedEvent);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('malpracticeNoted', handleNotedEvent);
+      window.removeEventListener('malpracticeLogged', handleLoggedEvent);
+    };
+  }, [user.role]);
 
   const isRole = (role: string) => user.role === role;
 
@@ -150,7 +183,21 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
                     <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                     <span>{item.label}</span>
                   </div>
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/80" />}
+                  <div className="flex items-center gap-1.5">
+                    {item.label === 'Malpractice' && malpracticeBadgeCount > 0 && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-black shadow-xs ${
+                          isActive
+                            ? 'bg-white text-rose-600'
+                            : 'bg-rose-600 text-white animate-pulse'
+                        }`}
+                        title={`${malpracticeBadgeCount} unnoted malpractice incident(s)`}
+                      >
+                        {malpracticeBadgeCount}
+                      </span>
+                    )}
+                    {isActive && <ChevronRight className="w-3.5 h-3.5 text-white/80" />}
+                  </div>
                 </Link>
               );
             })}
