@@ -56,7 +56,27 @@ export default function ResumeBuilderPage() {
       const res = await fetch('/api/resume');
       const data = await res.json();
       if (data.resume) {
-        const r = data.resume;
+        let r = data.resume;
+        // Check localStorage backup for Vercel serverless persistence
+        try {
+          const cachedKey = `sgip_custom_resume_${authData.activeUser?.id}`;
+          const cached = typeof window !== 'undefined' ? localStorage.getItem(cachedKey) : null;
+          if (cached) {
+            const parsedCached = JSON.parse(cached);
+            if (parsedCached && parsedCached.isCustomUpload && parsedCached.fileUrl && !r.isCustomUpload) {
+              r = parsedCached;
+              // Re-sync with server
+              fetch('/api/resume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(r)
+              }).catch(() => {});
+            }
+          }
+        } catch (storageErr) {
+          console.warn('LocalStorage resume retrieval:', storageErr);
+        }
+
         setResume(r);
         setSummary(r.summary || '');
         setTemplate(r.template || 'ATS Resume');
@@ -91,7 +111,7 @@ export default function ResumeBuilderPage() {
     try {
       // Progress simulation for UI feedback
       const progressTimer = setInterval(() => {
-        setUploadProgress((prev) => (prev < 80 ? prev + 15 : prev));
+        setUploadProgress((prev) => (prev < 85 ? prev + 15 : prev));
       }, 150);
 
       const formData = new FormData();
@@ -118,6 +138,13 @@ export default function ResumeBuilderPage() {
       setAtsScore(updated.atsScore || 92);
       setSummary(updated.summary || '');
       
+      // Save locally to guarantee persistence across serverless cold-starts
+      try {
+        if (user?.id) {
+          localStorage.setItem(`sgip_custom_resume_${user.id}`, JSON.stringify(updated));
+        }
+      } catch (err) {}
+
       // CRITICAL: Load that particular uploaded resume immediately!
       setViewMode('uploaded');
       setUploadSuccess(true);
@@ -127,7 +154,6 @@ export default function ResumeBuilderPage() {
       setUploadError(err.message || 'Error uploading resume document');
     } finally {
       setIsUploading(false);
-      // Reset input value so re-uploading the same file triggers onChange
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -145,6 +171,11 @@ export default function ResumeBuilderPage() {
       if (data.resume) {
         setResume(data.resume);
       }
+      try {
+        if (user?.id) {
+          localStorage.removeItem(`sgip_custom_resume_${user.id}`);
+        }
+      } catch (err) {}
       setUploadedFileName(null);
       setUploadedFileSize(null);
       setViewMode('builder');

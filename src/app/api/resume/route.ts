@@ -80,18 +80,24 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
       }
 
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'resumes');
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
       const buffer = Buffer.from(await file.arrayBuffer());
-      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const uniqueName = `${user.id}_${Date.now()}_${safeFileName}`;
-      const filePath = path.join(uploadDir, uniqueName);
-      fs.writeFileSync(filePath, buffer);
+      const mimeType = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream');
+      const base64Data = buffer.toString('base64');
+      const fileUrl = `data:${mimeType};base64,${base64Data}`;
 
-      const fileUrl = `/uploads/resumes/${uniqueName}`;
+      // Best-effort local file write (safely ignored in read-only Vercel serverless environments)
+      try {
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'resumes');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const uniqueName = `${user.id}_${Date.now()}_${safeFileName}`;
+        const filePath = path.join(uploadDir, uniqueName);
+        fs.writeFileSync(filePath, buffer);
+      } catch (diskErr) {
+        // Read-only filesystem in Vercel lambda is expected; base64 Data URL handles serving
+      }
       const existing = dbStore.getResume(user.id);
 
       const updatedResume = {
