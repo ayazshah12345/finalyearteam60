@@ -226,6 +226,23 @@ export default function DailyTestPage() {
       } else {
         setShowWarningModal(true);
       }
+
+      // Log real-time incident to faculty malpractice desk
+      try {
+        fetch('/api/malpractice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: 'TEST_SESSION',
+            type,
+            count: nextCount,
+            quizId: activeModule?.id,
+            quizTitle: activeModule?.title,
+            severity: nextCount >= 3 ? 'HIGH' : 'MEDIUM'
+          })
+        }).catch((e) => console.warn('Malpractice log error:', e));
+      } catch (err) {}
+
       return nextCount;
     });
   };

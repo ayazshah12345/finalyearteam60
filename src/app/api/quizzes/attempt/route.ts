@@ -85,6 +85,47 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString()
     });
 
+    // Automatic Malpractice Incident Recording
+    if (isTerminated) {
+      dbStore.addMalpracticeIncident({
+        id: `mal_test_${Date.now()}`,
+        studentId: auth.user.id,
+        studentName: auth.user.name,
+        studentRollNumber: auth.user.rollNumber || '22CS101',
+        studentDepartment: auth.user.department || 'Computer Science & Engineering',
+        studentAvatarUrl: auth.user.avatarUrl,
+        category: 'TEST_SESSION',
+        type: 'TEST_TERMINATION',
+        title: 'Critical Test Disqualification (3+ Tab Switches)',
+        description: `Disqualified and terminated with 0 marks due to exceeding the 3-strike tab-switch limit during "${quizTitle}".`,
+        severity: 'HIGH',
+        contextTitle: quizTitle,
+        contextId: quizId,
+        timestamp: new Date().toISOString(),
+        status: 'REPORTED',
+        details: { tabSwitchCount, timeSpentSeconds }
+      });
+    } else if (tabSwitchCount && tabSwitchCount > 0) {
+      dbStore.addMalpracticeIncident({
+        id: `mal_test_${Date.now()}`,
+        studentId: auth.user.id,
+        studentName: auth.user.name,
+        studentRollNumber: auth.user.rollNumber || '22CS101',
+        studentDepartment: auth.user.department || 'Computer Science & Engineering',
+        studentAvatarUrl: auth.user.avatarUrl,
+        category: 'TEST_SESSION',
+        type: 'TAB_SWITCH',
+        title: `Proctor Warning: ${tabSwitchCount} Tab Switches Recorded`,
+        description: `Student left or switched the active test window ${tabSwitchCount} times during "${quizTitle}".`,
+        severity: 'MEDIUM',
+        contextTitle: quizTitle,
+        contextId: quizId,
+        timestamp: new Date().toISOString(),
+        status: 'REPORTED',
+        details: { tabSwitchCount, timeSpentSeconds }
+      });
+    }
+
     // 2. Send Automatic Notification to Placement Coordinator Desk
     dbStore.addNotification({
       id: `notif_quiz_coord_${Date.now()}`,

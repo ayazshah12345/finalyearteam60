@@ -143,6 +143,7 @@ export default function CourseDetailPage() {
                       event.target.setPlaybackRate(1);
                     } catch (e) {}
                     flashSecurityNotice('⚡ Fast-forward speed disabled. Standard 1.0x normal speed is enforced.');
+                    reportMalpractice('VIDEO_SPEEDUP_ATTEMPT', { speed: event.data });
                   }
                 }
               }
@@ -160,6 +161,35 @@ export default function CourseDetailPage() {
     }
   }, [activeLesson?.id]);
 
+  // Malpractice Reporting Handler
+  const lastReportTimeRef = useRef(0);
+  const reportMalpractice = async (
+    type: 'VIDEO_SPEEDUP_ATTEMPT' | 'VIDEO_SEEK_TAMPER',
+    details?: any
+  ) => {
+    const now = Date.now();
+    if (now - lastReportTimeRef.current < 4000) return;
+    lastReportTimeRef.current = now;
+
+    try {
+      await fetch('/api/malpractice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: 'VIDEO_TAMPERING',
+          type,
+          courseId: course?.id,
+          courseTitle: course?.title,
+          lessonId: activeLesson?.id,
+          lessonTitle: activeLesson?.title,
+          ...details
+        })
+      });
+    } catch (e) {
+      console.warn('Failed to log video malpractice:', e);
+    }
+  };
+
   // Anti-skip continuous interval monitoring
   useEffect(() => {
     let interval: any = null;
@@ -173,6 +203,10 @@ export default function CourseDetailPage() {
             if (currentSec > maxWatchedRef.current + 2.5) {
               ytPlayerRef.current.seekTo(maxWatchedRef.current, true);
               flashSecurityNotice('⏩ Swiping / Fast-forwarding is restricted. Please watch progressively.');
+              reportMalpractice('VIDEO_SEEK_TAMPER', {
+                attemptedSec: Math.floor(currentSec),
+                maxAllowedSec: Math.floor(maxWatchedRef.current)
+              });
             } else {
               if (currentSec > maxWatchedRef.current) {
                 maxWatchedRef.current = currentSec;
@@ -467,12 +501,17 @@ export default function CourseDetailPage() {
                       if (videoElRef.current && videoElRef.current.playbackRate > 1.0) {
                         videoElRef.current.playbackRate = 1.0;
                         flashSecurityNotice('⚡ Speedup disabled. Standard 1.0x playback rate enforced.');
+                        reportMalpractice('VIDEO_SPEEDUP_ATTEMPT', { speed: videoElRef.current.playbackRate });
                       }
                     }}
                     onSeeking={() => {
                       if (videoElRef.current && videoElRef.current.currentTime > maxWatchedRef.current + 2.0) {
                         videoElRef.current.currentTime = maxWatchedRef.current;
                         flashSecurityNotice('⏩ Swiping and skipping forward are locked. Please watch progressively.');
+                        reportMalpractice('VIDEO_SEEK_TAMPER', {
+                          attemptedSec: Math.floor(videoElRef.current.currentTime),
+                          maxAllowedSec: Math.floor(maxWatchedRef.current)
+                        });
                       }
                     }}
                     onTimeUpdate={() => {

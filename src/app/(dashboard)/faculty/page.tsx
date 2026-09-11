@@ -303,6 +303,12 @@ export default function FacultyPortalPage() {
               <Plus className="w-4 h-4" /> Create Placement Drive
             </Link>
             <Link
+              href="/faculty/malpractice"
+              className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-rose-500/30"
+            >
+              <ShieldAlert className="w-4 h-4" /> Malpractice
+            </Link>
+            <Link
               href="/faculty/test"
               className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-indigo-400/30"
             >

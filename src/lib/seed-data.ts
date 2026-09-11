@@ -20,7 +20,8 @@ import {
   PlacementApplication,
   AIKnowledgeSource,
   Notification,
-  AuditLog
+  AuditLog,
+  MalpracticeIncident
 } from '../types';
 
 export const SEED_USERS: User[] = [
@@ -1344,6 +1345,96 @@ export const SEED_CODING_SUBMISSIONS: CodingSubmission[] = [
     totalTestCases: 2,
     executionTimeMs: 68,
     submittedAt: '2026-08-07T11:45:00Z'
+  }
+];
+
+export const SEED_MALPRACTICE_INCIDENTS: MalpracticeIncident[] = [
+  {
+    id: 'mal_1',
+    studentId: 'usr_student_1',
+    studentName: 'Aarav Sharma',
+    studentRollNumber: '22CS101',
+    studentDepartment: 'Computer Science & Engineering',
+    studentAvatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=250&q=80',
+    category: 'TEST_SESSION',
+    type: 'TAB_SWITCH',
+    title: 'Test Window Focus Loss / Tab Switching',
+    description: 'Student switched browser tabs 3 consecutive times during proctored Daily Test Assessment.',
+    severity: 'HIGH',
+    contextTitle: '🔥 Module 8: Full 50-Question Master Placement Assessment',
+    contextId: 'mod_all',
+    timestamp: '2026-09-10T14:32:00Z',
+    status: 'REPORTED',
+    details: {
+      strikes: 3,
+      browser: 'Chrome 128 / Windows',
+      event: 'VisibilityChange hidden'
+    }
+  },
+  {
+    id: 'mal_2',
+    studentId: 'usr_student_2',
+    studentName: 'Diya Patel',
+    studentRollNumber: '22AD104',
+    studentDepartment: 'AI & Data Science',
+    studentAvatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=250&q=80',
+    category: 'VIDEO_TAMPERING',
+    type: 'VIDEO_SPEEDUP_ATTEMPT',
+    title: 'Attempted Fast Playback Rate (2.0x Acceleration)',
+    description: 'Student attempted to accelerate YouTube technical video lecture to 2.0x playback speed to bypass minimum watch duration.',
+    severity: 'MEDIUM',
+    contextTitle: 'Full-Stack Web Engineering with Next.js - Server Components Lecture',
+    contextId: 'crs_web_fullstack',
+    timestamp: '2026-09-10T16:15:00Z',
+    status: 'WARNING_ISSUED',
+    details: {
+      attemptedSpeed: 2.0,
+      enforcedSpeed: 1.0,
+      platform: 'YouTube Embedded Player'
+    }
+  },
+  {
+    id: 'mal_3',
+    studentId: 'usr_student_3',
+    studentName: 'Rohan Iyer',
+    studentRollNumber: '22IT109',
+    studentDepartment: 'Information Technology',
+    studentAvatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
+    category: 'VIDEO_TAMPERING',
+    type: 'VIDEO_SEEK_TAMPER',
+    title: 'Video Scrubber Fast-Forward Tampering',
+    description: 'Student repeatedly dragged the scrubber forward past watched timeline (jumped from 0:45 to 14:20) in an attempt to mark the lesson complete.',
+    severity: 'MEDIUM',
+    contextTitle: 'Data Structures & Algorithms in C++ - Graph BFS/DFS Implementation',
+    contextId: 'crs_dsa_cpp',
+    timestamp: '2026-09-11T08:40:00Z',
+    status: 'REPORTED',
+    details: {
+      attemptedSeekSec: 860,
+      legitimateWatchedSec: 45,
+      actionTaken: 'Auto-reverted to 45s via Focus Guard'
+    }
+  },
+  {
+    id: 'mal_4',
+    studentId: 'usr_student_4',
+    studentName: 'Ananya Deshmukh',
+    studentRollNumber: '22EC115',
+    studentDepartment: 'Electronics & Communication Engineering',
+    studentAvatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=250&q=80',
+    category: 'TEST_SESSION',
+    type: 'FULLSCREEN_EXIT',
+    title: 'Exited Proctored Fullscreen Environment',
+    description: 'Exited test fullscreen window and opened secondary display window during C++ Systems Module test.',
+    severity: 'HIGH',
+    contextTitle: 'Module 3: C++ Data Structures & Systems Module',
+    contextId: 'mod_cpp',
+    timestamp: '2026-09-11T09:12:00Z',
+    status: 'REPORTED',
+    details: {
+      event: 'FullscreenExit',
+      windowState: 'Unfocused'
+    }
   }
 ];
 

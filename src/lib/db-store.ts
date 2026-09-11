@@ -24,7 +24,8 @@ import {
   AIKnowledgeSource,
   Notification,
   AuditLog,
-  MockInterviewSession
+  MockInterviewSession,
+  MalpracticeIncident
 } from '../types';
 
 import {
@@ -50,7 +51,8 @@ import {
   SEED_KNOWLEDGE_SOURCES,
   SEED_NOTIFICATIONS,
   SEED_AUDIT_LOGS,
-  SEED_MOCK_INTERVIEWS
+  SEED_MOCK_INTERVIEWS,
+  SEED_MALPRACTICE_INCIDENTS
 } from './seed-data';
 
 interface DatabaseSchema {
@@ -77,6 +79,7 @@ interface DatabaseSchema {
   notifications: Notification[];
   auditLogs: AuditLog[];
   mockInterviews: MockInterviewSession[];
+  malpracticeIncidents: MalpracticeIncident[];
   activeUserId: string; // Default active demo user
 }
 
@@ -108,6 +111,7 @@ class DatabaseStore {
         if (!Array.isArray(dbData.auditLogs)) dbData.auditLogs = [...SEED_AUDIT_LOGS];
         if (!Array.isArray(dbData.codingProblems)) dbData.codingProblems = [...SEED_CODING_PROBLEMS];
         if (!Array.isArray(dbData.codingSubmissions)) dbData.codingSubmissions = [...SEED_CODING_SUBMISSIONS];
+        if (!Array.isArray(dbData.malpracticeIncidents)) dbData.malpracticeIncidents = [...SEED_MALPRACTICE_INCIDENTS];
         if (!dbData.resumes) dbData.resumes = { [SEED_RESUME.studentId]: SEED_RESUME };
 
         // Auto-merge missing Coding Problems
@@ -156,6 +160,7 @@ class DatabaseStore {
       notifications: [...SEED_NOTIFICATIONS],
       auditLogs: [...SEED_AUDIT_LOGS],
       mockInterviews: [...SEED_MOCK_INTERVIEWS],
+      malpracticeIncidents: [...SEED_MALPRACTICE_INCIDENTS],
       activeUserId: SEED_USERS[0].id, // Aarav Sharma (STUDENT)
     };
 
@@ -562,6 +567,31 @@ class DatabaseStore {
     this.data.mockInterviews.unshift(session);
     this.saveData();
     return session;
+  }
+
+  // Malpractice Incident Tracking
+  public getMalpracticeIncidents(): MalpracticeIncident[] {
+    return this.data.malpracticeIncidents || [];
+  }
+
+  public addMalpracticeIncident(incident: MalpracticeIncident): MalpracticeIncident {
+    if (!this.data.malpracticeIncidents) this.data.malpracticeIncidents = [];
+    this.data.malpracticeIncidents.unshift(incident);
+    this.saveData();
+    return incident;
+  }
+
+  public updateMalpracticeIncidentStatus(
+    id: string,
+    status: 'REPORTED' | 'WARNING_ISSUED' | 'DISMISSED'
+  ): boolean {
+    const inc = (this.data.malpracticeIncidents || []).find((i) => i.id === id);
+    if (inc) {
+      inc.status = status;
+      this.saveData();
+      return true;
+    }
+    return false;
   }
 }
 

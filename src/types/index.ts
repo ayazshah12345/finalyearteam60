@@ -429,3 +429,25 @@ export interface MockInterviewSession {
   transcript: MockInterviewRoundQuestion[];
   completedAt: string;
 }
+
+export type MalpracticeCategory = 'TEST_SESSION' | 'VIDEO_TAMPERING';
+export type MalpracticeSeverity = 'HIGH' | 'MEDIUM' | 'WARNING';
+
+export interface MalpracticeIncident {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentRollNumber?: string;
+  studentDepartment?: string;
+  studentAvatarUrl?: string;
+  category: MalpracticeCategory;
+  type: string;
+  title: string;
+  description: string;
+  severity: MalpracticeSeverity;
+  contextTitle?: string;
+  contextId?: string;
+  timestamp: string;
+  status: 'REPORTED' | 'WARNING_ISSUED' | 'DISMISSED';
+  details?: Record<string, any>;
+}
