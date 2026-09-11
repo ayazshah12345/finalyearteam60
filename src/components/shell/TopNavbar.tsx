@@ -103,11 +103,13 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
 
           {/* User Profile Summary & Login Link */}
           <div className="flex items-center gap-2.5">
-            <img
-              src={user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'}
-              alt={user.name}
-              className="w-8 h-8 rounded-full object-cover border-2 border-indigo-500/40 shadow-xs"
-            />
+            <div className="w-8 h-8 rounded-xl bg-white p-0.5 border-2 border-indigo-500/40 shadow-xs flex items-center justify-center shrink-0">
+              <img
+                src={user.role === 'STUDENT' ? '/vsb-logo.png' : (user.avatarUrl || '/vsb-logo.png')}
+                alt={user.name}
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div className="hidden md:block text-left">
               <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{user.name}</div>
               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">

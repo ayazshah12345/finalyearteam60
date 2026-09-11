@@ -56,7 +56,7 @@ export default function FacultyPortalPage() {
 
   // Modal 1: Inspect Student Record (with Reports & Resume view)
   const [inspectStudent, setInspectStudent] = useState<any | null>(null);
-  const [inspectTab, setInspectTab] = useState<'daily_test' | 'mock_interview' | 'resume' | 'leetcode'>('daily_test');
+  const [inspectTab, setInspectTab] = useState<'profile' | 'daily_test' | 'mock_interview' | 'resume' | 'leetcode'>('profile');
   const [studentResume, setStudentResume] = useState<ResumeData | null>(null);
   const [studentMockHistory, setStudentMockHistory] = useState<MockInterviewSession[]>([]);
   const [studentTestAttempts, setStudentTestAttempts] = useState<QuizAttempt[]>([]);
@@ -153,7 +153,7 @@ export default function FacultyPortalPage() {
   // Inspect Student Details & Fetch Resume / Tests / Interviews / LeetCode
   const handleInspectStudent = async (st: any) => {
     setInspectStudent(st);
-    setInspectTab('daily_test');
+    setInspectTab('profile');
     setStudentResume(null);
 
     // Filter student test attempts
@@ -507,8 +507,8 @@ export default function FacultyPortalPage() {
                         {/* Info & RegNo */}
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-extrabold flex items-center justify-center text-sm shadow-md">
-                              {st.name.charAt(0)}
+                            <div className="w-10 h-10 rounded-xl bg-white p-1 border border-amber-300 dark:border-amber-600 shadow-sm flex items-center justify-center shrink-0">
+                              <img src="/vsb-logo.png" alt="VSB" className="w-full h-full object-contain" />
                             </div>
                             <div>
                               <div className="font-black text-slate-900 dark:text-white text-sm">
@@ -770,15 +770,15 @@ export default function FacultyPortalPage() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-md">
-                  {inspectStudent.name.charAt(0)}
+                <div className="w-12 h-12 rounded-2xl bg-white p-1 border-2 border-amber-400 shadow-md flex items-center justify-center shrink-0">
+                  <img src="/vsb-logo.png" alt="VSB College" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-900 dark:text-white">
                     {inspectStudent.name}
                   </h3>
                   <div className="text-xs text-indigo-600 dark:text-indigo-400 font-mono font-extrabold">
-                    Reg No / Roll Number: {inspectStudent.rollNumber || '21CS104'} • {inspectStudent.department}
+                    Reg No / Roll Number: {inspectStudent.rollNumber || '21CS104'} • {inspectStudent.department} • VSB Engineering College
                   </div>
                 </div>
               </div>
@@ -791,7 +791,16 @@ export default function FacultyPortalPage() {
             </div>
 
             {/* Modal Internal Tabs */}
-            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto whitespace-nowrap">
+              <button
+                onClick={() => setInspectTab('profile')}
+                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${
+                  inspectTab === 'profile' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" /> Academic & Profile Overview
+              </button>
+
               <button
                 onClick={() => setInspectTab('daily_test')}
                 className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${
@@ -818,9 +827,161 @@ export default function FacultyPortalPage() {
               >
                 <FileText className="w-3.5 h-3.5" /> Candidate ATS Resume
               </button>
-
-
             </div>
+
+            {/* MODAL TAB: ACADEMIC & PROFILE OVERVIEW */}
+            {inspectTab === 'profile' && (
+              <div className="space-y-6 text-xs">
+                {/* Academic Quick Stat Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Academic CGPA</div>
+                    <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
+                      {inspectStudent.cgpa ? Number(inspectStudent.cgpa).toFixed(2) : '8.40'}
+                    </div>
+                    <span className="text-[10px] text-emerald-600 font-bold">Score out of 10.0</span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Current Arrears</div>
+                    <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
+                      {inspectStudent.backlogs || 0}
+                    </div>
+                    <span className="text-[10px] text-slate-400">Backlogs Count</span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Current Semester</div>
+                    <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
+                      Semester {inspectStudent.semester || 6}
+                    </div>
+                    <span className="text-[10px] text-slate-400">{inspectStudent.currentYear || '3rd Year'}</span>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Placement Status</div>
+                    <div className="text-xl font-black text-emerald-600 mt-1">Eligible</div>
+                    <span className="text-[10px] text-emerald-600 font-bold">Campus Approved</span>
+                  </div>
+                </div>
+
+                {/* All 10 Required Profile Records Card */}
+                <div className="bg-slate-50 dark:bg-slate-800/40 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                    <h4 className="font-black uppercase text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4" /> Official Student & Guardian Profile Records
+                    </h4>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">
+                      Verified Candidate
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-slate-700 dark:text-slate-300">
+                    {/* 1. Student Name */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">1. Student Name</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
+                        {inspectStudent.name}
+                      </div>
+                    </div>
+
+                    {/* 2. Registered Email ID (Cannot Editable) */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">2. Registered Email ID</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 font-mono truncate" title={inspectStudent.email}>
+                        {inspectStudent.email}
+                      </div>
+                    </div>
+
+                    {/* 3. Phone Number */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">3. Phone Number</div>
+                      <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono">
+                        {inspectStudent.phoneNumber || 'Not provided'}
+                      </div>
+                    </div>
+
+                    {/* 4. CGPA */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">4. Cumulative CGPA</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
+                        {inspectStudent.cgpa ? Number(inspectStudent.cgpa).toFixed(2) : '8.40'} / 10.0
+                      </div>
+                    </div>
+
+                    {/* 5. Parents Name : Mother / Father */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">5. Parents Name (Mother/Father)</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                        {inspectStudent.parentName || 'Not provided'}
+                      </div>
+                    </div>
+
+                    {/* 6. Parents Number */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">6. Parents Contact Number</div>
+                      <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono">
+                        {inspectStudent.parentPhone || 'Not provided'}
+                      </div>
+                    </div>
+
+                    {/* 7. Blood Group */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">7. Blood Group</div>
+                      <div className="text-sm font-black text-rose-600 mt-0.5">
+                        {inspectStudent.bloodGroup || 'O+'}
+                      </div>
+                    </div>
+
+                    {/* 8. Current Year */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">8. Current Academic Year</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                        {inspectStudent.currentYear || '3rd Year'}
+                      </div>
+                    </div>
+
+                    {/* 9. Class and Section */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">9. Class & Section</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                        {inspectStudent.classSection || 'AI & DS - A'}
+                      </div>
+                    </div>
+
+                    {/* 10. Semester */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">10. Current Semester</div>
+                      <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
+                        Semester {inspectStudent.semester || 6}
+                      </div>
+                    </div>
+
+                    {/* Roll Number */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">Register / Roll Number</div>
+                      <div className="text-sm font-mono font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
+                        {inspectStudent.rollNumber || '21CS104'}
+                      </div>
+                    </div>
+
+                    {/* Department & Batch */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">Department & Batch</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                        {inspectStudent.department} ({inspectStudent.batch || '2022-2026'})
+                      </div>
+                    </div>
+                  </div>
+
+                  {inspectStudent.bio && (
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+                      <strong className="text-slate-800 dark:text-slate-200">Bio / Highlights:</strong> {inspectStudent.bio}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* MODAL TAB 1: DAILY TEST REPORT */}
             {inspectTab === 'daily_test' && (

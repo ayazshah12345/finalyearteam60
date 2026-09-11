@@ -7,67 +7,87 @@ import { User } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+import { parseStudentBio } from '@/lib/student-profile';
+
 export async function GET(req: Request) {
-  // 1. Sync from Supabase via Prisma ORM
+  // 1. Sync from Supabase via Prisma ORM or Supabase Client
   try {
-    const dbUsers = await prisma.user.findMany();
-    if (dbUsers && dbUsers.length > 0) {
-      dbUsers.forEach((u) => {
+    const supabase = getSupabaseClient();
+    const { data: supaUsers } = await supabase.from('User').select('*');
+    if (supaUsers && supaUsers.length > 0) {
+      supaUsers.forEach((u: any) => {
+        const parsed = parseStudentBio(u.bio);
         const formattedUser: User = {
           id: u.id,
           name: u.name,
           email: u.email,
-          role: u.role as any,
+          role: u.role,
           department: u.department,
           batch: u.batch || '2022-2026',
           semester: u.semester || 6,
           rollNumber: u.rollNumber || undefined,
-          avatarUrl: u.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-          cgpa: u.cgpa || 8.0,
-          backlogs: u.backlogs || 0,
-          bio: u.bio || 'VSB Student',
+          avatarUrl: u.role === 'STUDENT' ? '/vsb-logo.png' : (u.avatarUrl || '/vsb-logo.png'),
+          cgpa: u.cgpa ?? 8.0,
+          backlogs: u.backlogs ?? 0,
+          bio: parsed.about || u.bio || 'VSB Student',
+          phoneNumber: parsed.phoneNumber || undefined,
+          parentName: parsed.parentName || undefined,
+          parentPhone: parsed.parentPhone || undefined,
+          bloodGroup: parsed.bloodGroup || undefined,
+          currentYear: parsed.currentYear || undefined,
+          classSection: parsed.classSection || undefined,
           password: u.password || undefined,
-          createdAt: u.createdAt.toISOString(),
+          createdAt: u.createdAt || new Date().toISOString(),
         };
-        if (!dbStore.getUserById(u.id)) {
+        const existing = dbStore.getUserById(u.id);
+        if (!existing) {
           dbStore.addUser(formattedUser);
+        } else {
+          dbStore.updateUser(u.id, formattedUser);
         }
       });
     }
   } catch (e) {
-    // 2. Fallback: Sync via Supabase JS SDK
+    // Fallback: sync via Prisma
     try {
-      const supabase = getSupabaseClient();
-      const { data: supaUsers } = await supabase.from('User').select('*');
-      if (supaUsers && supaUsers.length > 0) {
-        supaUsers.forEach((u: any) => {
+      const dbUsers = await prisma.user.findMany();
+      if (dbUsers && dbUsers.length > 0) {
+        dbUsers.forEach((u) => {
+          const parsed = parseStudentBio(u.bio);
           const formattedUser: User = {
             id: u.id,
             name: u.name,
             email: u.email,
-            role: u.role,
+            role: u.role as any,
             department: u.department,
             batch: u.batch || '2022-2026',
             semester: u.semester || 6,
             rollNumber: u.rollNumber || undefined,
-            avatarUrl: u.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-            cgpa: u.cgpa || 8.0,
-            backlogs: u.backlogs || 0,
-            bio: u.bio || 'VSB Student',
+            avatarUrl: u.role === 'STUDENT' ? '/vsb-logo.png' : (u.avatarUrl || '/vsb-logo.png'),
+            cgpa: u.cgpa ?? 8.0,
+            backlogs: u.backlogs ?? 0,
+            bio: parsed.about || u.bio || 'VSB Student',
+            phoneNumber: parsed.phoneNumber || undefined,
+            parentName: parsed.parentName || undefined,
+            parentPhone: parsed.parentPhone || undefined,
+            bloodGroup: parsed.bloodGroup || undefined,
+            currentYear: parsed.currentYear || undefined,
+            classSection: parsed.classSection || undefined,
             password: u.password || undefined,
-            createdAt: u.createdAt || new Date().toISOString(),
+            createdAt: u.createdAt.toISOString(),
           };
-          if (!dbStore.getUserById(u.id)) {
+          const existing = dbStore.getUserById(u.id);
+          if (!existing) {
             dbStore.addUser(formattedUser);
+          } else {
+            dbStore.updateUser(u.id, formattedUser);
           }
         });
       }
-    } catch (spErr) {
-      console.warn('Supabase JS SDK fallback GET:', spErr);
-    }
+    } catch (pe) {}
   }
 
-  // 3. Inspect Session Cookie and Header to determine precise active user
+  // 2. Inspect Session Cookie and Header to determine precise active user
   let activeUser: User | null = null;
   try {
     const cookieStore = await cookies();
@@ -81,22 +101,30 @@ export async function GET(req: Request) {
       let found = dbStore.getUserById(targetId);
       if (!found) {
         try {
-          const dbUser = await prisma.user.findUnique({ where: { id: targetId } });
-          if (dbUser) {
+          const supabase = getSupabaseClient();
+          const { data: supaUser } = await supabase.from('User').select('*').eq('id', targetId).single();
+          if (supaUser) {
+            const parsed = parseStudentBio(supaUser.bio);
             found = {
-              id: dbUser.id,
-              name: dbUser.name,
-              email: dbUser.email,
-              role: dbUser.role as any,
-              department: dbUser.department,
-              batch: dbUser.batch || '2022-2026',
-              semester: dbUser.semester || 6,
-              rollNumber: dbUser.rollNumber || undefined,
-              avatarUrl: dbUser.avatarUrl || undefined,
-              cgpa: dbUser.cgpa || 8.0,
-              backlogs: dbUser.backlogs || 0,
-              bio: dbUser.bio || 'VSB Student',
-              createdAt: dbUser.createdAt.toISOString()
+              id: supaUser.id,
+              name: supaUser.name,
+              email: supaUser.email,
+              role: supaUser.role as any,
+              department: supaUser.department,
+              batch: supaUser.batch || '2022-2026',
+              semester: supaUser.semester || 6,
+              rollNumber: supaUser.rollNumber || undefined,
+              avatarUrl: supaUser.role === 'STUDENT' ? '/vsb-logo.png' : (supaUser.avatarUrl || '/vsb-logo.png'),
+              cgpa: supaUser.cgpa ?? 8.0,
+              backlogs: supaUser.backlogs ?? 0,
+              bio: parsed.about || supaUser.bio || 'VSB Student',
+              phoneNumber: parsed.phoneNumber || undefined,
+              parentName: parsed.parentName || undefined,
+              parentPhone: parsed.parentPhone || undefined,
+              bloodGroup: parsed.bloodGroup || undefined,
+              currentYear: parsed.currentYear || undefined,
+              classSection: parsed.classSection || undefined,
+              createdAt: supaUser.createdAt || new Date().toISOString()
             };
             dbStore.addUser(found);
           }
@@ -161,110 +189,63 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fallback: Search directly in Supabase PostgreSQL via Prisma or Supabase SDK
     if (!targetUser) {
       try {
-        const term = (identifier || rollNumber || email || '').trim().toLowerCase();
-        const dbUser = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { id: userId || '' },
-              { email: term },
-              { rollNumber: term.toUpperCase() }
-            ]
-          }
-        });
-
-        if (dbUser) {
+        const supabase = getSupabaseClient();
+        let query = supabase.from('User').select('*');
+        if (email) query = query.ilike('email', email.trim());
+        else if (rollNumber) query = query.ilike('rollNumber', rollNumber.trim());
+        else if (identifier) query = query.or(`email.ilike.${identifier.trim()},rollNumber.ilike.${identifier.trim()}`);
+        
+        const { data: supaUser } = await query.limit(1).maybeSingle();
+        if (supaUser) {
+          const parsed = parseStudentBio(supaUser.bio);
           targetUser = {
-            id: dbUser.id,
-            name: dbUser.name,
-            email: dbUser.email,
-            role: dbUser.role as any,
-            department: dbUser.department,
-            batch: dbUser.batch || '2022-2026',
-            semester: dbUser.semester || 6,
-            rollNumber: dbUser.rollNumber || undefined,
-            avatarUrl: dbUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-            cgpa: dbUser.cgpa || 8.0,
-            backlogs: dbUser.backlogs || 0,
-            bio: dbUser.bio || 'VSB Student',
-            password: dbUser.password || undefined,
-            createdAt: dbUser.createdAt.toISOString(),
+            id: supaUser.id,
+            name: supaUser.name,
+            email: supaUser.email,
+            role: supaUser.role as any,
+            department: supaUser.department,
+            batch: supaUser.batch || '2022-2026',
+            semester: supaUser.semester || 6,
+            rollNumber: supaUser.rollNumber || undefined,
+            avatarUrl: supaUser.role === 'STUDENT' ? '/vsb-logo.png' : (supaUser.avatarUrl || '/vsb-logo.png'),
+            cgpa: supaUser.cgpa ?? 8.0,
+            backlogs: supaUser.backlogs ?? 0,
+            bio: parsed.about || supaUser.bio || 'VSB Student',
+            phoneNumber: parsed.phoneNumber || undefined,
+            parentName: parsed.parentName || undefined,
+            parentPhone: parsed.parentPhone || undefined,
+            bloodGroup: parsed.bloodGroup || undefined,
+            currentYear: parsed.currentYear || undefined,
+            classSection: parsed.classSection || undefined,
+            password: supaUser.password || undefined,
+            createdAt: supaUser.createdAt || new Date().toISOString()
           };
           dbStore.addUser(targetUser);
         }
-      } catch (dbErr) {
-        try {
-          const supabase = getSupabaseClient();
-          const term = (identifier || rollNumber || email || '').trim().toLowerCase();
-          const { data: supaUsers } = await supabase.from('User').select('*');
-          const found = supaUsers?.find((u: any) => 
-            u.id === userId ||
-            u.email?.toLowerCase() === term ||
-            u.rollNumber?.toLowerCase() === term
-          );
-          if (found) {
-            targetUser = {
-              id: found.id,
-              name: found.name,
-              email: found.email,
-              role: found.role,
-              department: found.department,
-              batch: found.batch || '2022-2026',
-              semester: found.semester || 6,
-              rollNumber: found.rollNumber || undefined,
-              avatarUrl: found.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-              cgpa: found.cgpa || 8.0,
-              backlogs: found.backlogs || 0,
-              bio: found.bio || 'VSB Student',
-              password: found.password || undefined,
-              createdAt: found.createdAt || new Date().toISOString(),
-            };
-            dbStore.addUser(targetUser);
-          }
-        } catch (spErr) {
-          console.warn('Supabase fallback error:', spErr);
-        }
-      }
+      } catch (e) {}
     }
 
     if (!targetUser) {
-      return NextResponse.json({ error: 'User record not found with the provided credentials.' }, { status: 404 });
+      return NextResponse.json({ error: 'User account not found. Please register or check credentials.' }, { status: 404 });
     }
 
-    // Student Credential Checks
-    if (targetUser.role === 'STUDENT') {
-      if (!userId && targetUser.password) {
-        if (!password) {
-          return NextResponse.json({ error: 'Password is required to sign into your student account.' }, { status: 400 });
-        }
-        if (targetUser.password.trim() !== password.trim()) {
-          return NextResponse.json({ error: 'Incorrect student password. Please check your password and try again.' }, { status: 401 });
-        }
-      }
+    if (password && targetUser.password && targetUser.password !== password) {
+      return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 });
     }
 
-    const updatedUser = dbStore.setActiveUser(targetUser.id);
+    dbStore.setActiveUser(targetUser.id);
 
-    dbStore.logAudit({
-      id: `aud_${Date.now()}`,
-      userId: targetUser.id,
-      userName: targetUser.name,
-      role: targetUser.role,
-      action: 'USER_LOGIN',
-      entity: 'User',
-      entityId: targetUser.id,
-      timestamp: new Date().toISOString(),
-      details: `Authenticated user session for ${targetUser.name} (${targetUser.role})`
+    const res = NextResponse.json({
+      success: true,
+      activeUser: targetUser,
+      message: `Signed in as ${targetUser.name} (${targetUser.role})`
     });
 
-    const res = NextResponse.json({ success: true, activeUser: updatedUser });
-    
-    // Set persistent session cookies for both Student and Faculty
     res.cookies.set('sgip_session_user_id', targetUser.id, {
       path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
       sameSite: 'lax',
       httpOnly: false
     });
@@ -276,7 +257,7 @@ export async function POST(req: Request) {
     });
 
     return res;
-  } catch (err) {
+  } catch (err: any) {
     return NextResponse.json({ error: 'Failed to process login request.' }, { status: 500 });
   }
 }
@@ -304,44 +285,98 @@ export async function PUT(req: Request) {
   }
 
   const body = await req.json();
-  const { studentId, name, cgpa, backlogs, department, semester, rollNumber, bio, avatarUrl } = body;
+  const {
+    studentId,
+    name,
+    cgpa,
+    backlogs,
+    department,
+    semester,
+    rollNumber,
+    batch,
+    phoneNumber,
+    parentName,
+    parentPhone,
+    bloodGroup,
+    currentYear,
+    classSection,
+    bio
+  } = body;
+  
   const targetId = studentId || activeUser.id;
+  const currentStudentRecord = dbStore.getUserById(targetId) || activeUser;
+  const existingBio = parseStudentBio(currentStudentRecord.bio);
 
-  const updates: any = {};
-  if (name !== undefined && name.trim() !== '') updates.name = name;
+  const studentDetails = {
+    about: bio !== undefined ? bio : existingBio.about,
+    phoneNumber: phoneNumber !== undefined ? phoneNumber : (currentStudentRecord.phoneNumber || existingBio.phoneNumber),
+    parentName: parentName !== undefined ? parentName : (currentStudentRecord.parentName || existingBio.parentName),
+    parentPhone: parentPhone !== undefined ? parentPhone : (currentStudentRecord.parentPhone || existingBio.parentPhone),
+    bloodGroup: bloodGroup !== undefined ? bloodGroup : (currentStudentRecord.bloodGroup || existingBio.bloodGroup),
+    currentYear: currentYear !== undefined ? currentYear : (currentStudentRecord.currentYear || existingBio.currentYear),
+    classSection: classSection !== undefined ? classSection : (currentStudentRecord.classSection || existingBio.classSection)
+  };
+
+  const packedBio = JSON.stringify(studentDetails);
+
+  const updates: Partial<User> = {
+    bio: packedBio,
+    phoneNumber: studentDetails.phoneNumber,
+    parentName: studentDetails.parentName,
+    parentPhone: studentDetails.parentPhone,
+    bloodGroup: studentDetails.bloodGroup,
+    currentYear: studentDetails.currentYear,
+    classSection: studentDetails.classSection,
+    avatarUrl: '/vsb-logo.png'
+  };
+
+  if (name !== undefined && name.trim() !== '') updates.name = name.trim();
   if (cgpa !== undefined && cgpa !== '') updates.cgpa = parseFloat(cgpa);
   if (backlogs !== undefined && backlogs !== '') updates.backlogs = parseInt(backlogs);
-  if (department !== undefined && department.trim() !== '') updates.department = department;
+  if (department !== undefined && department.trim() !== '') updates.department = department.trim();
   if (semester !== undefined && semester !== '') updates.semester = parseInt(semester);
-  if (rollNumber !== undefined && rollNumber.trim() !== '') updates.rollNumber = rollNumber;
-  if (bio !== undefined) updates.bio = bio;
-  if (avatarUrl !== undefined && avatarUrl.trim() !== '') updates.avatarUrl = avatarUrl;
+  if (rollNumber !== undefined && rollNumber.trim() !== '') updates.rollNumber = rollNumber.trim();
+  if (batch !== undefined && batch.trim() !== '') updates.batch = batch.trim();
 
   const updatedUser = dbStore.updateUser(targetId, updates);
 
-  // Sync profile update with Supabase PostgreSQL via Prisma & Supabase SDK
+  // Sync profile update with PostgreSQL Supabase & Prisma
   try {
-    const dbUpdates: any = {};
-    if (updates.name) dbUpdates.name = updates.name;
-    if (updates.cgpa !== undefined) dbUpdates.cgpa = updates.cgpa;
-    if (updates.backlogs !== undefined) dbUpdates.backlogs = updates.backlogs;
-    if (updates.department) dbUpdates.department = updates.department;
-    if (updates.semester !== undefined) dbUpdates.semester = updates.semester;
-    if (updates.rollNumber) dbUpdates.rollNumber = updates.rollNumber;
-    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
-    if (updates.avatarUrl) dbUpdates.avatarUrl = updates.avatarUrl;
+    const supabase = getSupabaseClient();
+    const dbUpdatePayload: any = {
+      name: updates.name || currentStudentRecord.name,
+      department: updates.department || currentStudentRecord.department,
+      rollNumber: updates.rollNumber || currentStudentRecord.rollNumber,
+      semester: updates.semester !== undefined ? updates.semester : currentStudentRecord.semester,
+      batch: updates.batch || currentStudentRecord.batch,
+      cgpa: updates.cgpa !== undefined ? updates.cgpa : currentStudentRecord.cgpa,
+      backlogs: updates.backlogs !== undefined ? updates.backlogs : currentStudentRecord.backlogs,
+      bio: packedBio,
+      avatarUrl: '/vsb-logo.png'
+    };
 
-    await prisma.user.update({
-      where: { id: targetId },
-      data: dbUpdates
+    await supabase.from('User').update(dbUpdatePayload).eq('id', targetId);
+
+    // Also record profile update in PostgreSQL AuditLog
+    await supabase.from('AuditLog').insert({
+      id: `prof_upd_${Date.now()}`,
+      userId: targetId,
+      userName: updates.name || currentStudentRecord.name,
+      role: currentStudentRecord.role || 'STUDENT',
+      action: 'PROFILE_UPDATED',
+      details: JSON.stringify({
+        ...studentDetails,
+        name: updates.name,
+        cgpa: updates.cgpa,
+        backlogs: updates.backlogs,
+        department: updates.department,
+        semester: updates.semester,
+        rollNumber: updates.rollNumber
+      }),
+      timestamp: new Date().toISOString()
     });
-  } catch (e) {
-    try {
-      const supabase = getSupabaseClient();
-      await supabase.from('User').update(updates).eq('id', targetId);
-    } catch (spErr) {
-      console.warn('Supabase JS SDK update fallback:', spErr);
-    }
+  } catch (spErr) {
+    console.warn('Supabase profile update warning:', spErr);
   }
 
   // Notify Faculty about student profile updates
@@ -349,22 +384,10 @@ export async function PUT(req: Request) {
     id: `notif_prof_${Date.now()}`,
     targetRole: 'FACULTY',
     title: `👤 Student Profile Updated: ${updatedUser?.name || targetId}`,
-    message: `Student ${updatedUser?.name} updated profile. CGPA: ${updatedUser?.cgpa}, Arrears: ${updatedUser?.backlogs}, Dept: ${updatedUser?.department}`,
+    message: `Student ${updatedUser?.name} updated profile. Phone: ${studentDetails.phoneNumber || 'N/A'}, Parents: ${studentDetails.parentName || 'N/A'}, CGPA: ${updatedUser?.cgpa}, Arrears: ${updatedUser?.backlogs}, Class: ${studentDetails.classSection || 'N/A'}`,
     category: 'System',
     read: false,
     createdAt: new Date().toISOString()
-  });
-
-  dbStore.logAudit({
-    id: `aud_${Date.now()}`,
-    userId: activeUser.id,
-    userName: activeUser.name,
-    role: activeUser.role,
-    action: 'PROFILE_UPDATE',
-    entity: 'User',
-    entityId: targetId,
-    timestamp: new Date().toISOString(),
-    details: `Updated student profile info for ${updatedUser?.name || targetId}. CGPA: ${updatedUser?.cgpa}, Arrears: ${updatedUser?.backlogs}`
   });
 
   return NextResponse.json({ success: true, user: updatedUser });

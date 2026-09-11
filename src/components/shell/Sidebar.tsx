@@ -165,11 +165,13 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
 
           {/* Current Active Persona Info Card */}
           <div className="bg-gradient-to-br from-indigo-50/70 via-blue-50/50 to-white dark:from-slate-800/80 dark:to-slate-800/50 border border-indigo-100/90 dark:border-slate-700/80 rounded-2xl p-3 flex items-center gap-3 shadow-xs">
-            <img
-              src={user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'}
-              alt={user.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-indigo-500/30 shadow-sm"
-            />
+            <div className="w-10 h-10 rounded-xl bg-white p-1 border-2 border-indigo-500/30 shadow-sm flex items-center justify-center shrink-0">
+              <img
+                src={user.role === 'STUDENT' ? '/vsb-logo.png' : (user.avatarUrl || '/vsb-logo.png')}
+                alt={user.name}
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</div>
               <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate font-medium">{user.department}</div>

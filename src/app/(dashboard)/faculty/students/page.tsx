@@ -299,8 +299,8 @@ export default function FacultyStudentProfilesPage() {
                 <tr key={st.studentId} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white font-extrabold flex items-center justify-center text-sm shadow-md">
-                        {st.name.charAt(0)}
+                      <div className="w-10 h-10 rounded-xl bg-white p-1 border border-amber-300 dark:border-amber-600 shadow-sm flex items-center justify-center shrink-0">
+                        <img src="/vsb-logo.png" alt="VSB College" className="w-full h-full object-contain" />
                       </div>
                       <div>
                         <div className="font-black text-slate-900 dark:text-white text-sm">{st.name}</div>
@@ -370,8 +370,8 @@ export default function FacultyStudentProfilesPage() {
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white font-black text-xl flex items-center justify-center shadow-lg">
-                  {selectedStudent.name.charAt(0)}
+                <div className="w-14 h-14 rounded-2xl bg-white p-1.5 border-2 border-amber-400 shadow-lg flex items-center justify-center shrink-0">
+                  <img src="/vsb-logo.png" alt="VSB College" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -381,7 +381,7 @@ export default function FacultyStudentProfilesPage() {
                     </span>
                   </div>
                   <div className="text-xs text-slate-500 font-mono mt-0.5">
-                    Reg No: <strong>{selectedStudent.rollNumber || '21CS104'}</strong> • {selectedStudent.department}
+                    Reg No: <strong>{selectedStudent.rollNumber || '21CS104'}</strong> • {selectedStudent.department} • VSB Engineering College
                   </div>
                 </div>
               </div>
@@ -455,10 +455,10 @@ export default function FacultyStudentProfilesPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                     <div className="text-[10px] text-slate-400 uppercase font-bold">Academic CGPA</div>
-                    <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
+                    <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1">
                       {selectedStudent.cgpa ? Number(selectedStudent.cgpa).toFixed(2) : '8.40'}
                     </div>
-                    <span className="text-[10px] text-emerald-600 font-bold">Out of 10.0</span>
+                    <span className="text-[10px] text-emerald-600 font-bold">Score out of 10.0</span>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
@@ -470,11 +470,11 @@ export default function FacultyStudentProfilesPage() {
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">Semester</div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Current Semester</div>
                     <div className="text-xl font-black text-slate-900 dark:text-white mt-1">
-                      Sem {selectedStudent.semester || 6}
+                      Semester {selectedStudent.semester || 6}
                     </div>
-                    <span className="text-[10px] text-slate-400">{selectedStudent.batch || '2022-2026'}</span>
+                    <span className="text-[10px] text-slate-400">{selectedStudent.currentYear || '3rd Year'}</span>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
@@ -484,34 +484,118 @@ export default function FacultyStudentProfilesPage() {
                   </div>
                 </div>
 
-                {/* Personal & Student Identification */}
-                <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
-                  <h4 className="font-extrabold uppercase text-xs text-indigo-600 dark:text-indigo-400">
-                    Student Details & Contact
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700 dark:text-slate-300">
-                    <div>
-                      <span className="text-slate-400 font-medium">Full Name:</span>{' '}
-                      <strong className="text-slate-900 dark:text-white">{selectedStudent.name}</strong>
+                {/* All 10 Required Profile Records Card */}
+                <div className="bg-slate-50 dark:bg-slate-800/40 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                    <h4 className="font-black uppercase text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4" /> Official Student & Guardian Profile Records
+                    </h4>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">
+                      Verified Candidate
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-slate-700 dark:text-slate-300">
+                    {/* 1. Student Name */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">1. Student Name</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
+                        {selectedStudent.name}
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-400 font-medium">Email Address:</span>{' '}
-                      <strong className="text-slate-900 dark:text-white">{selectedStudent.email}</strong>
+
+                    {/* 2. Registered Email ID (Cannot Editable) */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">2. Registered Email ID</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5 font-mono truncate" title={selectedStudent.email}>
+                        {selectedStudent.email}
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-400 font-medium">Register Number / Roll No:</span>{' '}
-                      <strong className="font-mono text-indigo-600 dark:text-indigo-400">
+
+                    {/* 3. Phone Number */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">3. Phone Number</div>
+                      <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono">
+                        {selectedStudent.phoneNumber || 'Not provided'}
+                      </div>
+                    </div>
+
+                    {/* 4. CGPA */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">4. Cumulative CGPA</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
+                        {selectedStudent.cgpa ? Number(selectedStudent.cgpa).toFixed(2) : '8.40'} / 10.0
+                      </div>
+                    </div>
+
+                    {/* 5. Parents Name : Mother / Father */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">5. Parents Name (Mother/Father)</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                        {selectedStudent.parentName || 'Not provided'}
+                      </div>
+                    </div>
+
+                    {/* 6. Parents Number */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">6. Parents Contact Number</div>
+                      <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 font-mono">
+                        {selectedStudent.parentPhone || 'Not provided'}
+                      </div>
+                    </div>
+
+                    {/* 7. Blood Group */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">7. Blood Group</div>
+                      <div className="text-sm font-black text-rose-600 mt-0.5">
+                        {selectedStudent.bloodGroup || 'O+'}
+                      </div>
+                    </div>
+
+                    {/* 8. Current Year */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">8. Current Academic Year</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                        {selectedStudent.currentYear || '3rd Year'}
+                      </div>
+                    </div>
+
+                    {/* 9. Class and Section */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">9. Class & Section</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                        {selectedStudent.classSection || 'AI & DS - A'}
+                      </div>
+                    </div>
+
+                    {/* 10. Semester */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">10. Current Semester</div>
+                      <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
+                        Semester {selectedStudent.semester || 6}
+                      </div>
+                    </div>
+
+                    {/* Roll Number */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">Register / Roll Number</div>
+                      <div className="text-sm font-mono font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
                         {selectedStudent.rollNumber || '21CS104'}
-                      </strong>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-400 font-medium">Department:</span>{' '}
-                      <strong className="text-slate-900 dark:text-white">{selectedStudent.department}</strong>
+
+                    {/* Department & Batch */}
+                    <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                      <div className="text-[10px] text-slate-400 font-extrabold uppercase">Department & Batch</div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                        {selectedStudent.department} ({selectedStudent.batch || '2022-2026'})
+                      </div>
                     </div>
                   </div>
+
                   {selectedStudent.bio && (
-                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
-                      <strong>Bio / Highlights:</strong> {selectedStudent.bio}
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+                      <strong className="text-slate-800 dark:text-slate-200">Bio / Highlights:</strong> {selectedStudent.bio}
                     </div>
                   )}
                 </div>

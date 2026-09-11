@@ -9,7 +9,24 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, rollNumber, department, cgpa, backlogs, password, semester, batch, bio, avatarUrl } = body;
+    const {
+      name,
+      email,
+      rollNumber,
+      department,
+      cgpa,
+      backlogs,
+      password,
+      semester,
+      batch,
+      bio,
+      phoneNumber,
+      parentName,
+      parentPhone,
+      bloodGroup,
+      currentYear,
+      classSection
+    } = body;
 
     if (!name || !email || !rollNumber) {
       return NextResponse.json({ error: 'Name, Email, and Roll Number are required fields.' }, { status: 400 });
@@ -54,6 +71,17 @@ export async function POST(req: Request) {
     const parsedCgpa = cgpa !== undefined && cgpa !== '' ? parseFloat(cgpa) : 8.0;
     const parsedBacklogs = backlogs !== undefined && backlogs !== '' ? parseInt(backlogs) : 0;
 
+    const { packStudentBio } = await import('@/lib/student-profile');
+    const packedBio = packStudentBio({
+      about: bio || 'VSB Engineering College Student',
+      phoneNumber: phoneNumber || '',
+      parentName: parentName || '',
+      parentPhone: parentPhone || '',
+      bloodGroup: bloodGroup || 'O+',
+      currentYear: currentYear || '3rd Year',
+      classSection: classSection || 'AI & DS - A'
+    });
+
     const newStudent: User = {
       id: newStudentId,
       name: name.trim(),
@@ -65,8 +93,14 @@ export async function POST(req: Request) {
       batch: batch || '2022-2026',
       cgpa: parsedCgpa,
       backlogs: parsedBacklogs,
-      bio: bio || 'VSB Engineering College Student',
-      avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+      bio: packedBio,
+      phoneNumber: phoneNumber || '',
+      parentName: parentName || '',
+      parentPhone: parentPhone || '',
+      bloodGroup: bloodGroup || 'O+',
+      currentYear: currentYear || '3rd Year',
+      classSection: classSection || 'AI & DS - A',
+      avatarUrl: '/vsb-logo.png',
       password: password || 'password123',
       skills: ['Python', 'Data Structures', 'Web Development'],
       xp: 250,

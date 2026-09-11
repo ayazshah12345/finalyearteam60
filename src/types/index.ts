@@ -19,6 +19,14 @@ export interface User {
   level?: number;
   streak?: number;
   createdAt: string;
+
+  // Detailed Student Profile Records
+  phoneNumber?: string;
+  parentName?: string;
+  parentPhone?: string;
+  bloodGroup?: string;
+  currentYear?: string;
+  classSection?: string;
 }
 
 export interface Course {

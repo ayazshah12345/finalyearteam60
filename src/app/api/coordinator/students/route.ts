@@ -12,30 +12,83 @@ export async function GET(req: Request) {
 
   const activeUser = auth.user;
   
-  // Sync legitimately registered students from PostgreSQL database
+  // Sync legitimately registered students from PostgreSQL database (Supabase & Prisma)
   try {
-    const dbStudents = await prisma.user.findMany({
-      where: { role: 'STUDENT' }
-    });
-    dbStudents.forEach((u) => {
-      dbStore.addUser({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: 'STUDENT',
-        department: u.department,
-        batch: u.batch || '2022-2026',
-        semester: u.semester || 6,
-        rollNumber: u.rollNumber || undefined,
-        avatarUrl: u.avatarUrl || undefined,
-        cgpa: u.cgpa || 8.0,
-        backlogs: u.backlogs || 0,
-        bio: u.bio || 'VSB Student',
-        createdAt: u.createdAt.toISOString()
+    const { getSupabaseClient } = await import('@/lib/supabase/admin');
+    const { parseStudentBio } = await import('@/lib/student-profile');
+    const supabase = getSupabaseClient();
+    const { data: supaStudents } = await supabase.from('User').select('*').eq('role', 'STUDENT');
+    if (supaStudents && supaStudents.length > 0) {
+      supaStudents.forEach((u: any) => {
+        const parsed = parseStudentBio(u.bio);
+        const formattedStudent = {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: 'STUDENT' as const,
+          department: u.department,
+          batch: u.batch || '2022-2026',
+          semester: u.semester || 6,
+          rollNumber: u.rollNumber || undefined,
+          avatarUrl: '/vsb-logo.png',
+          cgpa: u.cgpa ?? 8.0,
+          backlogs: u.backlogs ?? 0,
+          bio: parsed.about || u.bio || 'VSB Student',
+          phoneNumber: parsed.phoneNumber || undefined,
+          parentName: parsed.parentName || undefined,
+          parentPhone: parsed.parentPhone || undefined,
+          bloodGroup: parsed.bloodGroup || undefined,
+          currentYear: parsed.currentYear || undefined,
+          classSection: parsed.classSection || undefined,
+          createdAt: u.createdAt || new Date().toISOString()
+        };
+        const existing = dbStore.getUserById(u.id);
+        if (!existing) {
+          dbStore.addUser(formattedStudent);
+        } else {
+          dbStore.updateUser(u.id, formattedStudent);
+        }
       });
-    });
+    }
   } catch (e) {
-    // fallback
+    try {
+      const { parseStudentBio } = await import('@/lib/student-profile');
+      const dbStudents = await prisma.user.findMany({
+        where: { role: 'STUDENT' }
+      });
+      dbStudents.forEach((u) => {
+        const parsed = parseStudentBio(u.bio);
+        const formattedStudent = {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: 'STUDENT' as const,
+          department: u.department,
+          batch: u.batch || '2022-2026',
+          semester: u.semester || 6,
+          rollNumber: u.rollNumber || undefined,
+          avatarUrl: '/vsb-logo.png',
+          cgpa: u.cgpa ?? 8.0,
+          backlogs: u.backlogs ?? 0,
+          bio: parsed.about || u.bio || 'VSB Student',
+          phoneNumber: parsed.phoneNumber || undefined,
+          parentName: parsed.parentName || undefined,
+          parentPhone: parsed.parentPhone || undefined,
+          bloodGroup: parsed.bloodGroup || undefined,
+          currentYear: parsed.currentYear || undefined,
+          classSection: parsed.classSection || undefined,
+          createdAt: u.createdAt.toISOString()
+        };
+        const existing = dbStore.getUserById(u.id);
+        if (!existing) {
+          dbStore.addUser(formattedStudent);
+        } else {
+          dbStore.updateUser(u.id, formattedStudent);
+        }
+      });
+    } catch (pe) {
+      // fallback
+    }
   }
 
   // Get all registered students from dbStore
@@ -76,10 +129,18 @@ export async function GET(req: Request) {
       department: student.department,
       batch: student.batch || '2022-2026',
       semester: student.semester || 6,
-      avatarUrl: student.avatarUrl,
-      cgpa: student.cgpa ?? 0,
+      avatarUrl: '/vsb-logo.png',
+      cgpa: student.cgpa ?? 8.0,
       backlogs: student.backlogs ?? 0,
       bio: student.bio,
+      
+      // Detailed Student Profile Records
+      phoneNumber: student.phoneNumber || '',
+      parentName: student.parentName || '',
+      parentPhone: student.parentPhone || '',
+      bloodGroup: student.bloodGroup || '',
+      currentYear: student.currentYear || '',
+      classSection: student.classSection || '',
       
       // Test Performance Records
       testPerformance: {
