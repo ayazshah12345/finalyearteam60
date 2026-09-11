@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { User, ResumeData, MockInterviewSession, QuizAttempt } from '@/types';
 import { authFetch } from '@/lib/client-auth';
 import {
@@ -20,19 +20,83 @@ import {
   Download,
   ExternalLink,
   BookOpen,
-  Briefcase
+  Briefcase,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  RotateCcw
 } from 'lucide-react';
 import Link from 'next/link';
+
+// Deduplicate student records so each student is displayed only once
+function deduplicateStudents(list: any[]): any[] {
+  const result: any[] = [];
+  const rollMap = new Map<string, any>();
+  const emailMap = new Map<string, any>();
+  const idMap = new Map<string, any>();
+  const nameDeptMap = new Map<string, any>();
+
+  for (const item of list) {
+    const roll = (item.rollNumber || '').trim().toUpperCase();
+    const hasValidRoll = roll && roll !== 'N/A';
+    const email = (item.email || '').trim().toLowerCase();
+    const id = (item.studentId || item.id || '').trim();
+    const nameDept = `${(item.name || '').trim().toLowerCase()}_${(item.department || '').trim().toLowerCase()}`;
+
+    let target = (hasValidRoll ? rollMap.get(roll) : undefined) ||
+                 (email ? emailMap.get(email) : undefined) ||
+                 (id ? idMap.get(id) : undefined) ||
+                 (nameDept ? nameDeptMap.get(nameDept) : undefined);
+
+    if (!target) {
+      target = { ...item };
+      result.push(target);
+    } else {
+      // Merge records - keep most updated / populated values
+      if (hasValidRoll) target.rollNumber = item.rollNumber;
+      if (email && !target.email) target.email = item.email;
+      if (item.phoneNumber) target.phoneNumber = item.phoneNumber;
+      if (item.parentName) target.parentName = item.parentName;
+      if (item.parentPhone) target.parentPhone = item.parentPhone;
+      if (item.bloodGroup) target.bloodGroup = item.bloodGroup;
+      if (item.currentYear) target.currentYear = item.currentYear;
+      if (item.classSection) target.classSection = item.classSection;
+      if (item.bio && (!target.bio || item.bio.length > target.bio.length)) target.bio = item.bio;
+      if (item.semester && (!target.semester || Number(item.semester) > Number(target.semester))) {
+        target.semester = item.semester;
+      }
+      if (item.batch && (!target.batch || target.batch === '2022-2026')) target.batch = item.batch;
+      if (item.cgpa !== undefined) target.cgpa = item.cgpa;
+      if (item.backlogs !== undefined) target.backlogs = item.backlogs;
+      if (item.testPerformance && (!target.testPerformance || (item.testPerformance.totalTestsAttended || 0) >= (target.testPerformance.totalTestsAttended || 0))) {
+        target.testPerformance = item.testPerformance;
+      }
+    }
+
+    if (hasValidRoll) rollMap.set(roll, target);
+    if ((target.rollNumber || '').trim().toUpperCase() && (target.rollNumber || '').trim().toUpperCase() !== 'N/A') {
+      rollMap.set((target.rollNumber || '').trim().toUpperCase(), target);
+    }
+    if (email) emailMap.set(email, target);
+    if (target.email) emailMap.set((target.email || '').trim().toLowerCase(), target);
+    if (id) idMap.set(id, target);
+    if (target.studentId) idMap.set(target.studentId, target);
+    if (nameDept) nameDeptMap.set(nameDept, target);
+  }
+
+  return result;
+}
 
 export default function FacultyStudentProfilesPage() {
   const [faculty, setFaculty] = useState<User | null>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Search & Filter
+  // Search, Filter & Order
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDept, setFilterDept] = useState('ALL');
   const [filterCgpa, setFilterCgpa] = useState('ALL');
+  const [sortBy, setSortBy] = useState<'reg_asc' | 'reg_desc' | 'name_asc' | 'name_desc' | 'cgpa_desc' | 'cgpa_asc'>('reg_asc');
 
   // Selected Student for View Profile Modal
   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
@@ -59,11 +123,12 @@ export default function FacultyStudentProfilesPage() {
         return;
       }
 
-      // 2. Get All Student Records
+      // 2. Get All Student Records & Deduplicate
       const coordRes = await authFetch('/api/coordinator/students');
       if (coordRes.ok) {
         const coordData = await coordRes.json();
-        setStudents(coordData.studentRecords || []);
+        const cleanList = deduplicateStudents(coordData.studentRecords || []);
+        setStudents(cleanList);
       }
     } catch (e) {
       console.error('Failed to load student profiles:', e);
@@ -117,24 +182,55 @@ export default function FacultyStudentProfilesPage() {
     }
   };
 
-  // Filter students
-  const filteredStudents = students.filter((st) => {
-    const query = searchQuery.toLowerCase().trim();
-    const matchesSearch =
-      !query ||
-      (st.rollNumber && st.rollNumber.toLowerCase().includes(query)) ||
-      (st.name && st.name.toLowerCase().includes(query)) ||
-      (st.department && st.department.toLowerCase().includes(query));
+  // Filter & Sort students (Register Number wise by default)
+  const filteredStudents = useMemo(() => {
+    const filtered = students.filter((st) => {
+      const query = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !query ||
+        (st.rollNumber && st.rollNumber.toLowerCase().includes(query)) ||
+        (st.name && st.name.toLowerCase().includes(query)) ||
+        (st.department && st.department.toLowerCase().includes(query)) ||
+        (st.email && st.email.toLowerCase().includes(query));
 
-    const matchesDept = filterDept === 'ALL' || st.department === filterDept;
+      const matchesDept = filterDept === 'ALL' || st.department === filterDept;
 
-    let matchesCgpa = true;
-    if (filterCgpa === '8.0+') matchesCgpa = st.cgpa >= 8.0;
-    else if (filterCgpa === '7.5+') matchesCgpa = st.cgpa >= 7.5;
-    else if (filterCgpa === '<7.5') matchesCgpa = st.cgpa < 7.5;
+      let matchesCgpa = true;
+      if (filterCgpa === '8.0+') matchesCgpa = (st.cgpa || 0) >= 8.0;
+      else if (filterCgpa === '7.5+') matchesCgpa = (st.cgpa || 0) >= 7.5;
+      else if (filterCgpa === '<7.5') matchesCgpa = (st.cgpa || 0) < 7.5;
 
-    return matchesSearch && matchesDept && matchesCgpa;
-  });
+      return matchesSearch && matchesDept && matchesCgpa;
+    });
+
+    return [...filtered].sort((a, b) => {
+      const rollA = (a.rollNumber || '').trim();
+      const rollB = (b.rollNumber || '').trim();
+      const hasRollA = rollA && rollA.toUpperCase() !== 'N/A';
+      const hasRollB = rollB && rollB.toUpperCase() !== 'N/A';
+
+      if (sortBy === 'reg_asc' || sortBy === 'reg_desc') {
+        let diff = 0;
+        if (hasRollA && hasRollB) {
+          diff = rollA.localeCompare(rollB, undefined, { numeric: true, sensitivity: 'base' });
+        } else if (hasRollA) {
+          diff = -1;
+        } else if (hasRollB) {
+          diff = 1;
+        } else {
+          diff = (a.name || '').localeCompare(b.name || '');
+        }
+        return sortBy === 'reg_asc' ? diff : -diff;
+      }
+
+      if (sortBy === 'name_asc') return (a.name || '').localeCompare(b.name || '');
+      if (sortBy === 'name_desc') return (b.name || '').localeCompare(a.name || '');
+      if (sortBy === 'cgpa_desc') return (Number(b.cgpa) || 0) - (Number(a.cgpa) || 0);
+      if (sortBy === 'cgpa_asc') return (Number(a.cgpa) || 0) - (Number(b.cgpa) || 0);
+
+      return 0;
+    });
+  }, [students, searchQuery, filterDept, filterCgpa, sortBy]);
 
   if (loading) {
     return (
@@ -244,12 +340,27 @@ export default function FacultyStudentProfilesPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="🔍 Search registered student by Name, Register No (e.g. 21CS104), or Department..."
+              placeholder="🔍 Search by Register No (e.g. 922523243111), Name, or Department..."
               className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 shadow-inner"
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Sort Order Selector (Register Number vise by default) */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900 text-xs font-bold text-indigo-700 dark:text-indigo-400 focus:outline-none focus:border-indigo-500 shadow-sm"
+              title="Order students by Register Number or other criteria"
+            >
+              <option value="reg_asc">🔢 Register No: Low → High (Order)</option>
+              <option value="reg_desc">🔢 Register No: High → Low</option>
+              <option value="name_asc">🔤 Name: A to Z</option>
+              <option value="name_desc">🔤 Name: Z to A</option>
+              <option value="cgpa_desc">⭐ CGPA: Highest First</option>
+              <option value="cgpa_asc">⭐ CGPA: Lowest First</option>
+            </select>
+
             <select
               value={filterDept}
               onChange={(e) => setFilterDept(e.target.value)}
@@ -272,11 +383,35 @@ export default function FacultyStudentProfilesPage() {
               <option value="7.5+">CGPA ≥ 7.5</option>
               <option value="<7.5">CGPA &lt; 7.5</option>
             </select>
+
+            {(searchQuery || filterDept !== 'ALL' || filterCgpa !== 'ALL' || sortBy !== 'reg_asc') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterDept('ALL');
+                  setFilterCgpa('ALL');
+                  setSortBy('reg_asc');
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1.5 transition-colors border border-slate-200 dark:border-slate-700"
+                title="Reset all filters and restore default register number order"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Reset
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="text-xs text-slate-500 font-medium">
-          Showing <strong className="text-indigo-600 dark:text-indigo-400 font-extrabold">{filteredStudents.length}</strong> registered student profile(s)
+        <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+          <div>
+            Showing <strong className="text-indigo-600 dark:text-indigo-400 font-extrabold">{filteredStudents.length}</strong> unique registered student profile(s)
+          </div>
+          <div className="text-[11px] font-mono text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1.5">
+            {sortBy.startsWith('reg') ? (
+              <span>✓ Sorted by Register Number ({sortBy === 'reg_asc' ? 'Low → High' : 'High → Low'})</span>
+            ) : (
+              <span>Sorted by {sortBy.replace('_', ' ').toUpperCase()}</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -286,7 +421,26 @@ export default function FacultyStudentProfilesPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase font-extrabold text-[10px] tracking-wider">
               <tr>
-                <th className="p-4">Student Profile & Reg No</th>
+                <th
+                  className="p-4 cursor-pointer select-none group"
+                  onClick={() => setSortBy(prev => prev === 'reg_asc' ? 'reg_desc' : 'reg_asc')}
+                  title="Click to sort by Register Number (Ascending / Descending)"
+                >
+                  <div className="flex items-center gap-1.5 group-hover:text-indigo-600 transition-colors">
+                    <span>Student Profile & Reg No</span>
+                    {sortBy === 'reg_asc' ? (
+                      <span className="flex items-center gap-0.5 text-[10px] text-indigo-600 font-mono bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
+                        <ArrowUp className="w-3 h-3" /> Reg No ↑
+                      </span>
+                    ) : sortBy === 'reg_desc' ? (
+                      <span className="flex items-center gap-0.5 text-[10px] text-indigo-600 font-mono bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
+                        <ArrowDown className="w-3 h-3" /> Reg No ↓
+                      </span>
+                    ) : (
+                      <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
+                    )}
+                  </div>
+                </th>
                 <th className="p-4">Department & Batch</th>
                 <th className="p-4">CGPA & Arrears</th>
                 <th className="p-4">Daily Tests</th>
@@ -295,69 +449,80 @@ export default function FacultyStudentProfilesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
-              {filteredStudents.map((st: any) => (
-                <tr key={st.studentId} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white p-1 border border-amber-300 dark:border-amber-600 shadow-sm flex items-center justify-center shrink-0">
-                        <img src="/vsb-logo.png" alt="VSB College" className="w-full h-full object-contain" />
-                      </div>
-                      <div>
-                        <div className="font-black text-slate-900 dark:text-white text-sm">{st.name}</div>
-                        <div className="text-xs font-mono font-extrabold text-indigo-600 dark:text-indigo-400">
-                          Reg / Roll: {st.rollNumber || '21CS104'}
+              {filteredStudents.length > 0 ? (
+                filteredStudents.map((st: any) => (
+                  <tr
+                    key={st.rollNumber && st.rollNumber !== 'N/A' ? `roll_${st.rollNumber}` : (st.studentId || st.id || st.email)}
+                    className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white p-1 border border-amber-300 dark:border-amber-600 shadow-sm flex items-center justify-center shrink-0">
+                          <img src="/vsb-logo.png" alt="VSB College" className="w-full h-full object-contain" />
+                        </div>
+                        <div>
+                          <div className="font-black text-slate-900 dark:text-white text-sm">{st.name}</div>
+                          <div className="text-xs font-mono font-extrabold text-indigo-600 dark:text-indigo-400">
+                            Reg / Roll: {st.rollNumber || '21CS104'}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td className="p-4">
-                    <div className="font-extrabold text-slate-900 dark:text-white">{st.department}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">
-                      {st.batch || '2022-2026'} • Semester {st.semester || 6}
-                    </div>
-                  </td>
+                    <td className="p-4">
+                      <div className="font-extrabold text-slate-900 dark:text-white">{st.department}</div>
+                      <div className="text-[10px] text-slate-400 font-mono">
+                        {st.batch || '2022-2026'} • Semester {st.semester || 6}
+                      </div>
+                    </td>
 
-                  <td className="p-4">
-                    <div className="font-black text-slate-900 dark:text-white text-sm">
-                      {st.cgpa ? Number(st.cgpa).toFixed(1) : '8.4'} / 10.0
-                    </div>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-block mt-0.5 ${
-                        (st.backlogs || 0) === 0
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-rose-50 text-rose-700 border-rose-200'
-                      }`}
-                    >
-                      {(st.backlogs || 0) === 0 ? '0 Backlogs' : `${st.backlogs} Arrears`}
-                    </span>
-                  </td>
+                    <td className="p-4">
+                      <div className="font-black text-slate-900 dark:text-white text-sm">
+                        {st.cgpa ? Number(st.cgpa).toFixed(1) : '8.4'} / 10.0
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-block mt-0.5 ${
+                          (st.backlogs || 0) === 0
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}
+                      >
+                        {(st.backlogs || 0) === 0 ? '0 Backlogs' : `${st.backlogs} Arrears`}
+                      </span>
+                    </td>
 
-                  <td className="p-4">
-                    <div className="font-bold text-slate-900 dark:text-white">
-                      {st.testPerformance?.totalTestsAttended || 0} Tests Attended
-                    </div>
-                    <div className="text-[11px] font-semibold text-amber-600">
-                      Avg: {st.testPerformance?.avgScorePercent || 0}%
-                    </div>
-                  </td>
+                    <td className="p-4">
+                      <div className="font-bold text-slate-900 dark:text-white">
+                        {st.testPerformance?.totalTestsAttended || 0} Tests Attended
+                      </div>
+                      <div className="text-[11px] font-semibold text-amber-600">
+                        Avg: {st.testPerformance?.avgScorePercent || 0}%
+                      </div>
+                    </td>
 
-                  <td className="p-4">
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-black text-[10px] uppercase">
-                      ✓ Placement Ready
-                    </span>
-                  </td>
+                    <td className="p-4">
+                      <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-black text-[10px] uppercase">
+                        ✓ Placement Ready
+                      </span>
+                    </td>
 
-                  <td className="p-4 text-right">
-                    <button
-                      onClick={() => handleViewProfile(st)}
-                      className="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all inline-flex items-center gap-1.5 active:scale-95"
-                    >
-                      <Eye className="w-4 h-4" /> View Profile
-                    </button>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => handleViewProfile(st)}
+                        className="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all inline-flex items-center gap-1.5 active:scale-95"
+                      >
+                        <Eye className="w-4 h-4" /> View Profile
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-slate-400 text-xs">
+                    No registered student profiles match your search and filter criteria.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

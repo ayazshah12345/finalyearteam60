@@ -42,11 +42,16 @@ export async function GET(req: Request) {
           classSection: parsed.classSection || undefined,
           createdAt: u.createdAt || new Date().toISOString()
         };
-        const existing = dbStore.getUserById(u.id);
+        const normRoll = (u.rollNumber || '').trim().toUpperCase();
+        const normEmail = (u.email || '').trim().toLowerCase();
+        const existing = dbStore.getUserById(u.id) ||
+          (normEmail ? dbStore.getUserByEmail(normEmail) : undefined) ||
+          (normRoll && normRoll !== 'N/A' ? dbStore.getUsers().find(x => x.rollNumber && x.rollNumber.trim().toUpperCase() === normRoll) : undefined);
+
         if (!existing) {
           dbStore.addUser(formattedStudent);
         } else {
-          dbStore.updateUser(u.id, formattedStudent);
+          dbStore.updateUser(existing.id, formattedStudent);
         }
       });
     }
@@ -79,11 +84,16 @@ export async function GET(req: Request) {
           classSection: parsed.classSection || undefined,
           createdAt: u.createdAt.toISOString()
         };
-        const existing = dbStore.getUserById(u.id);
+        const normRoll = (u.rollNumber || '').trim().toUpperCase();
+        const normEmail = (u.email || '').trim().toLowerCase();
+        const existing = dbStore.getUserById(u.id) ||
+          (normEmail ? dbStore.getUserByEmail(normEmail) : undefined) ||
+          (normRoll && normRoll !== 'N/A' ? dbStore.getUsers().find(x => x.rollNumber && x.rollNumber.trim().toUpperCase() === normRoll) : undefined);
+
         if (!existing) {
           dbStore.addUser(formattedStudent);
         } else {
-          dbStore.updateUser(u.id, formattedStudent);
+          dbStore.updateUser(existing.id, formattedStudent);
         }
       });
     } catch (pe) {
@@ -93,7 +103,60 @@ export async function GET(req: Request) {
 
   // Get all registered students from dbStore
   const allUsers = dbStore.getUsers();
-  const students = allUsers.filter((u) => u.role === 'STUDENT');
+  const rawStudents = allUsers.filter((u) => u.role === 'STUDENT');
+
+  // Deduplicate raw students by Roll Number, Email, and Name
+  const uniqueStudentMap = new Map<string, any>();
+  const rollIndex = new Map<string, any>();
+  const emailIndex = new Map<string, any>();
+  const nameDeptIndex = new Map<string, any>();
+  const idIndex = new Map<string, any>();
+
+  for (const st of rawStudents) {
+    const roll = (st.rollNumber || '').trim().toUpperCase();
+    const hasValidRoll = roll && roll !== 'N/A';
+    const email = (st.email || '').trim().toLowerCase();
+    const nameDept = `${(st.name || '').trim().toLowerCase()}_${(st.department || '').trim().toLowerCase()}`;
+    const id = (st.id || '').trim();
+
+    let target = (hasValidRoll ? rollIndex.get(roll) : undefined) ||
+                 (email ? emailIndex.get(email) : undefined) ||
+                 (id ? idIndex.get(id) : undefined) ||
+                 (nameDept ? nameDeptIndex.get(nameDept) : undefined);
+
+    if (!target) {
+      target = { ...st };
+      uniqueStudentMap.set(id || roll || email || nameDept, target);
+    } else {
+      // Merge records - keep the most updated / richer values
+      if (hasValidRoll) target.rollNumber = st.rollNumber;
+      if (email && !target.email) target.email = st.email;
+      if (st.phoneNumber) target.phoneNumber = st.phoneNumber;
+      if (st.parentName) target.parentName = st.parentName;
+      if (st.parentPhone) target.parentPhone = st.parentPhone;
+      if (st.bloodGroup) target.bloodGroup = st.bloodGroup;
+      if (st.currentYear) target.currentYear = st.currentYear;
+      if (st.classSection) target.classSection = st.classSection;
+      if (st.bio && (!target.bio || st.bio.length > target.bio.length)) target.bio = st.bio;
+      if (st.semester && (!target.semester || st.semester > target.semester)) target.semester = st.semester;
+      if (st.batch && (!target.batch || target.batch === '2022-2026')) target.batch = st.batch;
+      if (st.cgpa !== undefined) target.cgpa = st.cgpa;
+      if (st.backlogs !== undefined) target.backlogs = st.backlogs;
+    }
+
+    if (hasValidRoll) rollIndex.set(roll, target);
+    if ((target.rollNumber || '').trim().toUpperCase() && (target.rollNumber || '').trim().toUpperCase() !== 'N/A') {
+      rollIndex.set((target.rollNumber || '').trim().toUpperCase(), target);
+    }
+    if (email) emailIndex.set(email, target);
+    if ((target.email || '').trim().toLowerCase()) {
+      emailIndex.set((target.email || '').trim().toLowerCase(), target);
+    }
+    if (nameDept) nameDeptIndex.set(nameDept, target);
+    if (id) idIndex.set(id, target);
+  }
+
+  const students = Array.from(uniqueStudentMap.values());
 
   // Get all quiz attempts & placement drives
   const allAttempts = dbStore.getAllQuizAttempts();
@@ -102,7 +165,10 @@ export async function GET(req: Request) {
 
   // Combine rich student coordinator analytics
   const studentRecords = students.map((student) => {
-    const studentAttempts = allAttempts.filter(att => att.studentId === student.id);
+    const studentAttempts = allAttempts.filter(att => 
+      att.studentId === student.id || 
+      (student.name && att.studentName && att.studentName.toLowerCase().includes(student.name.toLowerCase()))
+    );
     
     const totalTestsAttended = studentAttempts.length;
     const passedTestsCount = studentAttempts.filter(att => att.passed).length;
@@ -162,10 +228,25 @@ export async function GET(req: Request) {
     };
   });
 
+  // Sort student records by Register Number ascending (natural alphanumeric order)
+  studentRecords.sort((a, b) => {
+    const rollA = (a.rollNumber || '').trim();
+    const rollB = (b.rollNumber || '').trim();
+    const hasRollA = rollA && rollA.toUpperCase() !== 'N/A';
+    const hasRollB = rollB && rollB.toUpperCase() !== 'N/A';
+
+    if (hasRollA && hasRollB) {
+      return rollA.localeCompare(rollB, undefined, { numeric: true, sensitivity: 'base' });
+    }
+    if (hasRollA) return -1;
+    if (hasRollB) return 1;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
   return NextResponse.json(
     {
       coordinator: activeUser,
-      totalRegisteredStudents: students.length,
+      totalRegisteredStudents: studentRecords.length,
       studentRecords,
       drivesCount: drives.length
     },

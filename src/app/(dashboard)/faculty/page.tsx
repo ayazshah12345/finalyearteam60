@@ -97,11 +97,26 @@ export default function FacultyPortalPage() {
         return;
       }
 
-      // 2. Get All Student Records
+      // 2. Get All Student Records & Deduplicate
       const coordRes = await authFetch('/api/coordinator/students');
       if (coordRes.ok) {
         const coordData = await coordRes.json();
-        setStudents(coordData.studentRecords || []);
+        const rawList = coordData.studentRecords || [];
+        const rollMap = new Map<string, any>();
+        const emailMap = new Map<string, any>();
+        const cleanList: any[] = [];
+        for (const st of rawList) {
+          const roll = (st.rollNumber || '').trim().toUpperCase();
+          const email = (st.email || '').trim().toLowerCase();
+          const hasRoll = roll && roll !== 'N/A';
+          const target = (hasRoll ? rollMap.get(roll) : undefined) || (email ? emailMap.get(email) : undefined);
+          if (!target) {
+            cleanList.push(st);
+            if (hasRoll) rollMap.set(roll, st);
+            if (email) emailMap.set(email, st);
+          }
+        }
+        setStudents(cleanList);
       }
 
       // 3. Get All Mock Interviews
@@ -224,24 +239,38 @@ export default function FacultyPortalPage() {
     }
   };
 
-  // Filter Students by Reg No / Roll No, Name, and Dept
-  const filteredStudents = students.filter(st => {
-    const query = searchQuery.toLowerCase().trim();
-    const matchesSearch =
-      !query ||
-      (st.rollNumber && st.rollNumber.toLowerCase().includes(query)) ||
-      (st.name && st.name.toLowerCase().includes(query)) ||
-      (st.department && st.department.toLowerCase().includes(query));
+  // Filter Students by Reg No / Roll No, Name, and Dept, sorted by Register Number ascending
+  const filteredStudents = students
+    .filter(st => {
+      const query = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !query ||
+        (st.rollNumber && st.rollNumber.toLowerCase().includes(query)) ||
+        (st.name && st.name.toLowerCase().includes(query)) ||
+        (st.department && st.department.toLowerCase().includes(query));
 
-    const matchesDept = filterDept === 'ALL' || st.department === filterDept;
+      const matchesDept = filterDept === 'ALL' || st.department === filterDept;
 
-    let matchesCgpa = true;
-    if (filterCgpa === '8.0+') matchesCgpa = st.cgpa >= 8.0;
-    else if (filterCgpa === '7.5+') matchesCgpa = st.cgpa >= 7.5;
-    else if (filterCgpa === '<7.5') matchesCgpa = st.cgpa < 7.5;
+      let matchesCgpa = true;
+      if (filterCgpa === '8.0+') matchesCgpa = st.cgpa >= 8.0;
+      else if (filterCgpa === '7.5+') matchesCgpa = st.cgpa >= 7.5;
+      else if (filterCgpa === '<7.5') matchesCgpa = st.cgpa < 7.5;
 
-    return matchesSearch && matchesDept && matchesCgpa;
-  });
+      return matchesSearch && matchesDept && matchesCgpa;
+    })
+    .sort((a, b) => {
+      const rollA = (a.rollNumber || '').trim();
+      const rollB = (b.rollNumber || '').trim();
+      const hasRollA = rollA && rollA.toUpperCase() !== 'N/A';
+      const hasRollB = rollB && rollB.toUpperCase() !== 'N/A';
+
+      if (hasRollA && hasRollB) {
+        return rollA.localeCompare(rollB, undefined, { numeric: true, sensitivity: 'base' });
+      }
+      if (hasRollA) return -1;
+      if (hasRollB) return 1;
+      return (a.name || '').localeCompare(b.name || '');
+    });
 
   if (loading) {
     return (

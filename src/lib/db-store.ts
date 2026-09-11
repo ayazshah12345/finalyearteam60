@@ -104,6 +104,33 @@ class DatabaseStore {
 
         // Defensive initialization of array properties
         if (!Array.isArray(dbData.users)) dbData.users = [...SEED_USERS];
+        else {
+          // Defensive deduplication of stored users
+          const uniqueUsers: User[] = [];
+          const seenRoll = new Set<string>();
+          const seenEmail = new Set<string>();
+          const seenId = new Set<string>();
+
+          for (const u of dbData.users) {
+            const roll = (u.rollNumber || '').trim().toUpperCase();
+            const email = (u.email || '').trim().toLowerCase();
+            const id = u.id || '';
+            const isStudent = u.role === 'STUDENT';
+
+            const isDuplicate =
+              (id && seenId.has(id)) ||
+              (email && seenEmail.has(email)) ||
+              (isStudent && roll && roll !== 'N/A' && seenRoll.has(roll));
+
+            if (!isDuplicate) {
+              uniqueUsers.push(u);
+              if (id) seenId.add(id);
+              if (email) seenEmail.add(email);
+              if (isStudent && roll && roll !== 'N/A') seenRoll.add(roll);
+            }
+          }
+          dbData.users = uniqueUsers;
+        }
         if (!Array.isArray(dbData.courses)) dbData.courses = [...SEED_COURSES];
         if (!Array.isArray(dbData.modules)) dbData.modules = [...SEED_MODULES];
         if (!Array.isArray(dbData.lessons)) dbData.lessons = [...SEED_LESSONS];
@@ -233,6 +260,17 @@ class DatabaseStore {
   }
 
   public addUser(user: User) {
+    // Prevent duplicate additions by id, email, or rollNumber (for students)
+    const existingIdx = this.data.users.findIndex(u =>
+      u.id === user.id ||
+      (u.email && user.email && u.email.trim().toLowerCase() === user.email.trim().toLowerCase()) ||
+      (user.role === 'STUDENT' && u.role === 'STUDENT' && u.rollNumber && user.rollNumber && u.rollNumber.trim().toUpperCase() === user.rollNumber.trim().toUpperCase() && u.rollNumber.trim().toUpperCase() !== 'N/A')
+    );
+    if (existingIdx >= 0) {
+      this.data.users[existingIdx] = { ...this.data.users[existingIdx], ...user };
+      this.saveData();
+      return this.data.users[existingIdx];
+    }
     this.data.users.push(user);
     this.saveData();
     return user;
