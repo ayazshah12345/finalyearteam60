@@ -109,21 +109,23 @@ export default function DashboardPage() {
       setUser(authData.activeUser);
       setSessionUser(authData.activeUser);
 
+      // Strict segregation: Faculty accounts belong on the Faculty Command Desk (/faculty)
+      if (authData.activeUser.role !== 'STUDENT') {
+        window.location.href = '/faculty';
+        return;
+      }
+
       const analyticsRes = await authFetch('/api/analytics');
       const analyticsData = await analyticsRes.json();
 
-      if (authData.activeUser.role === 'STUDENT') {
-        setGrowth(analyticsData.growth);
-        setReadiness(analyticsData.readiness);
+      setGrowth(analyticsData.growth);
+      setReadiness(analyticsData.readiness);
 
-        // Fetch placement drives for company details & eligibility check
-        const drivesRes = await authFetch('/api/placement/drives');
-        if (drivesRes.ok) {
-          const drivesData = await drivesRes.json();
-          setDrives(drivesData.drives || []);
-        }
-      } else {
-        setFacultyData(analyticsData);
+      // Fetch placement drives for company details & eligibility check
+      const drivesRes = await authFetch('/api/placement/drives');
+      if (drivesRes.ok) {
+        const drivesData = await drivesRes.json();
+        setDrives(drivesData.drives || []);
       }
     } catch (e) {
       console.error(e);

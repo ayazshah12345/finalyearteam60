@@ -169,7 +169,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { userId, email, password, rollNumber, identifier } = body;
+    const { userId, email, password, rollNumber, identifier, expectedRole } = body;
     
     let allUsers = dbStore.getUsers();
     let targetUser: User | undefined = undefined;
@@ -233,6 +233,23 @@ export async function POST(req: Request) {
 
     if (password && targetUser.password && targetUser.password !== password) {
       return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 });
+    }
+
+    // Strict Role Segregation: Do not allow Faculty to log in via Student portal or vice versa
+    if (expectedRole === 'STUDENT' && targetUser.role !== 'STUDENT') {
+      return NextResponse.json({
+        success: false,
+        error: 'Faculty credentials detected. Faculty members must log in through the Faculty Login portal only.',
+        code: 'ROLE_MISMATCH'
+      }, { status: 403 });
+    }
+
+    if (expectedRole === 'FACULTY' && targetUser.role === 'STUDENT') {
+      return NextResponse.json({
+        success: false,
+        error: 'Student credentials detected. Students must log in through the Student Login portal only.',
+        code: 'ROLE_MISMATCH'
+      }, { status: 403 });
     }
 
     dbStore.setActiveUser(targetUser.id);

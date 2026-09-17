@@ -59,8 +59,8 @@ export default function LoginPage() {
 
     try {
       const payload = customId && customPass !== undefined
-        ? { userId: customId }
-        : { identifier: loginId, password: loginPass };
+        ? { userId: customId, expectedRole: 'STUDENT' }
+        : { identifier: loginId, password: loginPass, expectedRole: 'STUDENT' };
 
       const res = await fetch('/api/auth/me', {
         method: 'POST',
@@ -76,10 +76,13 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.activeUser) {
-        setSessionUser(data.activeUser);
+      if (!data.activeUser || data.activeUser.role !== 'STUDENT') {
+        setError('Faculty credentials detected. Faculty members must log in through the Faculty Login portal only.');
+        setLoading(false);
+        return;
       }
 
+      setSessionUser(data.activeUser);
       router.push('/dashboard');
       router.refresh();
     } catch (err) {
@@ -95,8 +98,8 @@ export default function LoginPage() {
 
     try {
       const payload = customUserId
-        ? { userId: customUserId }
-        : { email: facultyEmail, password: facultyPass };
+        ? { userId: customUserId, expectedRole: 'FACULTY' }
+        : { email: facultyEmail, password: facultyPass, expectedRole: 'FACULTY' };
 
       const res = await fetch('/api/auth/me', {
         method: 'POST',
@@ -111,10 +114,13 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.activeUser) {
-        setSessionUser(data.activeUser);
+      if (!data.activeUser || data.activeUser.role === 'STUDENT') {
+        setError('Student credentials detected. Students must log in through the Student Login portal only.');
+        setLoading(false);
+        return;
       }
 
+      setSessionUser(data.activeUser);
       router.push('/faculty');
       router.refresh();
     } catch (err) {

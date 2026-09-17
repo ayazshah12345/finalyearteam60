@@ -24,6 +24,7 @@ import {
   RefreshCw,
   ExternalLink,
   ShieldCheck,
+  ShieldAlert,
   CheckSquare
 } from 'lucide-react';
 import Link from 'next/link';
@@ -302,6 +303,30 @@ export default function FacultyTestPage() {
       <div className="py-20 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
         <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
         <span>Loading Faculty Test Management System...</span>
+      </div>
+    );
+  }
+
+  if (faculty?.role === 'STUDENT') {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-6 text-center space-y-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl mt-8">
+        <div className="w-16 h-16 bg-rose-500/10 text-rose-600 rounded-full flex items-center justify-center mx-auto border border-rose-500/20">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+          ⛔ Faculty Privileges Required
+        </h2>
+        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+          The Test Creation & Question Bank desk is restricted to VSB Faculty members. Students can take tests on the Daily Test portal.
+        </p>
+        <div className="pt-2">
+          <Link
+            href="/daily-test"
+            className="inline-block px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all"
+          >
+            Go to Daily Tests
+          </Link>
+        </div>
       </div>
     );
   }
