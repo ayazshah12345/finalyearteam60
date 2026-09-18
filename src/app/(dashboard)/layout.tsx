@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8f9fe] via-[#f2f5fd] to-[#edf2fb] text-slate-900 flex flex-col antialiased">
       <div className="flex flex-1 relative">
         {/* 2. Left Role-Aware Sidebar */}
         <Sidebar

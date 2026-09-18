@@ -195,39 +195,43 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Welcome Header Banner */}
-        <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 border border-indigo-500/30 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-100 dark:shadow-none">
-          <div className="absolute -right-10 -top-10 w-96 h-96 bg-white/10 rounded-full blur-3xl -z-0"></div>
+        {/* Welcome Header Banner - Royal Sapphire & Gold */}
+        <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-950/10">
+          <div className="absolute -right-10 -top-10 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
+          <div className="absolute -left-10 -bottom-10 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl -z-0 pointer-events-none"></div>
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <div className="flex items-center gap-2 text-xs font-bold text-indigo-200 uppercase tracking-widest">
-                <Sparkles className="w-4 h-4 text-indigo-300" /> SGIP Intelligence Engine • Student Portal
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-amber-400/15 border border-amber-400/50 text-amber-300">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" /> VSB CAMPUS INTELLIGENCE • STUDENT PORTAL
               </div>
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mt-1 text-white">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-2 text-white font-serif">
                 Welcome, {user.name} 👋
               </h1>
-              <p className="text-xs md:text-sm text-indigo-100 mt-2 max-w-xl font-medium">
-                {user.department} • Semester {user.semester || 6} • Roll Number: <span className="font-mono bg-white/20 px-2 py-0.5 rounded text-white font-bold">{user.rollNumber || '21CS104'}</span>
+              <p className="text-xs md:text-sm text-slate-300 mt-2 max-w-xl font-medium">
+                {user.department} • Semester {user.semester || 6} • Roll Number: <span className="font-mono bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded font-bold">{user.rollNumber || '21CS104'}</span>
               </p>
-              <div className="mt-3">
+              <div className="mt-3.5 flex items-center gap-2 flex-wrap">
                 <Link
                   href="/profile"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 border border-white/20 text-white text-xs font-extrabold backdrop-blur-md transition-all shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition-all shadow-md"
                 >
                   <GraduationCap className="w-3.5 h-3.5" />
-                  <span>Update Student Profile & CGPA</span>
+                  <span>Update Academic Profile &amp; CGPA</span>
                 </Link>
+                <span className="text-[11px] text-amber-200/90 font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                  🏛️ VSB Karur Campus
+                </span>
               </div>
             </div>
 
             {/* XP Widget */}
             <div className="flex items-center gap-3">
-              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl px-5 py-3 text-center shadow-xs">
-                <div className="flex items-center justify-center gap-1 text-violet-200 text-xs font-bold uppercase tracking-wider">
-                  <Zap className="w-4 h-4 fill-violet-200" /> SGIP XP
+              <div className="bg-white/10 backdrop-blur-md border border-amber-400/40 rounded-2xl px-5 py-3 text-center shadow-md">
+                <div className="flex items-center justify-center gap-1 text-amber-300 text-xs font-black uppercase tracking-wider">
+                  <Zap className="w-4 h-4 fill-amber-300" /> SGIP XP
                 </div>
-                <div className="text-xl font-extrabold text-white mt-0.5">2,450 XP</div>
+                <div className="text-2xl font-black text-white mt-0.5 font-mono">2,450 XP</div>
               </div>
             </div>
           </div>

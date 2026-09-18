@@ -309,18 +309,19 @@ export default function FacultyPortalPage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto font-sans">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/40 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-2xl">
+      {/* Royal Header Banner */}
+      <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-950/10">
+        <div className="absolute -right-10 -top-10 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-widest">
-              <Sparkles className="w-4 h-4 text-amber-400" /> VSB Engineering College • Faculty & Placement Desk
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-amber-400/15 border border-amber-400/50 text-amber-300">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> VSB ENGINEERING COLLEGE • FACULTY &amp; PLACEMENT DESK
             </div>
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white">
-              Faculty Command Desk & Student Performance Roster
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white font-serif">
+              Faculty Command Desk &amp; Student Performance Roster
             </h1>
             <p className="text-xs md:text-sm text-slate-300 max-w-2xl font-medium">
-              Search students by Register Number / Roll No, evaluate Daily Test & Voice Mock Interview reports, inspect candidate resumes, and publish corporate placement drives.
+              Search students by Register Number / Roll No, evaluate Daily Test &amp; Voice Mock Interview reports, inspect candidate resumes, and publish corporate placement drives.
             </p>
           </div>
 

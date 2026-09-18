@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   GraduationCap,
@@ -18,10 +18,17 @@ import {
   Trophy,
   UserPlus,
   Users,
-  Briefcase
+  Briefcase,
+  Search,
+  ChevronDown,
+  ExternalLink,
+  Filter,
+  Flame,
+  TrendingUp
 } from 'lucide-react';
 import { User } from '@/types';
 import { setSessionUser } from '@/lib/client-auth';
+import { PLACEMENT_RECORDS, PLACEMENT_SUMMARY, PlacementRecord } from '@/lib/placement-records';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,6 +57,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Placement Records Search & Filter State
+  const [placementSearch, setPlacementSearch] = useState('');
+  const [placementFilter, setPlacementFilter] = useState<'ALL' | 'SUPER_DREAM' | 'DREAM' | 'CORE_IT' | 'MASS'>('ALL');
+
   // Force pure light theme on login page
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -65,6 +76,21 @@ export default function LoginPage() {
       }
     };
   }, []);
+
+  // Filtered placement records
+  const filteredPlacementRecords = useMemo(() => {
+    return PLACEMENT_RECORDS.filter((rec) => {
+      const matchesSearch = rec.name.toLowerCase().includes(placementSearch.toLowerCase()) ||
+                            rec.packageLPA.toLowerCase().includes(placementSearch.toLowerCase());
+      if (!matchesSearch) return false;
+
+      if (placementFilter === 'SUPER_DREAM') return rec.category === 'Super Dream' || rec.maxLPA >= 10;
+      if (placementFilter === 'DREAM') return rec.category === 'Dream' || (rec.maxLPA >= 5 && rec.maxLPA < 10);
+      if (placementFilter === 'CORE_IT') return rec.category === 'Core & IT' || rec.maxLPA < 5;
+      if (placementFilter === 'MASS') return rec.offers >= 15;
+      return true;
+    });
+  }, [placementSearch, placementFilter]);
 
   const handleStudentLogin = async (e?: React.FormEvent, customId?: string, customPass?: string) => {
     if (e) e.preventDefault();
@@ -86,62 +112,13 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid student credentials');
 
-      if (!res.ok || !data.success) {
-        setError(data.error || 'Invalid credentials or student record not found.');
-        setLoading(false);
-        return;
-      }
-
-      if (!data.activeUser || data.activeUser.role !== 'STUDENT') {
-        setError('Faculty credentials detected. Faculty members must log in through the Faculty Login portal only.');
-        setLoading(false);
-        return;
-      }
-
-      setSessionUser(data.activeUser);
+      setSessionUser(data.user);
       router.push('/dashboard');
-      router.refresh();
-    } catch (err) {
-      setError('Connection failed. Please try again.');
-      setLoading(false);
-    }
-  };
-
-  const handleFacultyLogin = async (e?: React.FormEvent, customUserId?: string) => {
-    if (e) e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const payload = customUserId
-        ? { userId: customUserId, expectedRole: 'FACULTY' }
-        : { email: facultyEmail, password: facultyPass, expectedRole: 'FACULTY' };
-
-      const res = await fetch('/api/auth/me', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setError(data.error || 'Failed to authenticate Faculty.');
-        setLoading(false);
-        return;
-      }
-
-      if (!data.activeUser || data.activeUser.role === 'STUDENT') {
-        setError('Student credentials detected. Students must log in through the Student Login portal only.');
-        setLoading(false);
-        return;
-      }
-
-      setSessionUser(data.activeUser);
-      router.push('/faculty');
-      router.refresh();
-    } catch (err) {
-      setError('Network error while logging into Faculty Portal.');
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
       setLoading(false);
     }
   };
@@ -152,12 +129,6 @@ export default function LoginPage() {
     setError(null);
     setSuccess(null);
 
-    if (!regName || !regEmail || !regRollNumber) {
-      setError('Name, Email, and Roll Number are required.');
-      setLoading(false);
-      return;
-    }
-
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -167,31 +138,51 @@ export default function LoginPage() {
           email: regEmail,
           rollNumber: regRollNumber,
           department: regDepartment,
-          cgpa: regCgpa,
-          backlogs: regBacklogs,
-          password: regPassword
+          cgpa: parseFloat(regCgpa) || 8.0,
+          currentBacklogs: parseInt(regBacklogs) || 0,
+          password: regPassword,
+          role: 'STUDENT'
         })
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
 
-      if (!res.ok || !data.success) {
-        setError(data.error || 'Failed to register student.');
-        setLoading(false);
-        return;
-      }
-
-      if (data.activeUser) {
-        setSessionUser(data.activeUser);
-      }
-
-      setSuccess('Account created successfully! Redirecting to Student Dashboard...');
+      setSuccess('Account created successfully! Logging you in...');
       setTimeout(() => {
-        router.push('/dashboard');
-        router.refresh();
-      }, 1000);
-    } catch (err) {
-      setError('Registration error. Please check network connection.');
+        handleStudentLogin(undefined, data.user.id, regPassword);
+      }, 800);
+    } catch (err: any) {
+      setError(err.message || 'Could not complete registration. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFacultyLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: facultyEmail,
+          password: facultyPass,
+          expectedRole: 'FACULTY'
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid faculty credentials');
+
+      setSessionUser(data.user);
+      router.push('/faculty');
+    } catch (err: any) {
+      setError(err.message || 'Faculty login failed. Please verify email and password.');
+    } finally {
       setLoading(false);
     }
   };
@@ -200,7 +191,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#fbfbfe] via-[#f6f7fd] to-[#f8f9ff] text-slate-900 flex flex-col justify-between p-3 sm:p-6 md:p-8 relative font-sans overflow-x-hidden selection:bg-amber-400 selection:text-slate-950">
       {/* Royal Light Theme Ambient Shimmer & Auroras */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-[650px] h-[650px] bg-gradient-to-br from-amber-200/30 via-indigo-100/40 to-transparent rounded-full blur-[140px]" />
+        <div className="absolute -top-40 -left-40 w-[650px] h-[650px] bg-gradient-to-br from-amber-200/35 via-indigo-100/40 to-transparent rounded-full blur-[140px]" />
         <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-gradient-to-bl from-purple-100/35 via-blue-100/30 to-transparent rounded-full blur-[140px]" />
         <div className="absolute -bottom-40 left-1/4 w-[550px] h-[550px] bg-amber-100/35 rounded-full blur-[130px]" />
         <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_0.4px,transparent_0.8px)] [background-size:24px_24px] opacity-[0.035]" />
@@ -238,7 +229,7 @@ export default function LoginPage() {
         </div>
       </header>
 
-      {/* UPSIDE MOVING TICKERS (Royal Motto & Rankings in Continuous Moving Format) */}
+      {/* UPSIDE MOVING TICKERS (Royal Motto, Rankings & Corporate Placement Packages) */}
       <div className="relative z-10 max-w-7xl w-full mx-auto my-3 space-y-2">
         {/* Ticker 1: Motto Ribbon */}
         <div className="overflow-hidden rounded-xl bg-gradient-to-r from-blue-950 via-indigo-900 to-blue-950 text-amber-300 py-2.5 px-4 shadow-md border border-amber-400/40">
@@ -284,10 +275,49 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+
+        {/* Ticker 3: Placement Records Highlight Ribbon */}
+        <div className="overflow-hidden rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 border border-amber-300/80 text-slate-900 py-1.5 px-4 shadow-2xs">
+          <div className="relative flex overflow-x-hidden">
+            <div className="animate-marquee whitespace-nowrap flex items-center gap-8 font-black text-[11px] tracking-wider uppercase">
+              <span className="text-amber-800 flex items-center gap-1.5"><Flame className="w-3.5 h-3.5 text-amber-600" /> TOP CAMPUS OFFERS:</span>
+              <span className="text-indigo-950 font-bold">AMAZON: ₹47 LPA (2 Offers)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">PRODUCT BASED CO: ₹44 LPA (2 Offers)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">AUTODESK: ₹40 LPA (1 Offer)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-emerald-800 font-black">CAPGEMINI: 414 OFFERS (Up to 7.5 LPA)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">TCS: 35 OFFERS (Up to 9 LPA)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">COGNIZANT: 60 OFFERS</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">LTI MINDTREE: 47 OFFERS</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">UST GLOBAL: 45 OFFERS</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-amber-700 font-black">AVERAGE CTC: ₹7.5 LPA</span>
+
+              <span className="text-amber-800 flex items-center gap-1.5"><Flame className="w-3.5 h-3.5 text-amber-600" /> TOP CAMPUS OFFERS:</span>
+              <span className="text-indigo-950 font-bold">AMAZON: ₹47 LPA (2 Offers)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">PRODUCT BASED CO: ₹44 LPA (2 Offers)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">AUTODESK: ₹40 LPA (1 Offer)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-emerald-800 font-black">CAPGEMINI: 414 OFFERS (Up to 7.5 LPA)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">TCS: 35 OFFERS (Up to 9 LPA)</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-indigo-950 font-bold">COGNIZANT: 60 OFFERS</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Main Content: Left is Freestyle with ZERO boxes, Right is the Credentials Card */}
-      <main className="relative z-10 max-w-7xl w-full mx-auto my-5 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      {/* Main Content: Left is Freestyle with ZERO boxes, Right is the Redesigned Royal Login Box */}
+      <main className="relative z-10 max-w-7xl w-full mx-auto my-5 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
         {/* Left Column: Completely Freestyle, Editorial, Zero Boxes */}
         <div className="lg:col-span-7 space-y-7">
@@ -342,37 +372,37 @@ export default function LoginPage() {
           </div>
 
           {/* 2. Innovative College Stats & Highlights Strip (Zero Boxes, Freestyle Emblems) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 border-y border-slate-200/80">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-3 border-y border-slate-200/80">
             <div className="text-center sm:text-left space-y-0.5">
               <div className="text-lg md:text-xl font-black text-indigo-900 flex items-center justify-center sm:justify-start gap-1">
-                <Trophy className="w-4 h-4 text-amber-500" /> 100%
+                <Trophy className="w-4 h-4 text-amber-500" /> 760+
               </div>
-              <div className="text-[11px] font-extrabold text-slate-800">Placement Training</div>
+              <div className="text-[11px] font-extrabold text-slate-800">Placement Offers</div>
               <div className="text-[10px] text-slate-500">Tier-1 Multi-Offers</div>
             </div>
 
             <div className="text-center sm:text-left space-y-0.5">
               <div className="text-lg md:text-xl font-black text-emerald-800 flex items-center justify-center sm:justify-start gap-1">
-                <Award className="w-4 h-4 text-emerald-600" /> ₹40+ LPA
+                <Award className="w-4 h-4 text-emerald-600" /> ₹47 LPA
               </div>
               <div className="text-[11px] font-extrabold text-slate-800">Highest Package</div>
-              <div className="text-[10px] text-slate-500">Top Tech Recruiters</div>
+              <div className="text-[10px] text-slate-500">Amazon &amp; Tech Giants</div>
             </div>
 
             <div className="text-center sm:text-left space-y-0.5">
               <div className="text-lg md:text-xl font-black text-blue-900 flex items-center justify-center sm:justify-start gap-1">
-                <Building2 className="w-4 h-4 text-blue-600" /> 500+
+                <TrendingUp className="w-4 h-4 text-blue-600" /> ₹7.5 LPA
               </div>
-              <div className="text-[11px] font-extrabold text-slate-800">Recruiting Partners</div>
-              <div className="text-[10px] text-slate-500">TCS, Zoho, Amazon</div>
+              <div className="text-[11px] font-extrabold text-slate-800">Average CTC</div>
+              <div className="text-[10px] text-slate-500">Institution Record</div>
             </div>
 
             <div className="text-center sm:text-left space-y-0.5">
               <div className="text-lg md:text-xl font-black text-purple-900 flex items-center justify-center sm:justify-start gap-1">
-                <Sparkles className="w-4 h-4 text-purple-600" /> 20+ Yrs
+                <Building2 className="w-4 h-4 text-purple-600" /> 53 Partners
               </div>
-              <div className="text-[11px] font-extrabold text-slate-800">Academic Discipline</div>
-              <div className="text-[10px] text-slate-500">Excellence in Research</div>
+              <div className="text-[11px] font-extrabold text-slate-800">Corporate Recruiters</div>
+              <div className="text-[10px] text-slate-500">MNCs &amp; Global Leaders</div>
             </div>
           </div>
 
@@ -423,43 +453,58 @@ export default function LoginPage() {
 
         </div>
 
-        {/* Right Column: THE ONLY BOX ON THE PAGE - Royal Credentials Vault */}
+        {/* Right Column: REDESIGNED ROYAL LIGHT THEME LOGIN CREDENTIALS PORTAL */}
         <div className="lg:col-span-5 relative">
-          <div className="relative p-[2px] rounded-3xl bg-gradient-to-b from-amber-400 via-indigo-500 to-amber-400 shadow-[0_20px_50px_rgba(30,58,138,0.12)]">
-            <div className="bg-white/98 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 space-y-5 text-slate-900 shadow-inner">
-              
-              {/* Portal Header */}
-              <div className="text-center space-y-1.5 border-b border-slate-100 pb-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-900 border border-indigo-200">
-                  <GraduationCap className="w-3.5 h-3.5 text-indigo-600" /> VSB CAMPUS INTELLIGENCE PORTAL
+          <div className="relative rounded-3xl overflow-hidden bg-white border-2 border-amber-400 shadow-[0_22px_55px_rgba(20,40,90,0.12)]">
+            
+            {/* Royal Top Insignia Bar */}
+            <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-950 px-6 py-4 text-white flex items-center justify-between border-b border-amber-400/50">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-400/20 border border-amber-400/60 flex items-center justify-center text-amber-300">
+                  <GraduationCap className="w-5 h-5" />
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-serif">
-                  Welcome to VSB
+                <div>
+                  <div className="text-[11px] font-extrabold tracking-wider uppercase text-amber-300">VSB Official Portal</div>
+                  <div className="text-xs font-black text-white">Campus Intelligence</div>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 uppercase tracking-widest font-mono">
+                AUTONOMOUS
+              </span>
+            </div>
+
+            {/* Portal Body */}
+            <div className="p-6 sm:p-7 space-y-5 text-slate-900 bg-gradient-to-b from-white via-[#fcfdff] to-[#f8faff]">
+              
+              {/* Header Title */}
+              <div className="text-center space-y-1">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight font-serif">
+                  Access Portal
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Select your role to access your portal
+                  Select your institutional role to continue
                 </p>
               </div>
 
-              {/* Main Role Selector Tabs */}
+              {/* Main Role Selector Tabs with Royal Colors */}
               <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs gap-1.5 shadow-inner">
                 <button
                   onClick={() => setMode('student_login')}
                   className={`flex-1 py-2.5 px-2 rounded-xl font-black transition-all flex items-center justify-center gap-1.5 ${
                     mode === 'student_login'
-                      ? 'bg-gradient-to-r from-blue-900 to-indigo-900 text-white shadow-md scale-[1.02]'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-gradient-to-r from-blue-950 to-indigo-900 text-amber-300 shadow-md scale-[1.02]'
+                      : 'text-slate-600 hover:text-slate-900 font-bold'
                   }`}
                 >
-                  <UserCheck className="w-3.5 h-3.5" /> Login
+                  <UserCheck className="w-3.5 h-3.5 text-amber-400" /> Student
                 </button>
 
                 <button
                   onClick={() => setMode('student_register')}
                   className={`flex-1 py-2.5 px-2 rounded-xl font-black transition-all flex items-center justify-center gap-1.5 ${
                     mode === 'student_register'
-                      ? 'bg-gradient-to-r from-purple-700 to-pink-700 text-white shadow-md scale-[1.02]'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-gradient-to-r from-purple-800 to-indigo-800 text-amber-200 shadow-md scale-[1.02]'
+                      : 'text-slate-600 hover:text-slate-900 font-bold'
                   }`}
                 >
                   <UserPlus className="w-3.5 h-3.5" /> Sign Up
@@ -469,11 +514,11 @@ export default function LoginPage() {
                   onClick={() => setMode('faculty_login')}
                   className={`flex-1 py-2.5 px-2 rounded-xl font-black transition-all flex items-center justify-center gap-1.5 ${
                     mode === 'faculty_login'
-                      ? 'bg-gradient-to-r from-emerald-700 to-teal-800 text-white shadow-md scale-[1.02]'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-amber-100 shadow-md scale-[1.02]'
+                      : 'text-slate-600 hover:text-slate-900 font-bold'
                   }`}
                 >
-                  <Briefcase className="w-3.5 h-3.5" /> Faculty
+                  <Briefcase className="w-3.5 h-3.5 text-amber-300" /> Faculty
                 </button>
               </div>
 
@@ -507,12 +552,12 @@ export default function LoginPage() {
                           required
                           value={identifier}
                           onChange={(e) => setIdentifier(e.target.value)}
-                          placeholder="Enter Student Roll Number or Email"
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 shadow-2xs transition-all"
+                          placeholder="e.g., 21CS104 or student@vsb.ac.in"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 shadow-2xs transition-all"
                         />
                       </div>
                       <div className="text-[11px] text-slate-500 mt-1.5 font-medium">
-                        New student? Click <button type="button" onClick={() => setMode('student_register')} className="text-indigo-600 font-bold underline hover:text-indigo-800">Sign Up</button> above to create an account.
+                        New student? Click <button type="button" onClick={() => setMode('student_register')} className="text-amber-700 font-bold underline hover:text-amber-800">Sign Up</button> above to create an account.
                       </div>
                     </div>
 
@@ -528,7 +573,7 @@ export default function LoginPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••••"
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/20 shadow-2xs transition-all"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200/60 shadow-2xs transition-all"
                         />
                       </div>
                     </div>
@@ -536,149 +581,170 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 hover:from-blue-800 hover:to-indigo-800 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-indigo-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {loading ? (
                         <span>Authenticating VSB Student...</span>
                       ) : (
                         <>
-                          <span>Login to VSB Student Portal</span>
+                          <span>Sign In to Student Dashboard</span>
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}
                     </button>
                   </form>
+
+                  {/* 1-Click Quick Demo Access */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 text-center">
+                      Quick Instant Access (Demo)
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleStudentLogin(undefined, 'std_1', 'password123')}
+                      className="w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center justify-between"
+                    >
+                      <span>👤 Demo Student: Syed Ayaz (21CS104)</span>
+                      <span className="text-[10px] text-indigo-700 font-extrabold uppercase">Instant Access →</span>
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {/* MODE 2: STUDENT SIGN UP / REGISTRATION */}
+              {/* MODE 2: STUDENT SIGN UP */}
               {mode === 'student_register' && (
-                <form onSubmit={handleStudentRegister} className="space-y-3.5 text-xs">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-4">
+                  <form onSubmit={handleStudentRegister} className="space-y-3">
                     <div>
-                      <label className="block text-slate-700 font-extrabold mb-1">Full Student Name *</label>
+                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                        Full Name
+                      </label>
                       <input
                         type="text"
                         required
                         value={regName}
                         onChange={(e) => setRegName(e.target.value)}
-                        placeholder="e.g. Syed Ayaz Shah"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
+                        placeholder="e.g. Ramesh Kumar"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-slate-700 font-extrabold mb-1">Roll Number / Student ID *</label>
-                      <input
-                        type="text"
-                        required
-                        value={regRollNumber}
-                        onChange={(e) => setRegRollNumber(e.target.value)}
-                        placeholder="e.g. 21CS205"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 font-mono focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
-                      />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                          Roll Number
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={regRollNumber}
+                          onChange={(e) => setRegRollNumber(e.target.value)}
+                          placeholder="e.g. 21AD102"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={regEmail}
+                          onChange={(e) => setRegEmail(e.target.value)}
+                          placeholder="student@vsb.ac.in"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-slate-700 font-extrabold mb-1">College Email Address *</label>
-                    <input
-                      type="email"
-                      required
-                      value={regEmail}
-                      onChange={(e) => setRegEmail(e.target.value)}
-                      placeholder="syed@vsb.edu.in"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-slate-700 font-extrabold mb-1">Department</label>
+                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                        Department
+                      </label>
                       <select
                         value={regDepartment}
                         onChange={(e) => setRegDepartment(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-medium focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-semibold focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
                       >
-                        <option value="Computer Science & Engineering">CSE</option>
-                        <option value="AI & Data Science">AI &amp; DS</option>
-                        <option value="Electronics & Communication">ECE</option>
-                        <option value="Information Technology">IT</option>
-                        <option value="Mechanical Engineering">MECH</option>
-                        <option value="Electrical & Electronics">EEE</option>
+                        <option value="Artificial Intelligence & Data Science">Artificial Intelligence &amp; Data Science (AI-DS)</option>
+                        <option value="Computer Science & Engineering">Computer Science &amp; Engineering (CSE)</option>
+                        <option value="Information Technology">Information Technology (IT)</option>
+                        <option value="Electronics & Communication Engineering">Electronics &amp; Communication (ECE)</option>
+                        <option value="Electrical & Electronics Engineering">Electrical &amp; Electronics (EEE)</option>
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-slate-700 font-extrabold mb-1">Current CGPA</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        max="10"
-                        value={regCgpa}
-                        onChange={(e) => setRegCgpa(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-bold focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
-                      />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                          Current CGPA
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="10"
+                          required
+                          value={regCgpa}
+                          onChange={(e) => setRegCgpa(e.target.value)}
+                          placeholder="8.4"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-medium focus:outline-none focus:border-purple-600 shadow-2xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                          Standing Arrears
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          required
+                          value={regBacklogs}
+                          onChange={(e) => setRegBacklogs(e.target.value)}
+                          placeholder="0"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-medium focus:outline-none focus:border-purple-600 shadow-2xs"
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-slate-700 font-extrabold mb-1">Active Arrears</label>
+                      <label className="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wider mb-1">
+                        Create Password
+                      </label>
                       <input
-                        type="number"
-                        min="0"
-                        value={regBacklogs}
-                        onChange={(e) => setRegBacklogs(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-bold focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
+                        type="password"
+                        required
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-medium focus:outline-none focus:border-purple-600 shadow-2xs"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-slate-700 font-extrabold mb-1">Password</label>
-                    <input
-                      type="password"
-                      required
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20 shadow-2xs"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-pink-700 to-purple-800 hover:from-purple-600 hover:to-pink-600 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-purple-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {loading ? (
-                      <span>Registering VSB Student Account...</span>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4" />
-                        <span>Register Student &amp; Sign In</span>
-                      </>
-                    )}
-                  </button>
-                </form>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 hover:from-purple-600 hover:to-indigo-600 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-purple-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {loading ? <span>Creating Account...</span> : <span>Register Student Profile</span>}
+                    </button>
+                  </form>
+                </div>
               )}
 
               {/* MODE 3: FACULTY LOGIN */}
               {mode === 'faculty_login' && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2">
-                    <div className="text-xs font-black text-emerald-900 uppercase tracking-wider flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-emerald-600" /> VSB Faculty Member Authentication
-                    </div>
-                    <p className="text-xs text-slate-600 font-medium">
-                      VSB Faculty members can inspect student academic details, review test scores, track daily reports, and manage department rosters.
-                    </p>
+                  <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-300 text-amber-900 text-xs font-medium">
+                    🏛️ <strong>Faculty Access Portal</strong>: For HODs, Class Advisors, and Placement Officers.
                   </div>
 
                   <form onSubmit={handleFacultyLogin} className="space-y-4">
                     <div>
                       <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
-                        Faculty Email
+                        Faculty Institutional Email
                       </label>
                       <div className="relative">
                         <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -687,15 +753,15 @@ export default function LoginPage() {
                           required
                           value={facultyEmail}
                           onChange={(e) => setFacultyEmail(e.target.value)}
-                          placeholder="dr.ramesh@vsb.edu.in"
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 shadow-2xs"
+                          placeholder="faculty@vsb.ac.in"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20 shadow-2xs"
                         />
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1.5">
-                        Password
+                        Faculty Security Password
                       </label>
                       <div className="relative">
                         <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -705,7 +771,7 @@ export default function LoginPage() {
                           value={facultyPass}
                           onChange={(e) => setFacultyPass(e.target.value)}
                           placeholder="••••••••"
-                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 shadow-2xs"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 text-xs font-medium focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20 shadow-2xs"
                         />
                       </div>
                     </div>
@@ -713,14 +779,14 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-950 hover:from-blue-900 hover:to-indigo-900 text-amber-300 text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-950/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 border border-amber-400/40"
                     >
                       {loading ? (
                         <span>Authenticating VSB Faculty...</span>
                       ) : (
                         <>
                           <span>Login to VSB Faculty Portal</span>
-                          <ArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-4 h-4 text-amber-400" />
                         </>
                       )}
                     </button>
@@ -732,6 +798,206 @@ export default function LoginPage() {
         </div>
       </main>
 
+      {/* ------------------------------------------------------------- */}
+      {/* 4. INNOVATIVE 53 CORPORATE PLACEMENT RECORDS SHOWCASE (ROYAL) */}
+      {/* ------------------------------------------------------------- */}
+      <section className="relative z-10 max-w-7xl w-full mx-auto my-10 space-y-6">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/80 pb-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-amber-50 border border-amber-300 text-amber-900 shadow-2xs">
+              <Trophy className="w-3.5 h-3.5 text-amber-600" /> VSB CAMPUS PLACEMENT LEDGER
+            </div>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight mt-1 font-serif">
+              Official Corporate Placement Records
+            </h2>
+            <p className="text-xs md:text-sm text-slate-600 font-medium mt-1">
+              Verified campus placement records across Tier-1 Product Companies, Core Engineering, and Global IT Leaders.
+            </p>
+          </div>
+
+          {/* Quick Metrics Badges */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="bg-white border border-amber-300 px-3.5 py-2 rounded-2xl shadow-xs text-center">
+              <div className="text-[10px] uppercase font-bold text-slate-500">Total Offers</div>
+              <div className="text-base font-black text-indigo-950">{PLACEMENT_SUMMARY.totalOffers}</div>
+            </div>
+            <div className="bg-white border border-emerald-300 px-3.5 py-2 rounded-2xl shadow-xs text-center">
+              <div className="text-[10px] uppercase font-bold text-slate-500">Highest Package</div>
+              <div className="text-base font-black text-emerald-700">{PLACEMENT_SUMMARY.highestPackage}</div>
+            </div>
+            <div className="bg-white border border-blue-300 px-3.5 py-2 rounded-2xl shadow-xs text-center">
+              <div className="text-[10px] uppercase font-bold text-slate-500">Average CTC</div>
+              <div className="text-base font-black text-blue-900">{PLACEMENT_SUMMARY.averagePackage}</div>
+            </div>
+            <div className="bg-white border border-purple-300 px-3.5 py-2 rounded-2xl shadow-xs text-center">
+              <div className="text-[10px] uppercase font-bold text-slate-500">Recruiters</div>
+              <div className="text-base font-black text-purple-900">{PLACEMENT_SUMMARY.totalCompanies} Companies</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search and Category Filter Toolbar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+          {/* Search Box */}
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              value={placementSearch}
+              onChange={(e) => setPlacementSearch(e.target.value)}
+              placeholder="Search company (e.g. Amazon, Capgemini, TCS)..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white"
+            />
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 text-xs">
+            <button
+              onClick={() => setPlacementFilter('ALL')}
+              className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                placementFilter === 'ALL'
+                  ? 'bg-blue-950 text-amber-300 shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              All 53 Companies ({PLACEMENT_RECORDS.length})
+            </button>
+            <button
+              onClick={() => setPlacementFilter('SUPER_DREAM')}
+              className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                placementFilter === 'SUPER_DREAM'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              ⭐ Super Dream (10+ LPA)
+            </button>
+            <button
+              onClick={() => setPlacementFilter('DREAM')}
+              className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                placementFilter === 'DREAM'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              ✨ Dream (5 - 10 LPA)
+            </button>
+            <button
+              onClick={() => setPlacementFilter('MASS')}
+              className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                placementFilter === 'MASS'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              🔥 Mass Recruiters (15+ Offers)
+            </button>
+          </div>
+        </div>
+
+        {/* Placement Records Table / Grid Showcase */}
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
+          <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 text-amber-300 sticky top-0 z-20 font-black tracking-wider uppercase text-[11px]">
+                <tr>
+                  <th className="py-3 px-4 w-16 text-center">S.No</th>
+                  <th className="py-3 px-4">Company Name</th>
+                  <th className="py-3 px-4 text-center">Total Offers</th>
+                  <th className="py-3 px-4 text-right">Annual Salary Package (LPA)</th>
+                  <th className="py-3 px-4 text-center">Tier Category</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {filteredPlacementRecords.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-slate-400 font-medium">
+                      No placement records found matching &ldquo;{placementSearch}&rdquo;.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredPlacementRecords.map((rec, idx) => {
+                    const isSuperDream = rec.maxLPA >= 10;
+                    const isMassRecruiter = rec.offers >= 30;
+                    return (
+                      <tr
+                        key={rec.sNo}
+                        className={`hover:bg-amber-50/40 transition-colors ${
+                          idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
+                        }`}
+                      >
+                        <td className="py-3 px-4 text-center font-mono font-bold text-slate-500">
+                          {rec.sNo}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-slate-900 text-xs md:text-sm">
+                              {rec.name}
+                            </span>
+                            {isSuperDream && (
+                              <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 uppercase">
+                                Super Dream
+                              </span>
+                            )}
+                            {isMassRecruiter && (
+                              <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase flex items-center gap-0.5">
+                                <Flame className="w-2.5 h-2.5 text-emerald-600" /> Mass Hiring
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span
+                            className={`inline-flex items-center justify-center font-black px-3 py-1 rounded-full text-xs ${
+                              rec.offers >= 100
+                                ? 'bg-emerald-600 text-white shadow-xs'
+                                : rec.offers >= 20
+                                ? 'bg-indigo-100 text-indigo-900 font-extrabold'
+                                : 'bg-slate-100 text-slate-800 font-bold'
+                            }`}
+                          >
+                            {rec.offers} {rec.offers === 1 ? 'Offer' : 'Offers'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="inline-flex items-center gap-1 font-mono font-black text-xs md:text-sm text-slate-950 bg-amber-100/70 border border-amber-300 px-2.5 py-1 rounded-lg">
+                            ₹{rec.packageLPA} <span className="text-[10px] text-amber-800 font-bold">LPA</span>
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span
+                            className={`text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider ${
+                              rec.category === 'Super Dream'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                : rec.category === 'Dream'
+                                ? 'bg-indigo-50 text-indigo-800 border border-indigo-200'
+                                : 'bg-slate-100 text-slate-600 border border-slate-200'
+                            }`}
+                          >
+                            {rec.category}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Table Footer Summary Note */}
+          <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+            <div>
+              Showing <strong>{filteredPlacementRecords.length}</strong> of <strong>{PLACEMENT_RECORDS.length}</strong> Verified Recruiting Companies
+            </div>
+            <div className="font-extrabold text-indigo-900 flex items-center gap-1.5">
+              <Trophy className="w-4 h-4 text-amber-500" /> Institution Average CTC: <span className="underline">₹7.5 LPA</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="relative z-10 max-w-7xl w-full mx-auto text-center text-xs text-slate-500 py-4 font-medium border-t border-slate-200 mt-6">
         VSB ENGINEERING COLLEGE (KARUR - 639 111) • Official Campus Intelligence Platform © 2026
@@ -739,4 +1005,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
