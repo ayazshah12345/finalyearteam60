@@ -871,7 +871,7 @@ export default function LoginPage() {
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              ⭐ Super Dream (10+ LPA)
+              ⭐ ₹10+ LPA High Package
             </button>
             <button
               onClick={() => setPlacementFilter('DREAM')}
@@ -881,7 +881,7 @@ export default function LoginPage() {
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              ✨ Dream (5 - 10 LPA)
+              💼 ₹5 - 10 LPA Packages
             </button>
             <button
               onClick={() => setPlacementFilter('MASS')}
@@ -891,7 +891,7 @@ export default function LoginPage() {
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              🔥 Mass Recruiters (15+ Offers)
+              🔥 Mass Hiring (15+ Offers)
             </button>
           </div>
         </div>
@@ -906,19 +906,17 @@ export default function LoginPage() {
                   <th className="py-3 px-4">Company Name</th>
                   <th className="py-3 px-4 text-center">Total Offers</th>
                   <th className="py-3 px-4 text-right">Annual Salary Package (LPA)</th>
-                  <th className="py-3 px-4 text-center">Tier Category</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredPlacementRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400 font-medium">
+                    <td colSpan={4} className="py-8 text-center text-slate-400 font-medium">
                       No placement records found matching &ldquo;{placementSearch}&rdquo;.
                     </td>
                   </tr>
                 ) : (
                   filteredPlacementRecords.map((rec, idx) => {
-                    const isSuperDream = rec.maxLPA >= 10;
                     const isMassRecruiter = rec.offers >= 30;
                     return (
                       <tr
@@ -935,11 +933,6 @@ export default function LoginPage() {
                             <span className="font-extrabold text-slate-900 text-xs md:text-sm">
                               {rec.name}
                             </span>
-                            {isSuperDream && (
-                              <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 uppercase">
-                                Super Dream
-                              </span>
-                            )}
                             {isMassRecruiter && (
                               <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase flex items-center gap-0.5">
                                 <Flame className="w-2.5 h-2.5 text-emerald-600" /> Mass Hiring
@@ -963,19 +956,6 @@ export default function LoginPage() {
                         <td className="py-3 px-4 text-right">
                           <span className="inline-flex items-center gap-1 font-mono font-black text-xs md:text-sm text-slate-950 bg-amber-100/70 border border-amber-300 px-2.5 py-1 rounded-lg">
                             ₹{rec.packageLPA} <span className="text-[10px] text-amber-800 font-bold">LPA</span>
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span
-                            className={`text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider ${
-                              rec.category === 'Super Dream'
-                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                : rec.category === 'Dream'
-                                ? 'bg-indigo-50 text-indigo-800 border border-indigo-200'
-                                : 'bg-slate-100 text-slate-600 border border-slate-200'
-                            }`}
-                          >
-                            {rec.category}
                           </span>
                         </td>
                       </tr>
