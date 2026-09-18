@@ -260,7 +260,7 @@ export default function LoginPage() {
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
               <div className="w-full sm:w-44 h-48 rounded-2xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100 shadow-inner flex items-center justify-center">
                 <img
-                  src="/hod-manivannan.jpg"
+                  src="/hod-manivannan-suit.jpg"
                   alt="Mr. Manivannan K - HOD Artificial Intelligence & Data Science"
                   className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-300"
                 />
