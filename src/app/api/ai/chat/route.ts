@@ -3,11 +3,108 @@ import { dbStore } from '@/lib/db-store';
 import { getAuthenticatedUser } from '@/lib/auth';
 import { evaluateStudentEligibility } from '@/lib/eligibility';
 
+interface ChatHistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+// Build rich SGIP Portal Ground Truth context from database store
+function buildSgipContext(activeUser: any) {
+  const drives = dbStore.getPlacementDrives ? dbStore.getPlacementDrives() : [];
+  const courses = dbStore.getCourses ? dbStore.getCourses() : [];
+  const knowledgeSources = dbStore.getKnowledgeSources ? dbStore.getKnowledgeSources() : [];
+  const applications = dbStore.getApplications ? dbStore.getApplications() : [];
+
+  // Evaluate user eligibility for all drives
+  const driveDetails = drives.map(d => {
+    let evalStatus = 'Check portal for criteria';
+    try {
+      const res = evaluateStudentEligibility(activeUser, d.eligibility);
+      evalStatus = res.isEligible ? 'ELIGIBLE' : `INELIGIBLE (${res.reasons.filter(r => r.startsWith('Ineligible')).join('; ')})`;
+    } catch {
+      // fallback if rule eval fails
+    }
+    return `- Company: ${d.companyName} | Role: ${d.roleTitle} | CTC: ${d.packageLPA} LPA | Location: ${d.location} | Min CGPA: ${d.eligibility.minCgpa} | Max Backlogs: ${d.eligibility.maxBacklogs} | Batch: ${d.eligibility.graduationYear} | Drive Date: ${d.driveDate} | Deadline: ${d.deadlineDate} | Current Student Status: ${evalStatus}`;
+  }).join('\n');
+
+  const courseList = courses.map(c => `- ${c.title} (${c.department}, Category: ${c.category || 'General'}, Difficulty: ${c.difficulty || 'Intermediate'})`).slice(0, 10).join('\n');
+
+  const userApps = applications
+    .filter(a => a.studentId === activeUser.id || a.studentRollNumber === activeUser.rollNumber)
+    .map(a => `- Applied to ${a.companyName} (${a.roleTitle}): Status = ${a.status}`)
+    .join('\n');
+
+  const knowledgeSnippets = knowledgeSources
+    .slice(0, 5)
+    .map(k => `[${k.title} - ${k.courseTitle || 'General'}]: ${k.content.slice(0, 250)}...`)
+    .join('\n');
+
+  return `
+=== SGIP PORTAL GROUND TRUTH INFORMATION ===
+Logged-in Student Information:
+- Name: ${activeUser.name || 'Student'}
+- Roll Number: ${activeUser.rollNumber || 'N/A'}
+- Department: ${activeUser.department || 'Computer Science & Engineering'}
+- Current CGPA: ${activeUser.cgpa ?? '8.4'}
+- Active Backlogs/Arrears: ${activeUser.backlogs ?? 0}
+- Graduation Batch: ${activeUser.batch || '2026'}
+
+Active SGIP Placement Drives & Schemes:
+${driveDetails || 'No active placement drives currently scheduled.'}
+
+Student's Existing Placement Applications:
+${userApps || 'No placement applications submitted yet.'}
+
+Available Courses in SGIP Portal:
+${courseList || 'Standard Engineering & CS Curriculum'}
+
+Faculty Approved Knowledge Base Snippets:
+${knowledgeSnippets || 'No additional notes uploaded.'}
+
+Portal Navigation & Usage Guidelines:
+- How to apply for a placement drive: Navigate to the Placement Drives tab (/placement), browse active drives, check your eligibility status, and click "Apply Now".
+- Where to check application status: Go to the Placement Drives page (/placement) under "My Applications" tab, or check your Student Dashboard (/dashboard).
+- ATS Resume: Accessible under /resume. Students can build or upload their ATS resume for placement drives.
+- Daily Proctored Test: Accessible under /daily-test. 10-minute tests boost the SGIP Growth Score and XP.
+- Coding Practice & Compiler: Accessible under /coding (LeetCode practice) and /compiler (code execution engine).
+- Profile Update: Accessible under /profile to update CGPA, skills, certifications, and contact details.
+=== END SGIP PORTAL GROUND TRUTH ===
+`.trim();
+}
+
+function buildSystemPrompt(sgipContext: string) {
+  return `You are the AI assistant inside the SGIP Student Portal. You are a general-purpose conversational AI assistant. Help students with education, technology, coding, mathematics, writing, career questions, general knowledge, casual conversation, and SGIP Portal-related questions. Understand the user's intent rather than matching keywords. Use conversation history to understand follow-up questions. Adapt the response length and format to the user's request. Never fabricate SGIP-specific information.
+
+Guidelines:
+1. RESPONSE STYLE & ADAPTATION:
+   - For casual greetings or chat ("Hi", "How are you?"): Be friendly, warm, and natural. Do NOT start every response with generic canned phrases like "Certainly! I'd be happy to help." or "How can I assist you today?".
+   - For simple questions: Provide a clear, direct answer without artificial padding.
+   - For complex questions or academic requests (e.g. "Give me a 16-mark answer", "Explain machine learning in detail"): Provide comprehensive, well-structured explanations with headings, intuition, and real-world examples.
+   - For "how-to" or step-by-step requests: Use clean numbered steps.
+   - For comparisons: Use clear comparison sections or Markdown tables.
+   - For coding queries: Provide clean, idiomatic, and properly formatted code blocks with language identifiers (e.g. \`\`\`python, \`\`\`java, \`\`\`sql) along with concise explanations.
+   - For mathematics / calculations: Show the step-by-step calculation clearly.
+   - For writing tasks (e.g., leave letters, emails to professors, resume summaries): Provide ready-to-use, polished text tailored to the requested tone.
+   - If the user asks to "make it shorter", "explain deeper", "give another example", or "why?", adapt seamlessly while preserving the ongoing conversation context.
+
+2. CONVERSATION MEMORY:
+   - Always track the ongoing dialogue. References like "it", "that", "the first one", "give an example of that", or "explain the difference" refer directly to prior turns.
+
+3. SGIP PORTAL QUESTIONS:
+   - Use the SGIP PORTAL GROUND TRUTH provided below to answer questions about placement drives, eligibility cutoffs, application procedures, portal navigation, and student records.
+   - Never invent SGIP information. If the answer is not available in the SGIP data/context, clearly state that you don't have enough SGIP-specific information rather than making something up.
+
+4. AMBIGUITY:
+   - If a question is genuinely ambiguous and cannot be resolved from context, ask a helpful clarification (e.g. "Which company or scheme are you referring to?").
+
+${sgipContext}`;
+}
+
 export async function POST(req: Request) {
   try {
     const activeUser = await getAuthenticatedUser(req);
     const body = await req.json();
-    const { query, isTestActive } = body;
+    const { query, messages = [], isTestActive, stream: requestStream } = body;
 
     // SECURITY RULE: Block AI Chatbot ONLY during active proctored daily tests
     if (isTestActive === true) {
@@ -25,214 +122,403 @@ export async function POST(req: Request) {
     }
 
     const qRaw = query.trim();
-    const qLower = qRaw.toLowerCase();
-    const drives = dbStore.getPlacementDrives();
 
-    let answer = '';
-    let sources: any[] = [];
+    // Check available AI API keys
+    const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
 
-    // ====================================================
-    // 1. INTENT TYPE A: GREETINGS & SMALL TALK
-    // ====================================================
-    if (qLower === 'hi' || qLower === 'hello' || qLower === 'hey' || qLower === 'hi there' || qLower === 'good morning') {
-      answer = `Hello ${activeUser.name || 'there'}! 👋 How can I help you today? You can ask me to generate practice questions, explain programming concepts, or check placement eligibility!`;
-      return NextResponse.json({ answer, sources: [], timestamp: new Date().toISOString() });
-    }
+    // Construct Ground Truth SGIP Context & System Prompt
+    const sgipContext = buildSgipContext(activeUser);
+    const systemPrompt = buildSystemPrompt(sgipContext);
 
-    if (qLower === 'thanks' || qLower === 'thank you' || qLower === 'thx') {
-      answer = `You're very welcome, ${activeUser.name || 'friend'}! 😊 Let me know if you need anything else for your studies or placement prep!`;
-      return NextResponse.json({ answer, sources: [], timestamp: new Date().toISOString() });
-    }
+    // Format conversation history
+    const history: ChatHistoryMessage[] = Array.isArray(messages)
+      ? messages
+          .filter((m: any) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+          .map((m: any) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content.trim()
+          }))
+          .filter(m => m.content.length > 0)
+      : [];
 
-    // ====================================================
-    // 2. INTENT TYPE B: REQUESTING N QUESTIONS (e.g. "ask any 10 questions", "give me 10 questions", "10 interview questions")
-    // ====================================================
-    const contains10 = qLower.includes('10') || qLower.includes('ten');
-    const contains5 = qLower.includes('5') || qLower.includes('five');
-    const isQuestionRequest = qLower.includes('question') || qLower.includes('questions') || qLower.includes('ask') || qLower.includes('quiz') || qLower.includes('mcq') || qLower.includes('problems');
+    const isStreamingRequested = requestStream === true || req.headers.get('accept')?.includes('text/event-stream');
 
-    if (isQuestionRequest && (contains10 || contains5 || qLower.includes('ask any') || qLower.includes('generate questions'))) {
-      const count = contains5 && !contains10 ? 5 : 10;
+    // ----------------------------------------------------
+    // Scenario A: No API key configured in .env.local
+    // ----------------------------------------------------
+    if (!geminiKey && !openaiKey) {
+      const guidanceMessage = `### 🔑 AI API Key Setup Required
 
-      if (qLower.includes('python')) {
-        answer = `### 📝 Here are ${count} Top Python Interview Questions:
+I am your **SGIP AI Student Assistant**. To enable live, ChatGPT-style generative AI responses for any question (coding, math, academics, career, and SGIP drives), please add your **Google Gemini API Key** to your \`.env.local\` file:
 
-1. **What is the difference between list and tuple in Python?**
-2. **Explain Python's GIL (Global Interpreter Lock) and how it affects multithreading.**
-3. **What are Python decorators and how do you write a custom decorator?**
-4. **Explain list comprehensions vs generator expressions with memory impact.**
-5. **What is the difference between \`__init__\` and \`__new__\` methods in Python?**
-${count === 10 ? `6. **How does Python handle memory management and garbage collection?**
-7. **What is the difference between shallow copy and deep copy (\`copy\` module)?**
-8. **Explain \`*args\` and \`**kwargs\` in function signatures.**
-9. **How do you handle exceptions using \`try-except-else-finally\` blocks?**
-10. **What are lambda functions and when should you use them over standard functions?**` : ''}
-
----\n💡 *Reply with **"answer them"** or **"solution"** to get full step-by-step answers for these questions!*`;
-      } else if (qLower.includes('java')) {
-        answer = `### ☕ Here are ${count} Core Java Placement Questions:
-
-1. **What is the difference between JDK, JRE, and JVM?**
-2. **Explain the concept of OOPs: Inheritance, Encapsulation, Polymorphism, and Abstraction.**
-3. **What is the difference between \`String\`, \`StringBuilder\`, and \`StringBuffer\`?**
-4. **Explain Method Overloading vs Method Overriding with code examples.**
-5. **What is the Garbage Collector in Java and how does it clean memory?**
-${count === 10 ? `6. **Difference between Abstract Class and Interface in Java 8+.**
-7. **What are Java Collections? Difference between ArrayList and LinkedList.**
-8. **Explain \`final\`, \`finally\`, and \`finalize\` keywords.**
-9. **How does Exception Handling work in Java (\`checked\` vs \`unchecked\` exceptions)?**
-10. **What is the HashMap internal implementation (Buckets & Hash Collisions)?**` : ''}
-
----\n💡 *Reply with **"answer them"** or **"solution"** to get complete code solutions!*`;
-      } else {
-        // GENERAL 10 CAMPUS TECHNICAL & PLACEMENT INTERVIEW QUESTIONS
-        answer = `### 📝 Here are 10 Important Campus Placement & Technical Interview Questions:
-
-1. **Data Structures:** What is the difference between an Array and a Linked List in memory allocation and lookup complexity?
-2. **Operating Systems:** Explain the difference between a Process and a Thread. What is context switching?
-3. **Database Management (DBMS):** What are ACID properties? Write an SQL query to find the 2nd highest salary from an Employees table.
-4. **Object-Oriented Programming:** Explain the 4 pillars of OOPs (Encapsulation, Abstraction, Inheritance, Polymorphism).
-5. **Computer Networks:** What is the difference between TCP (Transmission Control Protocol) and UDP (User Datagram Protocol)?
-6. **Algorithms:** Explain Dijkstra's shortest path algorithm. What is its time complexity using a Min-Heap priority queue?
-7. **Programming Fundamentals:** What is the difference between Call by Value and Call by Reference?
-8. **System Design / Cloud:** What is Load Balancing and how does Horizontal Scaling differ from Vertical Scaling?
-9. **Web Architecture:** Explain Server-Side Rendering (SSR) vs Client-Side Rendering (CSR) in modern web applications.
-10. **HR / Behavioral:** Describe a situation where you faced a tough technical bug and how you resolved it using the STAR method.
-
----\n💡 *Reply with **"answer them"** or **"show solutions"** to get complete detailed answers for all 10 questions!*`;
-      }
-
-      sources.push({ title: 'SGIP Placement Question Generator', chunkText: `Generated ${count} technical questions` });
-      return NextResponse.json({ answer, sources, timestamp: new Date().toISOString() });
-    }
-
-    // ====================================================
-    // 3. INTENT TYPE C: SOLVING / ANSWERING THE QUESTIONS
-    // ====================================================
-    if (qLower.includes('answer them') || qLower.includes('give me answers') || qLower.includes('solution') || qLower.includes('answers')) {
-      answer = `### 💡 Detailed Solutions for Placement Technical Questions:
-
-1. **Array vs LinkedList:** Arrays use contiguous memory ($O(1)$ random access, fixed size). LinkedLists use pointer nodes ($O(N)$ lookup, dynamic size).
-2. **Process vs Thread:** A Process is an independent program in execution with its own address space. A Thread is a lightweight execution unit inside a process sharing memory.
-3. **ACID Properties:** **Atomicity** (all or nothing), **Consistency** (valid state), **Isolation** (concurrent execution), **Durability** (persisted).
-   \`\`\`sql
-   SELECT MAX(salary) FROM Employees WHERE salary < (SELECT MAX(salary) FROM Employees);
-   \`\`\`
-4. **4 Pillars of OOPs:** Encapsulation (data hiding), Abstraction (hiding implementation details), Inheritance (reusing code), Polymorphism (one interface, multiple forms).
-5. **TCP vs UDP:** TCP is connection-oriented, reliable, with error checking. UDP is connectionless, fast, without guarantee (used in video streaming).
-6. **Dijkstra Complexity:** Time Complexity is $O((V + E) \\log V)$ with Min-Heap.
-7. **Call by Value vs Reference:** Value passes a copy; Reference passes the actual variable memory address.
-
----\nFeel free to ask for detailed code implementations for any specific question!`;
-      sources.push({ title: 'SGIP Question Solutions', chunkText: 'Step-by-step interview solutions.' });
-      return NextResponse.json({ answer, sources, timestamp: new Date().toISOString() });
-    }
-
-    // ====================================================
-    // 4. INTENT TYPE D: DIRECT CONCEPT DEFINITIONS (Java, Python, C++, SQL)
-    // ====================================================
-    if (qLower.includes('java') && (qLower.includes('what is') || qLower.includes('explain') || qLower === 'java')) {
-      answer = `### ☕ What is Java?
-**Java** is a high-level, class-based, object-oriented programming language designed to run on any platform without recompilation (**Write Once, Run Anywhere - WORA**).
-
-#### Key Features:
-1. **Platform Independence:** Code compiles into JVM Bytecode (\`.class\`).
-2. **Object-Oriented (OOP):** Classes, Objects, Inheritance, Encapsulation, Polymorphism.
-3. **Automatic Garbage Collection:** Automatically manages memory.
-
-#### Code Example:
-\`\`\`java
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello, VSB Engineering College!");
-    }
-}
-\`\`\``;
-      sources.push({ title: 'Java Guide', chunkText: 'Object oriented principles.' });
-      return NextResponse.json({ answer, sources, timestamp: new Date().toISOString() });
-    }
-
-    if (qLower.includes('python') && (qLower.includes('what is') || qLower.includes('explain') || qLower === 'python')) {
-      answer = `### 🐍 What is Python?
-**Python** is an interpreted, high-level, general-purpose programming language known for its clean syntax and extensive ecosystem.
-
-#### Code Example:
-\`\`\`python
-def greet_student(name):
-    return f"Welcome {name} to campus placement prep!"
-
-print(greet_student("${activeUser.name}"))
-\`\`\``;
-      sources.push({ title: 'Python Guide', chunkText: 'Interpreted language syntax.' });
-      return NextResponse.json({ answer, sources, timestamp: new Date().toISOString() });
-    }
-
-    if ((qLower.includes('sql') || qLower.includes('database')) && (qLower.includes('what is') || qLower.includes('explain'))) {
-      answer = `### 🗄️ What is SQL?
-**SQL** (Structured Query Language) is used to store, manage, and query relational databases.
-
-\`\`\`sql
-SELECT student_name, cgpa FROM Students WHERE cgpa >= 8.0;
-\`\`\``;
-      sources.push({ title: 'SQL Guide', chunkText: 'Relational database query language.' });
-      return NextResponse.json({ answer, sources, timestamp: new Date().toISOString() });
-    }
-
-    // ====================================================
-    // 5. INTENT TYPE E: PLACEMENT DRIVES & ELIGIBILITY
-    // ====================================================
-    if (
-      qLower.includes('cgpa') ||
-      qLower.includes('eligible') ||
-      qLower.includes('eligibility') ||
-      qLower.includes('drive') ||
-      qLower.includes('package') ||
-      qLower.includes('google') ||
-      qLower.includes('microsoft') ||
-      qLower.includes('amazon') ||
-      qLower.includes('tcs') ||
-      qLower.includes('zoho') ||
-      qLower.includes('arrear') ||
-      qLower.includes('backlog')
-    ) {
-      const eligibleList = drives.map(d => {
-        const evalRes = evaluateStudentEligibility(activeUser, d.eligibility);
-        return `### 🏢 ${d.companyName} (${d.packageLPA} LPA CTC)\n- **Status:** ${evalRes.isEligible ? '✅ **ELIGIBLE**' : '❌ **INELIGIBLE**'}\n- **Min CGPA Required:** ${d.eligibility.minCgpa} (Your CGPA: **${activeUser.cgpa ?? '8.4'}**)\n- **Max Arrears Allowed:** ${d.eligibility.maxBacklogs} (Your Active Backlogs: **${activeUser.backlogs ?? 0}**)`;
-      }).join('\n\n');
-
-      answer = `## 🎯 Placement Drive Evaluation for ${activeUser.name}\n\nHere is your eligibility based on your current record (**CGPA: ${activeUser.cgpa ?? '8.4'}**, **Arrears: ${activeUser.backlogs ?? 0}**):\n\n${eligibleList}`;
-      sources.push({ title: 'SGIP Real-Time Placement Engine', chunkText: `Evaluated ${activeUser.name}` });
-      return NextResponse.json({ answer, sources, timestamp: new Date().toISOString() });
-    }
-
-    // ====================================================
-    // 6. INTENT TYPE F: UNIVERSAL SMART CONVERSATIONAL AI FOR ALL OTHER QUERIES
-    // ====================================================
-    answer = `Here is a clear breakdown for **"${qRaw}"**:
-
-### 📌 Overview & Key Insights
-1. **Core Concept:** Understanding ${qRaw} is essential for academic performance, problem-solving, and campus recruitment.
-2. **Best Practices:** Focus on modular design, clean code practices, and understanding algorithm efficiency ($O(N)$ vs $O(N^2)$).
-3. **Placement Relevance:** Frequently tested in technical coding rounds and technical interviews.
-
-\`\`\`python
-# Demonstration code for: ${qRaw}
-def demonstrate_solution():
-    print("Mastering ${qRaw} for software engineering placement!")
-
-demonstrate_solution()
+\`\`\`env
+GEMINI_API_KEY="your_api_key_here"
 \`\`\`
 
-If you'd like 10 practice questions, code in Python/Java/C++, or company eligibility rules, just ask! 😊`;
-    sources.push({ title: 'SGIP Universal AI Assistant', chunkText: qRaw });
+**How to get a key in 30 seconds (Free):**
+1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in and click **"Create API Key"**
+3. Add the key to \`.env.local\` as shown above
+4. Restart your development server (\`npm run dev\`)
 
-    return NextResponse.json({
-      answer,
-      sources,
-      timestamp: new Date().toISOString()
-    });
+*(You can also use \`OPENAI_API_KEY="sk-..."\` if you prefer OpenAI).*
+
+Once added, I will immediately be able to answer any question, maintain conversation memory, write code, solve problems, and guide you through the SGIP portal!`;
+
+      if (isStreamingRequested) {
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text: guidanceMessage })}\n\n`));
+            controller.enqueue(new TextEncoder().encode(`data: [DONE]\n\n`));
+            controller.close();
+          }
+        });
+        return new Response(stream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive'
+          }
+        });
+      }
+
+      return NextResponse.json({
+        answer: guidanceMessage,
+        sources: [{ title: 'SGIP AI Setup Guide', chunkText: 'API key configuration instructions' }],
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // ----------------------------------------------------
+    // Scenario B: Google Gemini Provider
+    // ----------------------------------------------------
+    if (geminiKey) {
+      // Build Gemini contents array from history + current query
+      const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+
+      // Add previous conversation turns (limit to last 16 turns to avoid exceeding context)
+      const relevantHistory = history.slice(-16);
+      for (const msg of relevantHistory) {
+        const geminiRole = msg.role === 'assistant' ? 'model' : 'user';
+        // Avoid consecutive roles with identical role in Gemini API
+        if (contents.length > 0 && contents[contents.length - 1].role === geminiRole) {
+          contents[contents.length - 1].parts[0].text += `\n\n${msg.content}`;
+        } else {
+          contents.push({
+            role: geminiRole,
+            parts: [{ text: msg.content }]
+          });
+        }
+      }
+
+      // Ensure first message is from user if history started with model
+      if (contents.length > 0 && contents[0].role === 'model') {
+        contents.shift();
+      }
+
+      // Add current user query
+      if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+        contents[contents.length - 1].parts[0].text += `\n\n${qRaw}`;
+      } else {
+        contents.push({
+          role: 'user',
+          parts: [{ text: qRaw }]
+        });
+      }
+
+      const geminiPayload = {
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2500
+        }
+      };
+
+      const candidateModels = Array.from(new Set([
+        process.env.GEMINI_MODEL,
+        'gemini-flash-latest',
+        'gemini-3.6-flash',
+        'gemini-2.5-flash-lite',
+        'gemini-3-flash-preview',
+        'gemini-2.5-pro'
+      ].filter(Boolean))) as string[];
+
+      if (isStreamingRequested) {
+        let geminiRes: Response | null = null;
+        let selectedModel = candidateModels[0];
+
+        for (const model of candidateModels) {
+          try {
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${geminiKey}`;
+            const res = await fetch(geminiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(geminiPayload)
+            });
+
+            if (res.ok) {
+              geminiRes = res;
+              selectedModel = model;
+              break;
+            } else {
+              const errText = await res.text();
+              console.warn(`Gemini Model ${model} returned ${res.status}, trying next fallback model... Details:`, errText.slice(0, 150));
+            }
+          } catch (e) {
+            console.warn(`Fetch error for ${model}, trying next...`);
+          }
+        }
+
+        if (!geminiRes || !geminiRes.ok) {
+          return NextResponse.json(
+            { error: 'AI model service is momentarily busy. Please try asking again in a moment.' },
+            { status: 502 }
+          );
+        }
+
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+
+        const sseStream = new ReadableStream({
+          async start(controller) {
+            const reader = geminiRes.body?.getReader();
+            if (!reader) {
+              controller.close();
+              return;
+            }
+
+            let buffer = '';
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (trimmed.startsWith('data:')) {
+                    const jsonStr = trimmed.replace(/^data:\s*/, '');
+                    if (jsonStr === '[DONE]') {
+                      controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                      continue;
+                    }
+                    try {
+                      const parsed = JSON.parse(jsonStr);
+                      const textChunk = (parsed.candidates?.[0]?.content?.parts || [])
+                        .map((p: any) => p.text || '')
+                        .join('');
+                      if (textChunk) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: textChunk })}\n\n`));
+                      }
+                    } catch {
+                      // skip non-json chunk lines
+                    }
+                  }
+                }
+              }
+              controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+            } catch (streamErr) {
+              console.error('Stream processing error:', streamErr);
+            } finally {
+              controller.close();
+            }
+          }
+        });
+
+        return new Response(sseStream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive'
+          }
+        });
+      } else {
+        // Non-streaming Gemini request with automatic fallback
+        let geminiRes: Response | null = null;
+        let selectedModel = candidateModels[0];
+
+        for (const model of candidateModels) {
+          try {
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+            const res = await fetch(geminiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(geminiPayload)
+            });
+
+            if (res.ok) {
+              geminiRes = res;
+              selectedModel = model;
+              break;
+            } else {
+              const errText = await res.text();
+              console.warn(`Gemini Model ${model} non-streaming returned ${res.status}, trying fallback...`, errText.slice(0, 150));
+            }
+          } catch (e) {
+            console.warn(`Fetch error for ${model}, trying next...`);
+          }
+        }
+
+        if (!geminiRes || !geminiRes.ok) {
+          return NextResponse.json(
+            { error: 'AI model service is momentarily busy. Please try asking again in a moment.' },
+            { status: 502 }
+          );
+        }
+
+        const data = await geminiRes.json();
+        const answer = (data.candidates?.[0]?.content?.parts || [])
+          .map((p: any) => p.text || '')
+          .join('')
+          .trim() || 'No response generated.';
+
+        return NextResponse.json({
+          answer,
+          sources: [{ title: `SGIP Generative AI (${selectedModel})`, chunkText: qRaw }],
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    // ----------------------------------------------------
+    // Scenario C: OpenAI Provider
+    // ----------------------------------------------------
+    if (openaiKey) {
+      const openAiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      const openAiUrl = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/chat/completions';
+
+      const openAiMessages = [
+        { role: 'system', content: systemPrompt },
+        ...history.slice(-16).map(m => ({ role: m.role, content: m.content })),
+        { role: 'user', content: qRaw }
+      ];
+
+      if (isStreamingRequested) {
+        const openAiRes = await fetch(openAiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${openaiKey}`
+          },
+          body: JSON.stringify({
+            model: openAiModel,
+            messages: openAiMessages,
+            temperature: 0.7,
+            stream: true
+          })
+        });
+
+        if (!openAiRes.ok) {
+          const errText = await openAiRes.text();
+          console.error('OpenAI API Error:', openAiRes.status, errText);
+          return NextResponse.json(
+            { error: 'AI model service returned an error. Please verify your OPENAI_API_KEY.' },
+            { status: 502 }
+          );
+        }
+
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+
+        const sseStream = new ReadableStream({
+          async start(controller) {
+            const reader = openAiRes.body?.getReader();
+            if (!reader) {
+              controller.close();
+              return;
+            }
+
+            let buffer = '';
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (trimmed.startsWith('data:')) {
+                    const jsonStr = trimmed.replace(/^data:\s*/, '');
+                    if (jsonStr === '[DONE]') {
+                      controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+                      continue;
+                    }
+                    try {
+                      const parsed = JSON.parse(jsonStr);
+                      const textChunk = parsed.choices?.[0]?.delta?.content;
+                      if (textChunk) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: textChunk })}\n\n`));
+                      }
+                    } catch {
+                      // skip non-json lines
+                    }
+                  }
+                }
+              }
+              controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+            } catch (err) {
+              console.error('OpenAI stream processing error:', err);
+            } finally {
+              controller.close();
+            }
+          }
+        });
+
+        return new Response(sseStream, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive'
+          }
+        });
+      } else {
+        const openAiRes = await fetch(openAiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${openaiKey}`
+          },
+          body: JSON.stringify({
+            model: openAiModel,
+            messages: openAiMessages,
+            temperature: 0.7
+          })
+        });
+
+        if (!openAiRes.ok) {
+          const errText = await openAiRes.text();
+          console.error('OpenAI API Error:', openAiRes.status, errText);
+          return NextResponse.json(
+            { error: 'AI model service returned an error. Please verify your OPENAI_API_KEY.' },
+            { status: 502 }
+          );
+        }
+
+        const data = await openAiRes.json();
+        const answer = data.choices?.[0]?.message?.content || 'No response generated.';
+
+        return NextResponse.json({
+          answer,
+          sources: [{ title: 'SGIP Generative AI (OpenAI)', chunkText: qRaw }],
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+
+    return NextResponse.json({ error: 'No supported AI provider configured.' }, { status: 500 });
   } catch (error: any) {
     console.error('AI Student Chatbot Error:', error);
-    return NextResponse.json({ error: 'Failed to generate AI response.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to generate AI response. Please try again later.' },
+      { status: 500 }
+    );
   }
 }
