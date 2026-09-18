@@ -97,12 +97,12 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const loginId = customId || identifier;
-    const loginPass = customPass !== undefined ? customPass : password;
+    const loginId = (customId || identifier).trim();
+    const loginPass = (customPass !== undefined ? customPass : password).trim();
 
     try {
       const payload = customId && customPass !== undefined
-        ? { userId: customId, expectedRole: 'STUDENT' }
+        ? { userId: customId.trim(), password: customPass.trim(), expectedRole: 'STUDENT' }
         : { identifier: loginId, password: loginPass, expectedRole: 'STUDENT' };
 
       const res = await fetch('/api/auth/me', {
@@ -137,13 +137,13 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: regName,
-          email: regEmail,
-          rollNumber: regRollNumber,
+          name: regName.trim(),
+          email: regEmail.trim().toLowerCase(),
+          rollNumber: regRollNumber.trim().toUpperCase(),
           department: regDepartment,
           cgpa: parseFloat(regCgpa) || 8.0,
           currentBacklogs: parseInt(regBacklogs) || 0,
-          password: regPassword,
+          password: regPassword.trim(),
           role: 'STUDENT'
         })
       });
@@ -156,7 +156,7 @@ export default function LoginPage() {
 
       setSuccess('Account created successfully! Logging you in...');
       setTimeout(() => {
-        handleStudentLogin(undefined, user.id, regPassword);
+        handleStudentLogin(undefined, user.id, regPassword.trim());
       }, 800);
     } catch (err: any) {
       setError(err.message || 'Could not complete registration. Please try again.');
@@ -170,8 +170,8 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const loginEmail = customEmail || facultyEmail;
-    const loginPass = customPass !== undefined ? customPass : facultyPass;
+    const loginEmail = (customEmail || facultyEmail).trim();
+    const loginPass = (customPass !== undefined ? customPass : facultyPass).trim();
 
     try {
       const res = await fetch('/api/auth/me', {
@@ -332,7 +332,7 @@ export default function LoginPage() {
       <main className="relative z-10 max-w-7xl w-full mx-auto my-5 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
         {/* Left Column: Completely Freestyle, Editorial, Zero Boxes */}
-        <div className="lg:col-span-7 space-y-7">
+        <div className="order-2 lg:order-1 lg:col-span-7 space-y-7">
           
           {/* 1. Chairman Balsamy Free-Floating Showcase (No Box Format) */}
           <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-6 pt-1">
@@ -466,7 +466,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right Column: REDESIGNED ROYAL LIGHT THEME LOGIN CREDENTIALS PORTAL */}
-        <div className="lg:col-span-5 relative">
+        <div className="order-1 lg:order-2 lg:col-span-5 relative w-full">
           <div className="relative rounded-3xl overflow-hidden bg-white border-2 border-amber-400 shadow-[0_22px_55px_rgba(20,40,90,0.12)]">
             
             {/* Royal Top Insignia Bar */}
@@ -562,6 +562,9 @@ export default function LoginPage() {
                         <input
                           type="text"
                           required
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
                           value={identifier}
                           onChange={(e) => setIdentifier(e.target.value)}
                           placeholder="e.g., 21CS104 or student@vsb.ac.in"
@@ -582,6 +585,9 @@ export default function LoginPage() {
                         <input
                           type="password"
                           required
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••••"
@@ -605,21 +611,6 @@ export default function LoginPage() {
                       )}
                     </button>
                   </form>
-
-                  {/* 1-Click Quick Demo Access */}
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 text-center">
-                      Quick Instant Access (Demo)
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleStudentLogin(undefined, 'std_1', 'password123')}
-                      className="w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center justify-between"
-                    >
-                      <span>👤 Demo Student: Syed Ayaz (21CS104)</span>
-                      <span className="text-[10px] text-indigo-700 font-extrabold uppercase">Instant Access →</span>
-                    </button>
-                  </div>
                 </div>
               )}
 
@@ -763,6 +754,9 @@ export default function LoginPage() {
                         <input
                           type="email"
                           required
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
                           value={facultyEmail}
                           onChange={(e) => setFacultyEmail(e.target.value)}
                           placeholder="faculty@vsb.ac.in"
@@ -780,6 +774,9 @@ export default function LoginPage() {
                         <input
                           type="password"
                           required
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
                           value={facultyPass}
                           onChange={(e) => setFacultyPass(e.target.value)}
                           placeholder="••••••••"
@@ -803,21 +800,6 @@ export default function LoginPage() {
                       )}
                     </button>
                   </form>
-
-                  {/* 1-Click Quick Demo Access for Faculty */}
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 text-center">
-                      Quick Instant Access (Demo Faculty)
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleFacultyLogin(undefined, 'manivanan.vsb@gmail.com', 'manivannan@vsb2027')}
-                      className="w-full py-2.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-amber-950 text-xs font-bold transition-all flex items-center justify-between"
-                    >
-                      <span>👨‍🏫 Demo Faculty: Prof. Manivannan (HOD AI &amp; DS)</span>
-                      <span className="text-[10px] text-amber-700 font-extrabold uppercase">Instant Access →</span>
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

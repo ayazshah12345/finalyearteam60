@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
 
         {/* 3. Main Body Container */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
           {/* Top Navbar */}
           <TopNavbar
             user={user}
@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           />
 
           {/* Page Content */}
-          <main className="p-3 sm:p-6 md:p-8 flex-1 max-w-7xl w-full mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+          <main className="p-3 sm:p-5 md:p-8 flex-1 max-w-7xl w-full mx-auto space-y-5 sm:space-y-8 animate-in fade-in duration-300 min-w-0 overflow-x-hidden">
             {children}
           </main>
         </div>

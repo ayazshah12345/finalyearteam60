@@ -359,15 +359,15 @@ export default function FacultyPortalPage() {
       {/* ========================================================================= */}
       {/* 2. HOD EXECUTIVE SHOWCASE: MR. MANIVANNAN K (AI & DS)                     */}
       {/* ========================================================================= */}
-      <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300/80 dark:border-amber-500/40 p-6 md:p-8 shadow-xl shadow-indigo-950/5 transition-colors">
+      <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300/80 dark:border-amber-500/40 p-4 sm:p-6 md:p-8 shadow-xl shadow-indigo-950/5 transition-colors">
         {/* Ambient Glowing Orbs */}
         <div className="absolute -right-16 -top-16 w-80 h-80 bg-amber-400/10 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-16 -bottom-16 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-5 sm:gap-6 md:gap-8">
           {/* Portrait with Royal Ring */}
           <div className="relative shrink-0 flex flex-col items-center">
-            <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-2xl md:rounded-3xl p-1.5 bg-gradient-to-tr from-amber-400 via-indigo-600 to-amber-300 shadow-xl shadow-amber-500/15 overflow-hidden">
+            <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl md:rounded-3xl p-1.5 bg-gradient-to-tr from-amber-400 via-indigo-600 to-amber-300 shadow-xl shadow-amber-500/15 overflow-hidden">
               <img
                 src="/hod-manivannan-suit.jpg"
                 alt="Mr. Manivannan K - HOD Artificial Intelligence & Data Science"
@@ -441,7 +441,7 @@ export default function FacultyPortalPage() {
       {/* ========================================================================= */}
       {/* 3. Royal Header Banner                                                    */}
       {/* ========================================================================= */}
-      <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-950/10">
+      <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-4 sm:p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-950/10">
         <div className="absolute -right-10 -top-10 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -449,47 +449,43 @@ export default function FacultyPortalPage() {
               <Sparkles className="w-3.5 h-3.5 text-amber-400" /> VSB ENGINEERING COLLEGE • FACULTY &amp; PLACEMENT DESK
             </div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white font-serif">
-              Faculty Command Desk &amp; Student Performance Roster
+              Faculty Command &amp; Intelligence Desk
             </h1>
             <p className="text-xs md:text-sm text-slate-300 max-w-2xl font-medium">
-              Search students by Register Number / Roll No, evaluate Daily Test &amp; Voice Mock Interview reports, inspect candidate resumes, and publish corporate placement drives.
+              Oversee student batch eligibility, verify LeetCode counts, assess AI Mock Interview marks, and create corporate placement drives.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          {/* Quick Action Toolbar Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/faculty/students"
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0"
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0"
             >
               <Users className="w-4 h-4" /> Student Profiles
             </Link>
             <Link
               href="/faculty/courses"
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-indigo-400/30"
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-indigo-400/30"
             >
-              <BookOpen className="w-4 h-4 text-indigo-200" /> Add Technical Course
+              <BookOpen className="w-4 h-4 text-indigo-200" /> Add Course
             </Link>
             <Link
               href="/faculty/drives"
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 font-bold"
+              className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 font-bold"
             >
-              <Plus className="w-4 h-4" /> Create Placement Drive
+              <Plus className="w-4 h-4" /> Create Drive
             </Link>
             <Link
               href="/faculty/malpractice"
-              className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 shrink-0 border border-rose-500/30"
+              className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 shrink-0 border border-rose-500/30"
             >
               <ShieldAlert className="w-4 h-4" />
               <span>Malpractice</span>
-              {unnotedMalpracticeCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white text-rose-600 shadow-xs animate-pulse">
-                  {unnotedMalpracticeCount}
-                </span>
-              )}
             </Link>
             <Link
               href="/faculty/test"
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-indigo-400/30"
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-1.5 shrink-0 border border-indigo-400/30"
             >
               <CheckSquare className="w-4 h-4 text-indigo-200" /> Test Desk
             </Link>
@@ -498,41 +494,41 @@ export default function FacultyPortalPage() {
       </div>
 
       {/* Top Executive KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-sm hover-lift">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-3xl shadow-sm hover-lift">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-extrabold uppercase">Total Student Roster</span>
-            <Users className="w-5 h-5 text-indigo-600" />
+            <span className="text-[11px] sm:text-xs text-slate-500 font-extrabold uppercase">Students</span>
+            <Users className="w-4 sm:w-5 h-4 sm:h-5 text-indigo-600" />
           </div>
-          <div className="text-3xl font-black text-slate-900 dark:text-white mt-2">{students.length}</div>
-          <span className="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 dark:bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-200 mt-1 inline-block">Active VSB Batch</span>
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 sm:mt-2">{students.length}</div>
+          <span className="text-[9px] sm:text-[10px] text-emerald-600 font-extrabold bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-200 mt-1 inline-block">Active Batch</span>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-sm hover-lift">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-3xl shadow-sm hover-lift">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-extrabold uppercase">AI Mock Interviews</span>
-            <Mic className="w-5 h-5 text-emerald-600" />
+            <span className="text-[11px] sm:text-xs text-slate-500 font-extrabold uppercase">Interviews</span>
+            <Mic className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-600" />
           </div>
-          <div className="text-3xl font-black text-emerald-600 mt-2">{mockInterviews.length}</div>
-          <span className="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 dark:bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-200 mt-1 inline-block">Tech & Comm Marks</span>
+          <div className="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 sm:mt-2">{mockInterviews.length}</div>
+          <span className="text-[9px] sm:text-[10px] text-emerald-600 font-extrabold bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-200 mt-1 inline-block">Marks Recorded</span>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-sm hover-lift">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-3xl shadow-sm hover-lift">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-extrabold uppercase">Daily Tests Completed</span>
-            <Zap className="w-5 h-5 text-amber-500 fill-amber-500" />
+            <span className="text-[11px] sm:text-xs text-slate-500 font-extrabold uppercase">Daily Tests</span>
+            <Zap className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500 fill-amber-500" />
           </div>
-          <div className="text-3xl font-black text-amber-600 mt-2">{attempts.length}</div>
-          <span className="text-[10px] text-indigo-600 font-extrabold bg-indigo-50 dark:bg-indigo-950 px-2.5 py-0.5 rounded-full border border-indigo-200 mt-1 inline-block">Proctored Attempts</span>
+          <div className="text-2xl sm:text-3xl font-black text-amber-600 mt-1 sm:mt-2">{attempts.length}</div>
+          <span className="text-[9px] sm:text-[10px] text-indigo-600 font-extrabold bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-200 mt-1 inline-block">Attempts</span>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-sm hover-lift">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-3xl shadow-sm hover-lift">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-500 font-extrabold uppercase">Active Placement Drives</span>
-            <Building2 className="w-5 h-5 text-violet-600" />
+            <span className="text-[11px] sm:text-xs text-slate-500 font-extrabold uppercase">Drives</span>
+            <Building2 className="w-4 sm:w-5 h-4 sm:h-5 text-violet-600" />
           </div>
-          <div className="text-3xl font-black text-violet-600 mt-2">{drives.length}</div>
-          <span className="text-[10px] text-amber-600 font-extrabold bg-amber-50 dark:bg-amber-950 px-2.5 py-0.5 rounded-full border border-amber-200 mt-1 inline-block">Live Company Drives</span>
+          <div className="text-2xl sm:text-3xl font-black text-violet-600 mt-1 sm:mt-2">{drives.length}</div>
+          <span className="text-[9px] sm:text-[10px] text-amber-600 font-extrabold bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-full border border-amber-200 mt-1 inline-block">Active Drives</span>
         </div>
       </div>
 

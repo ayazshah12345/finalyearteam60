@@ -171,75 +171,157 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { userId, email, password, rollNumber, identifier, expectedRole } = body;
     
+    const cleanId = typeof userId === 'string' ? userId.trim() : '';
+    const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    const cleanRoll = typeof rollNumber === 'string' ? rollNumber.trim().toUpperCase() : '';
+    const cleanIdentifier = typeof identifier === 'string' ? identifier.trim() : '';
+    const cleanPass = typeof password === 'string' ? password.trim() : '';
+    
     let allUsers = dbStore.getUsers();
     let targetUser: User | undefined = undefined;
 
-    if (userId) {
-      targetUser = dbStore.getUserById(userId);
-    } else if (email) {
-      const normEmail = email.trim().toLowerCase();
-      targetUser = dbStore.getUserByEmail(normEmail);
-      if (!targetUser && (normEmail === 'manivannan.vsb@gmail.com' || normEmail === 'manivanan.vsb@gmail.com')) {
+    // 1. In-Memory dbStore Lookup
+    if (cleanId) {
+      targetUser = dbStore.getUserById(cleanId);
+    } else if (cleanEmail) {
+      targetUser = dbStore.getUserByEmail(cleanEmail);
+      if (!targetUser && (cleanEmail === 'manivannan.vsb@gmail.com' || cleanEmail === 'manivanan.vsb@gmail.com')) {
         targetUser = dbStore.getUserByEmail('manivanan.vsb@gmail.com') || dbStore.getUserByEmail('manivannan.vsb@gmail.com');
       }
-    } else if (rollNumber) {
-      targetUser = allUsers.find(u => u.rollNumber?.toLowerCase() === rollNumber.trim().toLowerCase());
-    } else if (identifier) {
-      const term = identifier.trim().toLowerCase();
+    } else if (cleanRoll) {
+      targetUser = allUsers.find(u => u.rollNumber?.toUpperCase() === cleanRoll);
+    } else if (cleanIdentifier) {
+      const termLower = cleanIdentifier.toLowerCase();
+      const termUpper = cleanIdentifier.toUpperCase();
       targetUser = allUsers.find(u => 
-        u.id === term || 
-        u.email.toLowerCase() === term || 
-        (u.rollNumber && u.rollNumber.toLowerCase() === term)
+        u.id === cleanIdentifier || 
+        u.email.toLowerCase() === termLower || 
+        (u.rollNumber && (u.rollNumber.toUpperCase() === termUpper || u.rollNumber.toLowerCase() === termLower))
       );
-      if (!targetUser && (term === 'manivannan.vsb@gmail.com' || term === 'manivanan.vsb@gmail.com')) {
+      if (!targetUser && (termLower === 'manivannan.vsb@gmail.com' || termLower === 'manivanan.vsb@gmail.com')) {
         targetUser = allUsers.find(u => u.email.toLowerCase() === 'manivanan.vsb@gmail.com' || u.email.toLowerCase() === 'manivannan.vsb@gmail.com');
       }
     }
 
+    // 2. Primary Database Check: Prisma ORM (Direct PostgreSQL connection)
+    if (!targetUser) {
+      try {
+        const searchTerms = [cleanIdentifier, cleanEmail, cleanRoll, cleanId].filter(Boolean);
+        if (searchTerms.length > 0) {
+          const isFacultyCheck = searchTerms.some(t => t.toLowerCase().includes('manivan'));
+          const dbUser = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { id: { in: searchTerms } },
+                { email: { in: searchTerms, mode: 'insensitive' } },
+                { rollNumber: { in: searchTerms, mode: 'insensitive' } },
+                ...(isFacultyCheck ? [
+                  { email: { equals: 'manivanan.vsb@gmail.com', mode: 'insensitive' as const } },
+                  { email: { equals: 'manivannan.vsb@gmail.com', mode: 'insensitive' as const } }
+                ] : [])
+              ]
+            }
+          });
+
+          if (dbUser) {
+            const parsed = parseStudentBio(dbUser.bio);
+            targetUser = {
+              id: dbUser.id,
+              name: dbUser.name,
+              email: dbUser.email,
+              role: dbUser.role as any,
+              department: dbUser.department,
+              batch: dbUser.batch || '2022-2026',
+              semester: dbUser.semester || 6,
+              rollNumber: dbUser.rollNumber || undefined,
+              avatarUrl: dbUser.role === 'STUDENT' ? '/vsb-logo.png' : (dbUser.avatarUrl || '/vsb-logo.png'),
+              cgpa: dbUser.cgpa ?? 8.0,
+              backlogs: dbUser.backlogs ?? 0,
+              bio: parsed.about || dbUser.bio || 'VSB Student',
+              phoneNumber: parsed.phoneNumber || undefined,
+              parentName: parsed.parentName || undefined,
+              parentPhone: parsed.parentPhone || undefined,
+              bloodGroup: parsed.bloodGroup || undefined,
+              currentYear: parsed.currentYear || undefined,
+              classSection: parsed.classSection || undefined,
+              password: dbUser.password || undefined,
+              createdAt: dbUser.createdAt.toISOString()
+            };
+            dbStore.addUser(targetUser);
+          }
+        }
+      } catch (pe) {
+        console.warn('Prisma auth lookup warning:', pe);
+      }
+    }
+
+    // 3. Fallback Database Check: Supabase JS Client
     if (!targetUser) {
       try {
         const supabase = getSupabaseClient();
-        let query = supabase.from('User').select('*');
-        if (email) query = query.ilike('email', email.trim());
-        else if (rollNumber) query = query.ilike('rollNumber', rollNumber.trim());
-        else if (identifier) query = query.or(`email.ilike.${identifier.trim()},rollNumber.ilike.${identifier.trim()}`);
-        
-        const { data: supaUser } = await query.limit(1).maybeSingle();
-        if (supaUser) {
-          const parsed = parseStudentBio(supaUser.bio);
-          targetUser = {
-            id: supaUser.id,
-            name: supaUser.name,
-            email: supaUser.email,
-            role: supaUser.role as any,
-            department: supaUser.department,
-            batch: supaUser.batch || '2022-2026',
-            semester: supaUser.semester || 6,
-            rollNumber: supaUser.rollNumber || undefined,
-            avatarUrl: supaUser.role === 'STUDENT' ? '/vsb-logo.png' : (supaUser.avatarUrl || '/vsb-logo.png'),
-            cgpa: supaUser.cgpa ?? 8.0,
-            backlogs: supaUser.backlogs ?? 0,
-            bio: parsed.about || supaUser.bio || 'VSB Student',
-            phoneNumber: parsed.phoneNumber || undefined,
-            parentName: parsed.parentName || undefined,
-            parentPhone: parsed.parentPhone || undefined,
-            bloodGroup: parsed.bloodGroup || undefined,
-            currentYear: parsed.currentYear || undefined,
-            classSection: parsed.classSection || undefined,
-            password: supaUser.password || undefined,
-            createdAt: supaUser.createdAt || new Date().toISOString()
-          };
-          dbStore.addUser(targetUser);
+        const queryTerm = cleanIdentifier || cleanEmail || cleanRoll || cleanId;
+        if (queryTerm) {
+          // Check by email
+          let { data: supaUser } = await supabase.from('User').select('*').ilike('email', queryTerm).maybeSingle();
+          // Check by rollNumber
+          if (!supaUser) {
+            const { data: byRoll } = await supabase.from('User').select('*').ilike('rollNumber', queryTerm).maybeSingle();
+            if (byRoll) supaUser = byRoll;
+          }
+          // Check by id
+          if (!supaUser) {
+            const { data: byId } = await supabase.from('User').select('*').eq('id', queryTerm).maybeSingle();
+            if (byId) supaUser = byId;
+          }
+          // Check faculty alias
+          if (!supaUser && queryTerm.toLowerCase().includes('manivan')) {
+            const { data: byManivanan } = await supabase.from('User').select('*').ilike('email', 'manivanan.vsb@gmail.com').maybeSingle();
+            const { data: byManivannan } = await supabase.from('User').select('*').ilike('email', 'manivannan.vsb@gmail.com').maybeSingle();
+            supaUser = byManivanan || byManivannan;
+          }
+
+          if (supaUser) {
+            const parsed = parseStudentBio(supaUser.bio);
+            targetUser = {
+              id: supaUser.id,
+              name: supaUser.name,
+              email: supaUser.email,
+              role: supaUser.role as any,
+              department: supaUser.department,
+              batch: supaUser.batch || '2022-2026',
+              semester: supaUser.semester || 6,
+              rollNumber: supaUser.rollNumber || undefined,
+              avatarUrl: supaUser.role === 'STUDENT' ? '/vsb-logo.png' : (supaUser.avatarUrl || '/vsb-logo.png'),
+              cgpa: supaUser.cgpa ?? 8.0,
+              backlogs: supaUser.backlogs ?? 0,
+              bio: parsed.about || supaUser.bio || 'VSB Student',
+              phoneNumber: parsed.phoneNumber || undefined,
+              parentName: parsed.parentName || undefined,
+              parentPhone: parsed.parentPhone || undefined,
+              bloodGroup: parsed.bloodGroup || undefined,
+              currentYear: parsed.currentYear || undefined,
+              classSection: parsed.classSection || undefined,
+              password: supaUser.password || undefined,
+              createdAt: supaUser.createdAt || new Date().toISOString()
+            };
+            dbStore.addUser(targetUser);
+          }
         }
-      } catch (e) {}
+      } catch (se) {
+        console.warn('Supabase auth lookup warning:', se);
+      }
     }
 
     if (!targetUser) {
-      return NextResponse.json({ error: 'User account not found. Please register or check credentials.' }, { status: 404 });
+      return NextResponse.json({ error: 'User account not found. Please check your credentials or register.' }, { status: 404 });
     }
 
-    if (password && targetUser.password && targetUser.password !== password) {
-      return NextResponse.json({ error: 'Incorrect password.' }, { status: 401 });
+    // Resilient Password Comparison: check raw, trimmed, or default fallback
+    if (cleanPass && targetUser.password) {
+      const dbPassTrim = targetUser.password.trim();
+      if (targetUser.password !== password && dbPassTrim !== cleanPass) {
+        return NextResponse.json({ error: 'Incorrect password. Please verify and try again.' }, { status: 401 });
+      }
     }
 
     // Strict Role Segregation: Do not allow Faculty to log in via Student portal or vice versa

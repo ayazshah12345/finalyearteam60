@@ -196,7 +196,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Welcome Header Banner - Royal Sapphire & Gold */}
-        <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-950/10">
+        <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-4 sm:p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-950/10">
           <div className="absolute -right-10 -top-10 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
           <div className="absolute -left-10 -bottom-10 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl -z-0 pointer-events-none"></div>
 
@@ -245,7 +245,7 @@ export default function DashboardPage() {
             <Sparkles className="w-4 h-4 text-amber-500" /> VSB Student Platform Quick Tools
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
             {/* Tool 0: LeetCode Practice */}
             <Link
               href="/coding"
@@ -340,9 +340,9 @@ export default function DashboardPage() {
             <span className="text-xs text-slate-500 font-medium">Synced with Institution ERP</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* 1. CGPA Detailed Card */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md hover-lift flex flex-col justify-between space-y-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-6 shadow-md hover-lift flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2">
@@ -354,7 +354,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="flex items-baseline gap-3 mt-4">
-                  <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">{studentCgpa.toFixed(1)}</span>
+                  <span className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">{studentCgpa.toFixed(1)}</span>
                   <span className="text-sm font-bold text-slate-400">/ 10.0</span>
                   <span className="text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800">
                     Target: 8.8
@@ -370,7 +370,7 @@ export default function DashboardPage() {
                 {/* Semester Breakdown Bars */}
                 <div className="mt-5 space-y-2">
                   <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">Semester CGPA Progression:</div>
-                  <div className="grid grid-cols-6 gap-2 text-center">
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                     {[
                       { sem: 'S1', gpa: 8.1 },
                       { sem: 'S2', gpa: 8.3 },
@@ -395,7 +395,7 @@ export default function DashboardPage() {
             </div>
 
             {/* 2. Number of Arrears / Backlogs Card */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md hover-lift flex flex-col justify-between space-y-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-6 shadow-md hover-lift flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2">
