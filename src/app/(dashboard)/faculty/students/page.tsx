@@ -264,7 +264,44 @@ export default function FacultyStudentProfilesPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto font-sans pb-16">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans pb-16">
+      {/* VSB MOVING MARQUEE TICKER: A PLACE FOR PLACEMENT */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 text-amber-300 shadow-md backdrop-blur-md flex items-center p-1.5 group">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black text-[11px] uppercase tracking-wider shadow-sm shrink-0 z-10">
+          <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping"></span>
+          <span className="flex items-center gap-1.5">
+            <Award className="w-3.5 h-3.5 text-slate-950" />
+            <span>OFFICIAL MOTTO</span>
+          </span>
+        </div>
+
+        <div className="overflow-hidden w-full relative flex items-center select-none py-1">
+          <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-black tracking-widest uppercase">
+            {[1, 2, 3, 4].map((idx) => (
+              <span key={idx} className="flex items-center gap-8">
+                <span className="flex items-center gap-2 text-amber-300">
+                  <span>⭐</span>
+                  <span className="text-white font-serif">VSB ENGINEERING COLLEGE</span>
+                  <span className="text-amber-400">—</span>
+                  <span className="text-amber-300 font-black">A PLACE FOR PLACEMENT</span>
+                  <span>⭐</span>
+                </span>
+                <span className="text-indigo-300 font-bold">★ HARDWORK IS THE KEY TO SUCCESS ★</span>
+                <span className="text-cyan-300 font-bold">🏆 100% DEDICATED PLACEMENT TRAINING &amp; EXCELLENCE 🏆</span>
+                <span className="flex items-center gap-2 text-amber-300">
+                  <span>⭐</span>
+                  <span className="text-white font-serif">VSB ENGINEERING COLLEGE</span>
+                  <span className="text-amber-400">—</span>
+                  <span className="text-amber-300 font-black">A PLACE FOR PLACEMENT</span>
+                  <span>⭐</span>
+                </span>
+                <span className="text-emerald-300 font-bold">🚀 INNOVATION IN ARTIFICIAL INTELLIGENCE &amp; DATA SCIENCE 🚀</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Top Header Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/40 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">

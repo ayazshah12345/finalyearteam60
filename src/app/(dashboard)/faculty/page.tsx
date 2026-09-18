@@ -308,8 +308,139 @@ export default function FacultyPortalPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto font-sans">
-      {/* Royal Header Banner */}
+    <div className="space-y-6 max-w-7xl mx-auto font-sans">
+      {/* ========================================================================= */}
+      {/* 1. VSB MOVING MARQUEE TICKER: A PLACE FOR PLACEMENT                        */}
+      {/* ========================================================================= */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 text-amber-300 shadow-md backdrop-blur-md flex items-center p-1.5 group">
+        {/* Static Live Badge on Left */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black text-[11px] uppercase tracking-wider shadow-sm shrink-0 z-10">
+          <span className="w-2 h-2 rounded-full bg-slate-950 animate-ping"></span>
+          <span className="flex items-center gap-1.5">
+            <Award className="w-3.5 h-3.5 text-slate-950" />
+            <span>OFFICIAL MOTTO</span>
+          </span>
+        </div>
+
+        {/* Moving Marquee Content */}
+        <div className="overflow-hidden w-full relative flex items-center select-none py-1">
+          <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-black tracking-widest uppercase">
+            {[1, 2, 3, 4].map((idx) => (
+              <span key={idx} className="flex items-center gap-8">
+                <span className="flex items-center gap-2 text-amber-300">
+                  <span>⭐</span>
+                  <span className="text-white font-serif">VSB ENGINEERING COLLEGE</span>
+                  <span className="text-amber-400">—</span>
+                  <span className="text-amber-300 font-black">A PLACE FOR PLACEMENT</span>
+                  <span>⭐</span>
+                </span>
+
+                <span className="text-indigo-300 font-bold">★ HARDWORK IS THE KEY TO SUCCESS ★</span>
+
+                <span className="text-cyan-300 font-bold">🏆 100% DEDICATED PLACEMENT TRAINING &amp; EXCELLENCE 🏆</span>
+
+                <span className="flex items-center gap-2 text-amber-300">
+                  <span>⭐</span>
+                  <span className="text-white font-serif">VSB ENGINEERING COLLEGE</span>
+                  <span className="text-amber-400">—</span>
+                  <span className="text-amber-300 font-black">A PLACE FOR PLACEMENT</span>
+                  <span>⭐</span>
+                </span>
+
+                <span className="text-emerald-300 font-bold">🚀 INNOVATION IN ARTIFICIAL INTELLIGENCE &amp; DATA SCIENCE 🚀</span>
+                
+                <span className="text-amber-400 font-bold">★ TNEA CODE: 2622 • AUTONOMOUS INSTITUTION ★</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. HOD EXECUTIVE SHOWCASE: MR. MANIVANNAN K (AI & DS)                     */}
+      {/* ========================================================================= */}
+      <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300/80 dark:border-amber-500/40 p-6 md:p-8 shadow-xl shadow-indigo-950/5 transition-colors">
+        {/* Ambient Glowing Orbs */}
+        <div className="absolute -right-16 -top-16 w-80 h-80 bg-amber-400/10 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -left-16 -bottom-16 w-80 h-80 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+          {/* Portrait with Royal Ring */}
+          <div className="relative shrink-0 flex flex-col items-center">
+            <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-2xl md:rounded-3xl p-1.5 bg-gradient-to-tr from-amber-400 via-indigo-600 to-amber-300 shadow-xl shadow-amber-500/15 overflow-hidden">
+              <img
+                src="/hod-manivannan-suit.jpg"
+                alt="Mr. Manivannan K - HOD Artificial Intelligence & Data Science"
+                className="w-full h-full object-cover object-top rounded-xl md:rounded-2xl hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="mt-2.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-sm text-center">
+              ★ HOD • AI &amp; DS ★
+            </div>
+          </div>
+
+          {/* Details & Biography */}
+          <div className="space-y-3.5 text-center md:text-left flex-1">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-300 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" /> DEPARTMENT OF ARTIFICIAL INTELLIGENCE &amp; DATA SCIENCE
+              </span>
+              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800/80 text-amber-800 dark:text-amber-300">
+                VSB Engineering College, Karur
+              </span>
+            </div>
+
+            <div>
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-serif">
+                Mr. Manivannan K
+              </h2>
+              <div className="text-xs md:text-sm font-extrabold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider mt-0.5">
+                Head of the Department — Artificial Intelligence &amp; Data Science (AI-DS)
+              </div>
+            </div>
+
+            <div className="relative pl-4 border-l-3 border-amber-400 dark:border-amber-500 text-slate-700 dark:text-slate-300 text-xs md:text-sm leading-relaxed font-medium">
+              &ldquo;Mr. Manivannan K leads the Department of Artificial Intelligence and Data Science (AI-DS) at V.S.B. Engineering College. He spearheads academic rigor, machine learning research, and placement-driven industry training.&rdquo;
+            </div>
+
+            {/* Official Published Patent Callout */}
+            <div className="p-3.5 rounded-2xl bg-amber-50/80 dark:bg-slate-800/80 border border-amber-300/80 dark:border-amber-600/40 text-left space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-black text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+                <Award className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span>OFFICIAL PUBLISHED PATENT (14.02.2025):</span>
+              </div>
+              <div className="text-xs text-slate-800 dark:text-slate-200 font-semibold italic">
+                &ldquo;Towards Adaptive and Scalable DDoS Attack Detection in Distributed Systems Using Tuned Hierarchical Machine Learning Model&rdquo;
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-indigo-700 dark:text-indigo-400 font-bold">
+                <span>Patent Application No: 202541009580</span>
+                <span className="text-slate-400">•</span>
+                <span className="text-emerald-700 dark:text-emerald-400">Status: Published (Official Gazette)</span>
+              </div>
+            </div>
+
+            {/* Departmental Focus Badges */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1 text-xs font-bold">
+              <span className="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                🧠 Machine Learning &amp; AI Research
+              </span>
+              <span className="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                🛡️ Network Security &amp; DDoS Defense
+              </span>
+              <span className="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                🎓 100% Placement &amp; Corporate Alignment
+              </span>
+              <span className="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                🏛️ Autonomous Curriculum Architecture
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. Royal Header Banner                                                    */}
+      {/* ========================================================================= */}
       <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-950/10">
         <div className="absolute -right-10 -top-10 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
