@@ -151,7 +151,50 @@ export default function DashboardPage() {
     const studentArrears = user.backlogs ?? 0;
 
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
+        {/* ========================================================================= */}
+        {/* INNOVATIVE VSB MOVING MARQUEE TICKER: A PLACE FOR PLACEMENT               */}
+        {/* ========================================================================= */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/10 via-indigo-600/15 to-violet-600/10 border border-amber-500/30 dark:border-amber-400/20 shadow-sm backdrop-blur-md flex items-center p-1.5 group">
+          {/* Static Live Badge on the Left */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[11px] uppercase tracking-wider shadow-sm shrink-0 z-10">
+            <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span className="flex items-center gap-1.5">
+              <Award className="w-3.5 h-3.5" />
+              <span>OFFICIAL MOTTO</span>
+            </span>
+          </div>
+
+          {/* Marquee Moving Content */}
+          <div className="overflow-hidden w-full relative flex items-center select-none py-1">
+            <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-extrabold tracking-wider">
+              {[1, 2, 3, 4].map((idx) => (
+                <span key={idx} className="flex items-center gap-8">
+                  <span className="flex items-center gap-2 text-slate-900 dark:text-white uppercase font-black tracking-widest text-xs">
+                    <span className="text-amber-500">🏛️</span>
+                    <span className="bg-gradient-to-r from-amber-500 via-indigo-600 to-violet-600 bg-clip-text text-transparent font-black">
+                      VSB ENGINEERING COLLEGE
+                    </span>
+                    <span className="text-slate-400 dark:text-slate-500">—</span>
+                    <span className="text-amber-600 dark:text-amber-400 font-black">
+                      A PLACE FOR PLACEMENT
+                    </span>
+                  </span>
+
+                  <span className="text-indigo-400 dark:text-indigo-500 font-black">✦</span>
+
+                  <span className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-bold uppercase text-[11px] tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Top Tier-1 Recruiters • High CTC Opportunities • 100% Placement Record</span>
+                  </span>
+
+                  <span className="text-indigo-400 dark:text-indigo-500 font-black">✦</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Welcome Header Banner */}
         <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 border border-indigo-500/30 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-100 dark:shadow-none">
           <div className="absolute -right-10 -top-10 w-96 h-96 bg-white/10 rounded-full blur-3xl -z-0"></div>
@@ -178,16 +221,9 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Streaks & XP Widgets */}
+            {/* XP Widget */}
             <div className="flex items-center gap-3">
-              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-center shadow-xs">
-                <div className="flex items-center justify-center gap-1 text-amber-300 text-xs font-bold uppercase tracking-wider">
-                  <Flame className="w-4 h-4 fill-amber-300" /> Daily Streak
-                </div>
-                <div className="text-xl font-extrabold text-white mt-0.5">14 Days</div>
-              </div>
-
-              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-center shadow-xs">
+              <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl px-5 py-3 text-center shadow-xs">
                 <div className="flex items-center justify-center gap-1 text-violet-200 text-xs font-bold uppercase tracking-wider">
                   <Zap className="w-4 h-4 fill-violet-200" /> SGIP XP
                 </div>
