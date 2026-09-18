@@ -32,15 +32,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-800">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] flex flex-col items-center justify-center text-slate-800 dark:text-slate-200">
         <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-xs font-semibold tracking-wider text-slate-500 uppercase">Loading SGIP Growth Intelligence...</p>
+        <p className="mt-4 text-xs font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase">Loading SGIP Growth Intelligence...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8f9fe] via-[#f2f5fd] to-[#edf2fb] text-slate-900 flex flex-col antialiased">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8f9fe] via-[#f2f5fd] to-[#edf2fb] dark:from-[#090d16] dark:via-[#0c1220] dark:to-[#070a12] text-slate-900 dark:text-slate-100 flex flex-col antialiased transition-colors duration-200">
       <div className="flex flex-1 relative">
         {/* 2. Left Role-Aware Sidebar */}
         <Sidebar

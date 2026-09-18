@@ -20,8 +20,14 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
 
   useEffect(() => {
     fetchUnreadNotifications();
-    // Ensure light mode is default on initial load
-    document.documentElement.classList.remove('dark');
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('vsb_theme') : null;
+    if (saved === 'dark' || (!saved && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
   }, []);
 
   const fetchUnreadNotifications = async () => {
@@ -39,8 +45,10 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
     setDarkMode(nextMode);
     if (nextMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('vsb_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('vsb_theme', 'light');
     }
   };
 

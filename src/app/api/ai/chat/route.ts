@@ -227,24 +227,28 @@ Once added, I will immediately be able to answer any question, maintain conversa
         });
       }
 
+// Global fast model cache to prevent repeated trial requests
+let activeFastestModel = 'gemini-3.5-flash-lite';
+
       const geminiPayload = {
         systemInstruction: {
           parts: [{ text: systemPrompt }]
         },
         contents,
         generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2500
+          temperature: 0.6,
+          maxOutputTokens: 2048
         }
       };
 
       const candidateModels = Array.from(new Set([
+        activeFastestModel,
+        'gemini-3.5-flash-lite',
+        'gemini-flash-lite-latest',
+        'gemini-3.1-flash-lite',
         process.env.GEMINI_MODEL,
-        'gemini-flash-latest',
         'gemini-3.6-flash',
-        'gemini-2.5-flash-lite',
-        'gemini-3-flash-preview',
-        'gemini-2.5-pro'
+        'gemini-flash-latest'
       ].filter(Boolean))) as string[];
 
       if (isStreamingRequested) {
@@ -263,6 +267,7 @@ Once added, I will immediately be able to answer any question, maintain conversa
             if (res.ok) {
               geminiRes = res;
               selectedModel = model;
+              activeFastestModel = model;
               break;
             } else {
               const errText = await res.text();
@@ -355,6 +360,7 @@ Once added, I will immediately be able to answer any question, maintain conversa
             if (res.ok) {
               geminiRes = res;
               selectedModel = model;
+              activeFastestModel = model;
               break;
             } else {
               const errText = await res.text();
