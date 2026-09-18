@@ -50,6 +50,22 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Force pure light theme on login page
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      document.body.style.backgroundColor = '#fbfbfe';
+      document.body.style.color = '#0f172a';
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.style.backgroundColor = '';
+        document.body.style.color = '';
+      }
+    };
+  }, []);
+
   const handleStudentLogin = async (e?: React.FormEvent, customId?: string, customPass?: string) => {
     if (e) e.preventDefault();
     setLoading(true);
