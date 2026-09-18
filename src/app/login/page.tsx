@@ -182,7 +182,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col justify-between p-4 md:p-8 relative font-sans">
       {/* Header Branding */}
-      <header className="relative z-10 max-w-6xl w-full mx-auto flex items-center justify-between py-4 border-b border-slate-200 pb-4">
+      <header className="relative z-10 max-w-7xl w-full mx-auto flex items-center justify-between py-4 border-b border-slate-200 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-2xl bg-white p-1 border border-slate-200 shadow-sm flex items-center justify-center">
             <img src="/vsb-logo.png" alt="VSB Engineering College Logo" className="w-full h-full object-contain" />
@@ -204,54 +204,115 @@ export default function LoginPage() {
         </div>
       </header>
 
+      {/* Moving Marquee Ticker: VSB ENGINEERING COLLEGE A PLACE FOR PLACEMENT */}
+      <div className="relative z-10 max-w-7xl w-full mx-auto my-4 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-amber-300 py-3 px-4 shadow-md border border-indigo-500/30">
+        <div className="relative flex overflow-x-hidden">
+          <div className="animate-marquee whitespace-nowrap flex items-center gap-12 font-black text-xs md:text-sm tracking-widest uppercase">
+            <span className="flex items-center gap-2">⭐ VSB ENGINEERING COLLEGE A PLACE FOR PLACEMENT ⭐</span>
+            <span className="flex items-center gap-2 text-white">🎓 100% DEDICATED PLACEMENT TRAINING &amp; EXCELLENCE 🎓</span>
+            <span className="flex items-center gap-2">⭐ VSB ENGINEERING COLLEGE A PLACE FOR PLACEMENT ⭐</span>
+            <span className="flex items-center gap-2 text-white">🚀 INNOVATION IN ARTIFICIAL INTELLIGENCE &amp; ENGINEERING 🚀</span>
+            <span className="flex items-center gap-2">⭐ VSB ENGINEERING COLLEGE A PLACE FOR PLACEMENT ⭐</span>
+            <span className="flex items-center gap-2 text-white">🏆 AUTONOMOUS INSTITUTION • NBA &amp; NAAC ACCREDITED 🏆</span>
+          </div>
+        </div>
+      </div>
+
       {/* Main Form Portal */}
-      <main className="relative z-10 max-w-6xl w-full mx-auto my-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <main className="relative z-10 max-w-7xl w-full mx-auto my-4 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* Left Hero */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* Left Column: College Leadership & Institution Pride */}
+        <div className="lg:col-span-6 space-y-5">
           <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-indigo-900 bg-indigo-50 border border-indigo-200 px-3.5 py-1.5 rounded-full">
-            <GraduationCap className="w-4 h-4 text-indigo-600" /> VSB Student & Faculty Gateway
+            <GraduationCap className="w-4 h-4 text-indigo-600" /> Institutional Pride &amp; Leadership
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-sm shrink-0 border border-slate-200">
-                <img src="/vsb-logo.png" alt="VSB Emblem" className="w-full h-full object-contain" />
+          {/* Card 1: Founder & Chairman Mr. V.S. Balsamy */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4 hover:shadow-md transition-shadow">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+              <div className="w-full sm:w-44 h-48 rounded-2xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100 shadow-inner">
+                <img
+                  src="/chairman-balsamy.png"
+                  alt="Mr. V.S. Balsamy - Founder & Chairman"
+                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-300"
+                />
               </div>
-              <div>
-                <h1 className="text-xl font-extrabold text-slate-900 leading-tight">
-                  VSB Engineering College
-                </h1>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Autonomous Institution • Karur - 639 111
+              <div className="space-y-2 text-center sm:text-left flex-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                  Founder &amp; Chairman
+                </div>
+                <h3 className="text-lg font-black text-slate-900 leading-tight">
+                  Mr. V.S. Balsamy
+                </h3>
+                <p className="text-xs text-indigo-700 font-extrabold">
+                  Founder &amp; Chairman, V.S.B. Engineering College
+                </p>
+                <div className="h-px bg-slate-100 my-1" />
+                <p className="text-xs text-slate-600 leading-relaxed font-medium text-justify sm:text-left">
+                  V.S.B Educational Trust was founded in the year 2000 by Mr. V.S. Balsamy, the founder and Chairman of the V.S.B Engineering College, with an interest in promoting, managing and administrating educational institutions with high academic standards, discipline and to take up and help other allied activities in the field of education. Under the Trust, V.S.B Engineering College, Karur was established in the year 2002 and V.S.B College of Engineering Technical Campus, Coimbatore in the year 2012.
                 </p>
               </div>
             </div>
+          </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              Welcome to the official Learning Intelligence and Placement Portal for VSB Engineering College. Access student academic tracking, proctored assessments, course modules, and faculty management.
-            </p>
+          {/* Card 2: Head of the Department (AI & DS) Mr. Manivannan K */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm space-y-4 hover:shadow-md transition-shadow">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+              <div className="w-full sm:w-44 h-48 rounded-2xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100 shadow-inner flex items-center justify-center">
+                <img
+                  src="/hod-manivannan.jpg"
+                  alt="Mr. Manivannan K - HOD Artificial Intelligence & Data Science"
+                  className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="space-y-2 text-center sm:text-left flex-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-800 border border-indigo-200">
+                  Head of the Department (HOD)
+                </div>
+                <h3 className="text-lg font-black text-slate-900 leading-tight">
+                  Mr. Manivannan K
+                </h3>
+                <p className="text-xs text-indigo-700 font-extrabold">
+                  Head of the Department (HOD) — Artificial Intelligence &amp; Data Science (AI-DS)
+                </p>
+                <div className="h-px bg-slate-100 my-1" />
+                <p className="text-xs text-slate-600 leading-relaxed font-medium text-justify sm:text-left">
+                  Mr. Manivannan K is the Head of the Department of Artificial Intelligence and Data Science (AI-DS) at V.S.B. Engineering College. He spearheads academic rigor, machine learning innovation, and placement-driven industry training.
+                </p>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-[11px] text-slate-700 space-y-1 text-left">
+                  <div className="font-extrabold text-indigo-900 flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Published Patent (14.02.2025):
+                  </div>
+                  <div className="text-slate-600 italic">
+                    &ldquo;Towards Adaptive and Scalable DDoS Attack Detection in Distributed Systems Using Tuned Hierarchical Machine Learning Model&rdquo;
+                  </div>
+                  <div className="text-[10px] font-mono text-slate-500">
+                    Patent Application No: 202541009580
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
               <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Student Portal</div>
               <div className="text-xs font-extrabold text-slate-900 mt-1 flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-indigo-600" /> Tests, CGPA & Placement
+                <Award className="w-4 h-4 text-indigo-600" /> Tests, CGPA &amp; Placement
               </div>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
               <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Faculty Portal</div>
               <div className="text-xs font-extrabold text-slate-900 mt-1 flex items-center gap-1.5">
-                <Briefcase className="w-4 h-4 text-indigo-600" /> Student Evaluation & Roster
+                <Briefcase className="w-4 h-4 text-indigo-600" /> Student Evaluation &amp; Roster
               </div>
             </div>
           </div>
         </div>
 
         {/* Right Dynamic Login/Register Card */}
-        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-md space-y-6">
+        <div className="lg:col-span-6 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-md space-y-6">
           
           {/* Main Role Selector Tabs (Only 3 Modes: Student Login, Student Sign Up, Faculty Login) */}
           <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs gap-1.5">
