@@ -145,7 +145,7 @@ export async function GET(req: Request) {
   }
 
   const allUsers = dbStore.getUsers();
-  const res = NextResponse.json({ activeUser, allUsers });
+  const res = NextResponse.json({ activeUser, user: activeUser, allUsers });
 
   // Ensure persistent cookie is refreshed
   if (activeUser) {
@@ -177,7 +177,11 @@ export async function POST(req: Request) {
     if (userId) {
       targetUser = dbStore.getUserById(userId);
     } else if (email) {
-      targetUser = dbStore.getUserByEmail(email);
+      const normEmail = email.trim().toLowerCase();
+      targetUser = dbStore.getUserByEmail(normEmail);
+      if (!targetUser && (normEmail === 'manivannan.vsb@gmail.com' || normEmail === 'manivanan.vsb@gmail.com')) {
+        targetUser = dbStore.getUserByEmail('manivanan.vsb@gmail.com') || dbStore.getUserByEmail('manivannan.vsb@gmail.com');
+      }
     } else if (rollNumber) {
       targetUser = allUsers.find(u => u.rollNumber?.toLowerCase() === rollNumber.trim().toLowerCase());
     } else if (identifier) {
@@ -187,6 +191,9 @@ export async function POST(req: Request) {
         u.email.toLowerCase() === term || 
         (u.rollNumber && u.rollNumber.toLowerCase() === term)
       );
+      if (!targetUser && (term === 'manivannan.vsb@gmail.com' || term === 'manivanan.vsb@gmail.com')) {
+        targetUser = allUsers.find(u => u.email.toLowerCase() === 'manivanan.vsb@gmail.com' || u.email.toLowerCase() === 'manivannan.vsb@gmail.com');
+      }
     }
 
     if (!targetUser) {
@@ -257,6 +264,7 @@ export async function POST(req: Request) {
     const res = NextResponse.json({
       success: true,
       activeUser: targetUser,
+      user: targetUser,
       message: `Signed in as ${targetUser.name} (${targetUser.role})`
     });
 

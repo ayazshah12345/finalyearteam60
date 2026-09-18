@@ -186,7 +186,7 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString()
     });
 
-    const res = NextResponse.json({ success: true, activeUser: newStudent });
+    const res = NextResponse.json({ success: true, activeUser: newStudent, user: newStudent });
     res.cookies.set('sgip_session_user_id', newStudent.id, {
       path: '/',
       maxAge: 60 * 60 * 24 * 30,

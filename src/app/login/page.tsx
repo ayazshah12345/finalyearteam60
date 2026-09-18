@@ -114,7 +114,10 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid student credentials');
 
-      setSessionUser(data.user);
+      const user = data.user || data.activeUser;
+      if (!user) throw new Error('Student user profile could not be loaded.');
+
+      setSessionUser(user);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
@@ -148,9 +151,12 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed');
 
+      const user = data.user || data.activeUser;
+      if (!user?.id) throw new Error('Registered user profile could not be retrieved.');
+
       setSuccess('Account created successfully! Logging you in...');
       setTimeout(() => {
-        handleStudentLogin(undefined, data.user.id, regPassword);
+        handleStudentLogin(undefined, user.id, regPassword);
       }, 800);
     } catch (err: any) {
       setError(err.message || 'Could not complete registration. Please try again.');
@@ -159,18 +165,21 @@ export default function LoginPage() {
     }
   };
 
-  const handleFacultyLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFacultyLogin = async (e?: React.FormEvent, customEmail?: string, customPass?: string) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const loginEmail = customEmail || facultyEmail;
+    const loginPass = customPass !== undefined ? customPass : facultyPass;
 
     try {
       const res = await fetch('/api/auth/me', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          identifier: facultyEmail,
-          password: facultyPass,
+          identifier: loginEmail,
+          password: loginPass,
           expectedRole: 'FACULTY'
         })
       });
@@ -178,7 +187,10 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Invalid faculty credentials');
 
-      setSessionUser(data.user);
+      const user = data.user || data.activeUser;
+      if (!user) throw new Error('Faculty user profile could not be loaded.');
+
+      setSessionUser(user);
       router.push('/faculty');
     } catch (err: any) {
       setError(err.message || 'Faculty login failed. Please verify email and password.');
@@ -791,6 +803,21 @@ export default function LoginPage() {
                       )}
                     </button>
                   </form>
+
+                  {/* 1-Click Quick Demo Access for Faculty */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-2 text-center">
+                      Quick Instant Access (Demo Faculty)
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleFacultyLogin(undefined, 'manivanan.vsb@gmail.com', 'manivannan@vsb2027')}
+                      className="w-full py-2.5 px-3 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-amber-950 text-xs font-bold transition-all flex items-center justify-between"
+                    >
+                      <span>👨‍🏫 Demo Faculty: Prof. Manivannan (HOD AI &amp; DS)</span>
+                      <span className="text-[10px] text-amber-700 font-extrabold uppercase">Instant Access →</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

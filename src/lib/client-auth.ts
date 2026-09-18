@@ -14,15 +14,15 @@ export function getSessionRole(): string | null {
   return localStorage.getItem('sgip_session_role');
 }
 
-export function setSessionUser(user: { id: string; role: string; name?: string; email?: string }) {
-  if (typeof window === 'undefined') return;
+export function setSessionUser(user?: { id: string; role: string; name?: string; email?: string } | null) {
+  if (typeof window === 'undefined' || !user || !user.id) return;
   localStorage.setItem('sgip_session_user_id', user.id);
-  localStorage.setItem('sgip_session_role', user.role);
+  localStorage.setItem('sgip_session_role', user.role || 'STUDENT');
   localStorage.setItem('sgip_session_user', JSON.stringify(user));
   
   // Also store in document.cookie for immediate availability in browser requests
   document.cookie = `sgip_session_user_id=${user.id}; path=/; max-age=2592000; SameSite=Lax`;
-  document.cookie = `sgip_session_role=${user.role}; path=/; max-age=2592000; SameSite=Lax`;
+  document.cookie = `sgip_session_role=${user.role || 'STUDENT'}; path=/; max-age=2592000; SameSite=Lax`;
 }
 
 export function clearSession() {
