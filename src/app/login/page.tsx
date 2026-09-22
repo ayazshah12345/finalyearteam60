@@ -343,7 +343,7 @@ export default function LoginPage() {
             <div className="relative shrink-0 w-48 sm:w-56 md:w-64 flex items-center justify-center">
               <img
                 src="/chairman-balsamy-cutout.png"
-                alt="Mr. V.S. Balsamy - Founder & Chairman"
+                alt="Mr. V. S. Balsamy, B.Sc., LL.B., - Founder & Chairman"
                 className="relative z-10 w-full h-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.15)] hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -354,8 +354,8 @@ export default function LoginPage() {
                 ★ FOUNDER &amp; CHAIRMAN ★
               </div>
 
-              <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none font-serif">
-                Mr. V.S. Balsamy
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight font-serif">
+                Mr. V. S. Balsamy, B.Sc., LL.B.,
               </h2>
 
               <div className="text-xs md:text-sm font-extrabold text-indigo-900 tracking-wider uppercase">
@@ -364,7 +364,7 @@ export default function LoginPage() {
 
               <div className="relative pl-4 border-l-2 border-amber-400 my-2">
                 <p className="text-xs md:text-[13px] text-slate-700 leading-relaxed font-medium text-justify">
-                  &ldquo;V.S.B Educational Trust was founded in the year 2000 by Mr. V.S. Balsamy, the founder and Chairman of the V.S.B Engineering College, with an interest in promoting, managing and administrating educational institutions with high academic standards, discipline and to take up and help other allied activities in the field of education. Under the Trust, V.S.B Engineering College, Karur was established in the year 2002 and V.S.B College of Engineering Technical Campus, Coimbatore in the year 2012.&rdquo;
+                  &ldquo;V.S.B Educational Trust was founded in the year 2000 by Mr. V. S. Balsamy, B.Sc., LL.B., the founder and Chairman of the V.S.B Engineering College, with an interest in promoting, managing and administrating educational institutions with high academic standards, discipline and to take up and help other allied activities in the field of education. Under the Trust, V.S.B Engineering College, Karur was established in the year 2002 and V.S.B College of Engineering Technical Campus, Coimbatore in the year 2012.&rdquo;
                 </p>
               </div>
 
