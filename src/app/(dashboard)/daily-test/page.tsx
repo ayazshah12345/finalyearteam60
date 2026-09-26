@@ -64,6 +64,7 @@ export default function DailyTestPage() {
   const [isTestActive, setIsTestActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const wasInFullscreenRef = useRef(false);
+  const testStartTimeRef = useRef<number>(0);
   const [activeModule, setActiveModule] = useState<TestingModule | null>(null);
   const [activeTestQuestions, setActiveTestQuestions] = useState<Question[]>([]);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -216,9 +217,15 @@ export default function DailyTestPage() {
 
   // Register Proctoring Violation (Tab Switch or Out-of-Camera Frame)
   const registerProctoringViolation = (type: 'TAB_SWITCH' | 'CAMERA_ABSENCE') => {
+    // 10-Second Startup Grace Window: Prevents false strike on test launch or camera permission
+    if (Date.now() - testStartTimeRef.current < 10000) {
+      console.log('Violation suppressed during startup grace period.');
+      return;
+    }
+
     const now = Date.now();
-    // Debounce rapid duplicate trigger events within 1500ms
-    if (now - lastViolationTimeRef.current < 1500) return;
+    // Debounce rapid duplicate trigger events within 2000ms
+    if (now - lastViolationTimeRef.current < 2000) return;
     lastViolationTimeRef.current = now;
 
     setLastViolationType(type);
@@ -320,7 +327,14 @@ export default function DailyTestPage() {
     };
 
     const handleWindowBlur = () => {
-      registerProctoringViolation('TAB_SWITCH');
+      if (Date.now() - testStartTimeRef.current < 10000) return;
+      // In browsers, blur can fire when clicking UI controls or during fullscreen transition.
+      // Only register violation if document actually lost focus/visibility (switched tabs or minimized)
+      setTimeout(() => {
+        if (document.hidden) {
+          registerProctoringViolation('TAB_SWITCH');
+        }
+      }, 600);
     };
 
     const handleFullscreenChange = () => {
@@ -335,8 +349,9 @@ export default function DailyTestPage() {
       if (isNowFullscreen) {
         wasInFullscreenRef.current = true;
       } else if (wasInFullscreenRef.current) {
-        // If student intentionally exited browser fullscreen during proctored test
-        registerProctoringViolation('TAB_SWITCH');
+        if (Date.now() - testStartTimeRef.current >= 10000) {
+          registerProctoringViolation('TAB_SWITCH');
+        }
       }
     };
 
@@ -465,6 +480,7 @@ export default function DailyTestPage() {
     setTimerSeconds(mod.durationMins * 60);
     setIsTestActive(true);
     wasInFullscreenRef.current = false;
+    testStartTimeRef.current = Date.now();
     requestBrowserFullscreen();
   };
 
@@ -1308,6 +1324,40 @@ export default function DailyTestPage() {
             >
               I Understand — Return to Exam Immediately
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MANDATORY FULLSCREEN LOCK SCREEN (COVERS BROWSER TABS & ENFORCES F11 FULLSCREEN) */}
+      {isTestActive && !isFullscreen && !submittedResult && !isTerminated && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center text-white space-y-6 animate-in fade-in duration-200">
+          <div className="w-20 h-20 rounded-3xl bg-indigo-600/20 border-2 border-indigo-500/40 flex items-center justify-center text-indigo-400 shadow-2xl">
+            <Maximize2 className="w-10 h-10 animate-bounce" />
+          </div>
+
+          <div className="max-w-lg space-y-2">
+            <span className="text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+              Exam Security & Anti-Cheating Protocol
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-2">
+              Fullscreen Mode Required
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
+              To hide browser tabs and ensure an uninterrupted proctored exam, click the button below to expand into Fullscreen mode.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={requestBrowserFullscreen}
+            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-extrabold uppercase tracking-wider text-xs sm:text-sm shadow-2xl transition-all flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <Maximize2 className="w-5 h-5" /> Click Here to Enter Fullscreen Mode
+          </button>
+
+          <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800">
+            <ShieldAlert className="w-4 h-4 text-amber-400" />
+            <span>Browser tabs, URL bars, and desktop icons will be completely hidden.</span>
           </div>
         </div>
       )}
