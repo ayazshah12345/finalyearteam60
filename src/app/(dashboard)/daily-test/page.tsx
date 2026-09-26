@@ -31,7 +31,9 @@ import {
   Bookmark,
   Flag,
   RotateCcw,
-  CheckSquare
+  CheckSquare,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -60,6 +62,8 @@ export default function DailyTestPage() {
 
   // Active Daily Test Execution State
   const [isTestActive, setIsTestActive] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const wasInFullscreenRef = useRef(false);
   const [activeModule, setActiveModule] = useState<TestingModule | null>(null);
   const [activeTestQuestions, setActiveTestQuestions] = useState<Question[]>([]);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -257,6 +261,54 @@ export default function DailyTestPage() {
     });
   };
 
+  // Browser Fullscreen Controls
+  const requestBrowserFullscreen = async () => {
+    try {
+      const elem = document.documentElement as any;
+      if (elem.requestFullscreen) {
+        await elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        await elem.webkitRequestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        await elem.mozRequestFullScreen();
+      } else if (elem.msRequestFullscreen) {
+        await elem.msRequestFullscreen();
+      }
+      setIsFullscreen(true);
+      wasInFullscreenRef.current = true;
+    } catch (err) {
+      console.warn('Fullscreen request blocked or not allowed:', err);
+    }
+  };
+
+  const exitBrowserFullscreen = async () => {
+    try {
+      const doc = document as any;
+      if (doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement) {
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          await doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+          await doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+          await doc.msExitFullscreen();
+        }
+      }
+      setIsFullscreen(false);
+    } catch (err) {
+      console.warn('Exit fullscreen error:', err);
+    }
+  };
+
+  const toggleBrowserFullscreen = () => {
+    if (isFullscreen) {
+      exitBrowserFullscreen();
+    } else {
+      requestBrowserFullscreen();
+    }
+  };
+
   // Tab Switch, Page Focus Loss & Fullscreen Exit Detection
   useEffect(() => {
     if (!isTestActive || submittedResult || isTerminated) return;
@@ -272,7 +324,18 @@ export default function DailyTestPage() {
     };
 
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
+      const isNowFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isNowFullscreen);
+
+      if (isNowFullscreen) {
+        wasInFullscreenRef.current = true;
+      } else if (wasInFullscreenRef.current) {
+        // If student intentionally exited browser fullscreen during proctored test
         registerProctoringViolation('TAB_SWITCH');
       }
     };
@@ -280,11 +343,17 @@ export default function DailyTestPage() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleWindowBlur);
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
   }, [isTestActive, submittedResult, isTerminated]);
 
@@ -395,14 +464,14 @@ export default function DailyTestPage() {
     setIsFaceDetected(true);
     setTimerSeconds(mod.durationMins * 60);
     setIsTestActive(true);
-
-    if (typeof document !== 'undefined' && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(err => console.warn('Fullscreen request:', err));
-    }
+    wasInFullscreenRef.current = false;
+    requestBrowserFullscreen();
   };
 
   // Terminate Test Instantly on 3 Violations
   const handleTerminateTest = async (finalCount: number, type: 'TAB_SWITCH' | 'CAMERA_ABSENCE') => {
+    exitBrowserFullscreen();
+    wasInFullscreenRef.current = false;
     stopCameraStream();
     setIsTerminated(true);
     setShowWarningModal(false);
@@ -461,6 +530,8 @@ export default function DailyTestPage() {
   // Submit Normal Test Quiz
   const handleSubmitQuiz = async () => {
     if (!activeTestQuestions.length) return;
+    exitBrowserFullscreen();
+    wasInFullscreenRef.current = false;
     stopCameraStream();
 
     let totalMarks = 0;
@@ -886,8 +957,89 @@ export default function DailyTestPage() {
           </div>
         </div>
       ) : (
-        /* ACTIVE TEST EXECUTION MODULE SCREEN */
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        /* ACTIVE TEST EXECUTION MODULE SCREEN - TRUE FULLSCREEN PROCTORED TAKEOVER */
+        <div className="fixed inset-0 z-50 bg-slate-100 dark:bg-[#070b14] overflow-y-auto flex flex-col p-3 sm:p-5 md:p-6 animate-in fade-in duration-200">
+          <div className="max-w-7xl w-full mx-auto space-y-4">
+            {/* Top Bar for Proctored Fullscreen Session */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 shadow-md flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                    Proctored Fullscreen Assessment
+                  </div>
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white leading-tight">
+                    {activeModule?.title || 'Daily Testing Assessment'}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Fullscreen Toggle Button */}
+                <button
+                  type="button"
+                  onClick={toggleBrowserFullscreen}
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${
+                    isFullscreen
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                      : 'bg-amber-500 hover:bg-amber-600 text-slate-950 border-amber-500 font-extrabold animate-pulse'
+                  }`}
+                  title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                >
+                  {isFullscreen ? (
+                    <>
+                      <Minimize2 className="w-3.5 h-3.5" />
+                      <span>Fullscreen Active</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 className="w-3.5 h-3.5" />
+                      <span>Expand to Fullscreen</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Remaining Timer */}
+                <div
+                  className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-black flex items-center gap-1.5 ${
+                    timerSeconds < 120
+                      ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 border border-rose-200 animate-pulse'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span>{formatTime(timerSeconds)}</span>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  onClick={handleSubmitQuiz}
+                  className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Submit Exam</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Non-Fullscreen Warning Notice Banner */}
+            {!isFullscreen && (
+              <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-amber-800 dark:text-amber-300 shadow-sm">
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>Proctoring Requirement: Please switch to Fullscreen mode to prevent accidental focus loss warnings.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={requestBrowserFullscreen}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all shrink-0"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" /> Enter Fullscreen
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Left Column: Active Question Sheet */}
           <div className="md:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
             {/* Module Header */}
@@ -1114,7 +1266,9 @@ export default function DailyTestPage() {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  )}
 
       {/* STRICT 3-WARNING MODAL (TAB SWITCH OR OUT OF CAMERA VIEW) */}
       {showWarningModal && (
