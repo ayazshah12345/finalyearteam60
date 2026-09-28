@@ -109,24 +109,24 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
   const isRole = (role: string) => user.role === role;
 
   const mainNav = user.role === 'FACULTY' ? [
-    { label: 'Faculty Command Desk', href: '/faculty', icon: Briefcase },
-    { label: 'Student Profiles', href: '/faculty/students', icon: UserCheck },
-    { label: 'Add Technical Course', href: '/faculty/courses', icon: BookOpen },
-    { label: 'Create Placement Drive', href: '/faculty/drives', icon: Building2 },
-    { label: 'Malpractice', href: '/faculty/malpractice', icon: ShieldAlert },
-    { label: 'Test', href: '/faculty/test', icon: CheckSquare },
+    { label: 'Faculty Command Desk', href: '/faculty', icon: Briefcase, emojiImg: '/emojis/dashboard.png' },
+    { label: 'Student Profiles', href: '/faculty/students', icon: UserCheck, emojiImg: '/emojis/profile.png' },
+    { label: 'Add Technical Course', href: '/faculty/courses', icon: BookOpen, emojiImg: '/emojis/courses.png' },
+    { label: 'Create Placement Drive', href: '/faculty/drives', icon: Building2, emojiImg: '/emojis/placement.png' },
+    { label: 'Malpractice', href: '/faculty/malpractice', icon: ShieldAlert, emojiImg: '/emojis/warning.png' },
+    { label: 'Test', href: '/faculty/test', icon: CheckSquare, emojiImg: '/emojis/daily-test.png' },
   ] : [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { label: 'LeetCode Coding Practice', href: '/coding', icon: Code2 },
-    { label: 'Code Compiler Engine', href: '/compiler', icon: Terminal },
-    { label: 'Technical Courses', href: '/courses', icon: BookOpen },
-    { label: 'Placement Drives', href: '/placement', icon: Building2 },
-    { label: 'AI Student Chatbot', href: '/chatbot', icon: Bot },
-    { label: 'Daily Test', href: '/daily-test', icon: Zap },
-    { label: 'Student Update Profile', href: '/profile', icon: UserCheck },
-    { label: 'AI Mock Interview', href: '/mock-interview', icon: Mic },
-    { label: 'Gap Analyzer', href: '/gap-analyzer', icon: TrendingUp },
-    { label: 'Resume Analyzer', href: '/resume', icon: FileText },
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, emojiImg: '/emojis/dashboard.png' },
+    { label: 'LeetCode Coding Practice', href: '/coding', icon: Code2, emojiImg: '/emojis/coding.png' },
+    { label: 'Code Compiler Engine', href: '/compiler', icon: Terminal, emojiImg: '/emojis/compiler.png' },
+    { label: 'Technical Courses', href: '/courses', icon: BookOpen, emojiImg: '/emojis/courses.png' },
+    { label: 'Placement Drives', href: '/placement', icon: Building2, emojiImg: '/emojis/placement.png' },
+    { label: 'AI Student Chatbot', href: '/chatbot', icon: Bot, emojiImg: '/emojis/chatbot.png' },
+    { label: 'Daily Test', href: '/daily-test', icon: Zap, emojiImg: '/emojis/daily-test.png' },
+    { label: 'Student Update Profile', href: '/profile', icon: UserCheck, emojiImg: '/emojis/profile.png' },
+    { label: 'AI Mock Interview', href: '/mock-interview', icon: Mic, emojiImg: '/emojis/interview.png' },
+    { label: 'Gap Analyzer', href: '/gap-analyzer', icon: TrendingUp, emojiImg: '/emojis/gap.png' },
+    { label: 'Resume Analyzer', href: '/resume', icon: FileText, emojiImg: '/emojis/resume.png' },
   ];
 
   return (
@@ -197,7 +197,6 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
           <nav className="space-y-1">
             <div className="px-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Navigation</div>
             {mainNav.map((item) => {
-              const Icon = item.icon;
               const isActive =
                 item.href === '/faculty' || item.href === '/dashboard'
                   ? pathname === item.href
@@ -216,14 +215,20 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
                     }
                     if (onCloseMobile) onCloseMobile();
                   }}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
                     isActive
                       ? 'bg-[#1e3a8a] text-white shadow-xs'
                       : 'text-slate-600 hover:text-[#1e3a8a] hover:bg-blue-50/70'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                    <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                      <img
+                        src={item.emojiImg}
+                        alt=""
+                        className="w-5 h-5 object-contain shrink-0 transition-transform duration-200 group-hover:scale-110 drop-shadow-xs"
+                      />
+                    </div>
                     <span>{item.label}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -252,9 +257,9 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
           <Link
             href="/audit"
             onClick={onCloseMobile}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-[#1e3a8a] hover:bg-blue-50/60 transition-all"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-[#1e3a8a] hover:bg-blue-50/60 transition-all group"
           >
-            <ShieldAlert className="w-4 h-4 text-slate-400" />
+            <img src="/emojis/shield.png" alt="" className="w-4 h-4 object-contain shrink-0 group-hover:scale-110 transition-transform" />
             <span>Security & Audit Log</span>
           </Link>
           <div className="text-[10px] text-slate-400 px-3 text-center font-medium">

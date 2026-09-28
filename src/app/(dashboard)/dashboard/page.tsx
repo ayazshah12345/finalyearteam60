@@ -449,7 +449,7 @@ export default function DashboardPage() {
         <div className="bg-white border-2 border-[#1e3a8a] rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 font-mono text-xs font-extrabold uppercase tracking-wider text-[#1e3a8a]">
-              <Zap className="w-4 h-4 fill-[#1e3a8a]" /> Daily Test Attending Portal
+              <img src="/emojis/daily-test.png" alt="" className="w-4 h-4 object-contain" /> Daily Test Attending Portal
             </div>
             <h3 className="font-display text-xl font-extrabold text-[#0f2942] tracking-tight">
               Today's Placement Aptitude &amp; Technical Test is Live!
@@ -474,12 +474,12 @@ export default function DashboardPage() {
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#1e3a8a] text-white flex items-center justify-center shadow-xs">
-                <Bot className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 p-1 flex items-center justify-center shadow-xs">
+                <img src="/emojis/chatbot.png" alt="Bot" className="w-full h-full object-contain" />
               </div>
               <div>
                 <div className="font-mono text-xs font-extrabold text-[#1e3a8a] uppercase tracking-widest flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#1e3a8a]" /> SGIP AI Placement Agent
+                  <img src="/emojis/sparkles.png" alt="" className="w-3.5 h-3.5 object-contain" /> SGIP AI Placement Agent
                 </div>
                 <h3 className="font-display text-lg font-bold text-[#0f2942]">
                   Ask AI Anything About Campus Placements &amp; Interview Prep
@@ -499,7 +499,9 @@ export default function DashboardPage() {
             <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-[#0f2942] font-semibold flex items-center gap-3">
               <ShieldAlert className="w-6 h-6 text-[#1e3a8a] shrink-0" />
               <div>
-                <strong className="block text-[#0f2942] font-display font-extrabold text-sm">🚫 AI Agent Locked During Exam</strong>
+                <strong className="flex items-center gap-1.5 text-[#0f2942] font-display font-extrabold text-sm">
+                  <img src="/emojis/prohibited.png" alt="" className="w-4 h-4 object-contain" /> AI Agent Locked During Exam
+                </strong>
                 <span className="font-sans text-xs">The AI Placement Agent is strictly disabled during active proctored daily tests to enforce exam integrity. Complete or submit your daily test to unlock AI guidance.</span>
               </div>
             </div>
@@ -511,23 +513,26 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'Am I eligible for Google and Microsoft with my CGPA?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all flex items-center gap-1.5"
                 >
-                  🎯 Am I eligible for Google &amp; Microsoft?
+                  <img src="/emojis/target.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>Am I eligible for Google &amp; Microsoft?</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'How do active backlogs affect my campus placement drives?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all flex items-center gap-1.5"
                 >
-                  ⚠️ How do arrears/backlogs affect drives?
+                  <img src="/emojis/warning.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>How do arrears/backlogs affect drives?</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'What DSA topics are asked in Tier-1 coding rounds?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all flex items-center gap-1.5"
                 >
-                  💻 Key DSA topics for coding tests
+                  <img src="/emojis/coding.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>Key DSA topics for coding tests</span>
                 </button>
               </div>
 

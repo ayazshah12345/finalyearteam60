@@ -239,7 +239,7 @@ function renderInline(text: string): React.ReactNode {
     const token = match[0];
     if (token.startsWith('**') && token.endsWith('**')) {
       parts.push(
-        <strong key={`b_${match.index}`} className="font-bold text-slate-900 dark:text-white">
+        <strong key={`b_${match.index}`} className="font-bold text-[#0f2942]">
           {token.slice(2, -2)}
         </strong>
       );
@@ -247,7 +247,7 @@ function renderInline(text: string): React.ReactNode {
       parts.push(<em key={`i_${match.index}`} className="italic">{token.slice(1, -1)}</em>);
     } else if (token.startsWith('`') && token.endsWith('`')) {
       parts.push(
-        <code key={`ic_${match.index}`} className="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-mono text-[11px] border border-indigo-200/50 dark:border-indigo-900/50">
+        <code key={`ic_${match.index}`} className="px-1.5 py-0.5 rounded bg-blue-50 text-[#1e3a8a] font-mono text-[11px] border border-blue-200">
           {token.slice(1, -1)}
         </code>
       );
@@ -260,7 +260,7 @@ function renderInline(text: string): React.ReactNode {
             href={labelMatch[2]}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold"
+            className="text-[#1e3a8a] hover:underline font-semibold"
           >
             {labelMatch[1]}
           </a>
@@ -292,18 +292,16 @@ export default function ChatbotPage() {
     {
       id: 'msg_welcome',
       role: 'assistant',
-      content: `Hello! 👋 I am your **SGIP General-Purpose AI Assistant**.
+      content: `Welcome! I am your **SGIP AI Placement & Academic Advisor**.
 
-I am here to assist you with:
-- 💻 **Coding & Technical Problem Solving** (Python, Java, C++, DSA, SQL, Web Dev)
-- 🏢 **SGIP Placement Drives & Schemes** (Google, Microsoft, Amazon, Zoho eligibility cutoffs, CTC, rules)
-- 📚 **Academic Explanations** (Concept breakdowns, 16-mark answers, simplified analogies)
-- 📐 **Mathematics & Calculations** (Formulas, percentage, step-by-step arithmetic)
-- ✍️ **Writing & Professional Communication** (Leave letters, professor emails, resume bullets)
-- 🎯 **Career & Interview Preparation** (HR questions, behavioral prep with STAR method)
-- 💬 **Casual Conversation & General Knowledge**
+I am available to assist you with:
+• **Technical Coding & Algorithms** (Python, Java, C++, DSA, System Design)
+• **Campus Placement Drives & Eligibility** (Google, Microsoft, Amazon, Zoho criteria, CTC, packages)
+• **Academic Concept Coaching** (Curriculum breakdown, university 16-mark answers)
+• **Quantitative Aptitude & Calculations** (Formulas, percentage, step-by-step solutions)
+• **Interview Readiness & STAR Method** (HR questions, behavioral answers, ATS resume bullet points)
 
-Feel free to ask me anything or select a quick topic below to begin!`,
+Select a quick topic below or type your question to start!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -497,7 +495,7 @@ Feel free to ask me anything or select a quick topic below to begin!`,
       {
         id: `msg_welcome_${Date.now()}`,
         role: 'assistant',
-        content: `Chat session reset. What would you like to explore or learn today?`,
+        content: `Chat session cleared. How can I assist you with your campus placements or coursework today?`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -506,100 +504,106 @@ Feel free to ask me anything or select a quick topic below to begin!`,
   if (loading) {
     return (
       <div className="py-16 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
-        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <span>Initializing SGIP AI Student Assistant...</span>
+        <div className="w-5 h-5 border-2 border-[#1e3a8a] border-t-transparent rounded-full animate-spin"></div>
+        <span className="font-mono text-xs text-[#0f2942]">Initializing SGIP AI Student Assistant...</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto font-sans flex flex-col h-[calc(100vh-115px)]">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 border border-indigo-500/30 rounded-3xl p-4 md:p-5 text-white shadow-xl flex items-center justify-between shrink-0">
+      {/* Header Banner - Strict Dark Blue and White */}
+      <div className="bg-[#1e3a8a] border border-[#0f2942] rounded-3xl p-4 md:p-5 text-white shadow-sm flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black shadow-lg">
-            <Bot className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-2xl bg-white p-1.5 shadow-sm flex items-center justify-center shrink-0 border border-blue-200">
+            <img src="/emojis/chatbot.png" alt="AI Robot" className="w-full h-full object-contain" />
           </div>
           <div>
-            <div className="flex items-center gap-2 text-[11px] font-bold text-indigo-300 uppercase tracking-widest">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> SGIP Intelligent AI Assistant
+            <div className="flex items-center gap-2 text-[11px] font-mono font-extrabold text-blue-200 uppercase tracking-widest">
+              <img src="/emojis/sparkles.png" alt="" className="w-3.5 h-3.5 object-contain" /> SGIP Placement Intelligence Agent
             </div>
-            <h1 className="text-lg font-black text-white">AI Student Chatbot</h1>
-            <p className="text-xs text-slate-300 font-medium">
-              General-purpose conversational AI for education, coding, math, writing, and SGIP portal guidance.
+            <h1 className="font-display text-xl font-extrabold text-white tracking-tight">AI Student Chatbot</h1>
+            <p className="font-sans text-xs text-blue-100 font-medium">
+              Autonomous collegiate AI advisor for placements, coding, data structures, and university preparation.
             </p>
           </div>
         </div>
 
         <button
           onClick={handleClearHistory}
-          className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-700 shadow-sm"
+          className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs font-bold transition-all flex items-center gap-1.5 border border-white/20 shadow-xs"
           title="Clear Conversation History"
         >
-          <RefreshCw className="w-3.5 h-3.5" /> Clear Chat
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Clear Chat</span>
         </button>
       </div>
 
-      {/* Preset Quick Query Chips */}
+      {/* Preset Quick Query Chips with Realistic 3D Emojis */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 shrink-0 no-scrollbar">
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-amber-500" /> Quick Starters:
+        <span className="font-mono text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+          <img src="/emojis/sparkles.png" alt="" className="w-3.5 h-3.5 object-contain" /> Quick Starters:
         </span>
 
         <button
           onClick={() => handleSendMessage(undefined, 'Am I eligible for Google, Microsoft, and Zoho placement drives?')}
-          className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all shrink-0 flex items-center gap-1.5"
+          className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#0f2942] hover:text-[#1e3a8a] text-xs font-bold border border-slate-200 hover:border-[#1e3a8a] transition-all shrink-0 flex items-center gap-2 shadow-xs"
         >
-          <Building2 className="w-3.5 h-3.5" /> Placement Eligibility?
+          <img src="/emojis/placement.png" alt="" className="w-4 h-4 object-contain" />
+          <span>Placement Eligibility?</span>
         </button>
 
         <button
           onClick={() => handleSendMessage(undefined, 'Explain the difference between AI and machine learning')}
-          className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all shrink-0 flex items-center gap-1.5"
+          className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#0f2942] hover:text-[#1e3a8a] text-xs font-bold border border-slate-200 hover:border-[#1e3a8a] transition-all shrink-0 flex items-center gap-2 shadow-xs"
         >
-          <BookOpen className="w-3.5 h-3.5" /> AI vs Machine Learning
+          <img src="/emojis/courses.png" alt="" className="w-4 h-4 object-contain" />
+          <span>AI vs Machine Learning</span>
         </button>
 
         <button
           onClick={() => handleSendMessage(undefined, 'Write Dijkstra algorithm in Python with graph example')}
-          className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all shrink-0 flex items-center gap-1.5"
+          className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#0f2942] hover:text-[#1e3a8a] text-xs font-bold border border-slate-200 hover:border-[#1e3a8a] transition-all shrink-0 flex items-center gap-2 shadow-xs"
         >
-          <Code2 className="w-3.5 h-3.5" /> Python Dijkstra Code
+          <img src="/emojis/coding.png" alt="" className="w-4 h-4 object-contain" />
+          <span>Python Dijkstra Code</span>
         </button>
 
         <button
           onClick={() => handleSendMessage(undefined, 'How to answer Tell Me About Yourself using STAR method?')}
-          className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all shrink-0 flex items-center gap-1.5"
+          className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#0f2942] hover:text-[#1e3a8a] text-xs font-bold border border-slate-200 hover:border-[#1e3a8a] transition-all shrink-0 flex items-center gap-2 shadow-xs"
         >
-          <HelpCircle className="w-3.5 h-3.5" /> Tell Me About Yourself (HR)
+          <img src="/emojis/interview.png" alt="" className="w-4 h-4 object-contain" />
+          <span>Tell Me About Yourself (HR)</span>
         </button>
 
         <button
           onClick={() => handleSendMessage(undefined, 'Calculate 15% of 2400 step-by-step')}
-          className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-600 dark:text-indigo-300 text-xs font-bold border border-indigo-200 dark:border-indigo-800 transition-all shrink-0 flex items-center gap-1.5"
+          className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#0f2942] hover:text-[#1e3a8a] text-xs font-bold border border-slate-200 hover:border-[#1e3a8a] transition-all shrink-0 flex items-center gap-2 shadow-xs"
         >
-          <Calculator className="w-3.5 h-3.5" /> Math Calculation
+          <img src="/emojis/target.png" alt="" className="w-4 h-4 object-contain" />
+          <span>Math Calculation</span>
         </button>
       </div>
 
       {/* Main Chat Stream Container */}
-      <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 md:p-6 shadow-inner overflow-y-auto space-y-4">
+      <div className="flex-1 bg-white border border-slate-200 rounded-3xl p-4 md:p-6 shadow-xs overflow-y-auto space-y-4">
         {messages.map((msg, idx) => (
           <div
             key={msg.id}
             className={`flex gap-3 text-xs leading-relaxed ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-md mt-1">
-                <Bot className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-2xl bg-white border border-slate-200 p-1 flex items-center justify-center font-bold shrink-0 shadow-xs mt-1">
+                <img src="/emojis/chatbot.png" alt="Bot" className="w-full h-full object-contain" />
               </div>
             )}
 
             <div
               className={`max-w-3xl p-4 rounded-3xl space-y-2 relative group ${
                 msg.role === 'user'
-                  ? 'bg-indigo-600 text-white font-medium shadow-md rounded-tr-xs'
-                  : 'bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700/80 shadow-sm rounded-tl-xs'
+                  ? 'bg-[#1e3a8a] text-white font-medium shadow-xs rounded-tr-xs'
+                  : 'bg-slate-50 text-[#0f2942] border border-slate-200 shadow-xs rounded-tl-xs'
               }`}
             >
               {msg.role === 'assistant' ? (
@@ -607,9 +611,9 @@ Feel free to ask me anything or select a quick topic below to begin!`,
                   <MarkdownRenderer content={msg.content} />
                 ) : (
                   <div className="flex items-center gap-2 py-1 text-slate-400">
-                    <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></div>
-                    <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse delay-150"></div>
-                    <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse delay-300"></div>
+                    <div className="w-2 h-2 rounded-full bg-[#1e3a8a] animate-pulse"></div>
+                    <div className="w-2 h-2 rounded-full bg-[#1e3a8a] animate-pulse delay-150"></div>
+                    <div className="w-2 h-2 rounded-full bg-[#1e3a8a] animate-pulse delay-300"></div>
                   </div>
                 )
               ) : (
@@ -619,8 +623,8 @@ Feel free to ask me anything or select a quick topic below to begin!`,
               )}
 
               {msg.sources && msg.sources.length > 0 && (
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 text-[10px] text-slate-400 font-mono">
-                  <span className="font-bold uppercase">Verified Source:</span> {msg.sources.map(s => s.title).join(', ')}
+                <div className="pt-2 border-t border-slate-200 text-[10px] text-slate-500 font-mono">
+                  <span className="font-bold uppercase text-[#1e3a8a]">Verified Source:</span> {msg.sources.map(s => s.title).join(', ')}
                 </div>
               )}
 
@@ -629,9 +633,9 @@ Feel free to ask me anything or select a quick topic below to begin!`,
                 {msg.role === 'assistant' && msg.content && (
                   <button
                     onClick={() => handleCopy(msg.content, idx)}
-                    className="hover:text-indigo-400 flex items-center gap-1 font-sans font-bold transition-colors"
+                    className="hover:text-[#1e3a8a] flex items-center gap-1 font-sans font-bold transition-colors"
                   >
-                    {copiedIdx === idx ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedIdx === idx ? <Check className="w-3 h-3 text-[#1e3a8a]" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedIdx === idx ? 'Copied' : 'Copy'}</span>
                   </button>
                 )}
@@ -639,19 +643,19 @@ Feel free to ask me anything or select a quick topic below to begin!`,
             </div>
 
             {msg.role === 'user' && (
-              <div className="w-8 h-8 rounded-2xl bg-slate-800 text-white flex items-center justify-center font-bold shrink-0 shadow-md mt-1">
-                <UserIcon className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-2xl bg-white border border-slate-200 p-1 flex items-center justify-center font-bold shrink-0 shadow-xs mt-1">
+                <img src="/emojis/profile.png" alt="Student" className="w-full h-full object-contain" />
               </div>
             )}
           </div>
         ))}
 
         {aiLoading && messages[messages.length - 1]?.content === '' && (
-          <div className="flex items-center gap-3 py-2 text-xs text-indigo-600 font-bold pl-1">
-            <div className="w-5 h-5 rounded-xl bg-indigo-600 text-white flex items-center justify-center animate-spin">
+          <div className="flex items-center gap-3 py-2 text-xs text-[#1e3a8a] font-bold pl-1 font-mono">
+            <div className="w-5 h-5 rounded-xl bg-[#1e3a8a] text-white flex items-center justify-center animate-spin">
               <Bot className="w-3 h-3" />
             </div>
-            <span>SGIP AI Assistant is thinking...</span>
+            <span>SGIP AI Assistant is generating answer...</span>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -659,22 +663,22 @@ Feel free to ask me anything or select a quick topic below to begin!`,
 
       {/* Multiline Query Input Box */}
       <form onSubmit={(e) => handleSendMessage(e)} className="flex items-end gap-2.5 shrink-0">
-        <div className="flex-1 relative bg-white dark:bg-slate-900 border-2 border-indigo-500/40 rounded-2xl shadow-md focus-within:border-indigo-600 transition-colors">
+        <div className="flex-1 relative bg-white border-2 border-slate-200 focus-within:border-[#1e3a8a] rounded-2xl shadow-xs transition-colors">
           <textarea
             ref={textareaRef}
             rows={1}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask anything (Coding, Math, SGIP schemes, Leave letters)... Press Enter to send, Shift+Enter for newline"
-            className="w-full px-4 py-3 bg-transparent text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none resize-none max-h-36 leading-relaxed"
+            placeholder="Ask anything (Coding, Math, Placement eligibility, Company interview prep)... Press Enter to send"
+            className="w-full px-4 py-3 bg-transparent text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none max-h-36 leading-relaxed"
           />
         </div>
 
         <button
           type="submit"
           disabled={aiLoading || !query.trim()}
-          className="px-5 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all flex items-center gap-2 shrink-0 h-[46px]"
+          className="px-6 py-3.5 rounded-2xl bg-[#1e3a8a] hover:bg-[#0f2942] disabled:opacity-50 text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-2 shrink-0 h-[46px]"
         >
           <Send className="w-4 h-4" />
           <span className="hidden sm:inline">Send</span>

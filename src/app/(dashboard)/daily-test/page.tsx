@@ -46,6 +46,7 @@ interface TestingModule {
   durationMins: number;
   totalQuestionsCount: number;
   icon: string;
+  iconImg?: string;
   badgeColor: string;
   isFacultyCreated?: boolean;
   creatorName?: string;
@@ -89,95 +90,103 @@ export default function DailyTestPage() {
   const [isTerminated, setIsTerminated] = useState(false);
   const [terminationReason, setTerminationReason] = useState<string | null>(null);
 
-  // Defined Working Daily Testing Modules
+  // Defined Working Daily Testing Modules - Professional Dark Blue & White
   const testingModules: TestingModule[] = [
     {
       id: 'mod_all',
-      title: '🔥 Module 8: Full 50-Question Master Placement Assessment',
-      shortName: '🌐 50-Q Master',
+      title: 'Module 8: Full 50-Question Master Placement Assessment',
+      shortName: '50-Q Master',
       subjectFilter: 'ALL_50',
       description: 'Comprehensive 50-Question Campus Placement Assessment covering Python, Java, C++, C, JavaScript, SQL, and Aptitude.',
       durationMins: 50,
       totalQuestionsCount: 50,
       icon: '🔥',
-      badgeColor: 'bg-amber-500 text-white'
+      iconImg: '/emojis/fire.png',
+      badgeColor: 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
     },
     {
       id: 'mod_python',
       title: 'Module 1: Python Programming & Scripting Module',
-      shortName: '🐍 Python (10 Qs)',
+      shortName: 'Python (10 Qs)',
       subjectFilter: 'Python',
       description: 'Test Python mutability, GIL, generators, decorators, and list comprehensions for software placement drives.',
       durationMins: 15,
       totalQuestionsCount: 10,
       icon: '🐍',
-      badgeColor: 'bg-emerald-500 text-white'
+      iconImg: '/emojis/coding.png',
+      badgeColor: 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
     },
     {
       id: 'mod_java',
       title: 'Module 2: Java & Object-Oriented Architecture Module',
-      shortName: '☕ Java (10 Qs)',
+      shortName: 'Java (10 Qs)',
       subjectFilter: 'Java',
       description: 'Master Java JVM Bytecode, Collections Framework, Multithreading, and String immutability.',
       durationMins: 15,
       totalQuestionsCount: 10,
       icon: '☕',
-      badgeColor: 'bg-indigo-500 text-white'
+      iconImg: '/emojis/compiler.png',
+      badgeColor: 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
     },
     {
       id: 'mod_cpp',
       title: 'Module 3: C++ Data Structures & Systems Module',
-      shortName: '⚡ C++ (8 Qs)',
+      shortName: 'C++ (8 Qs)',
       subjectFilter: 'C++',
       description: 'Practice Virtual Functions, VTABLE, RAII, Smart Pointers, and STL Map complexities.',
       durationMins: 15,
       totalQuestionsCount: 8,
       icon: '⚡',
-      badgeColor: 'bg-blue-500 text-white'
+      iconImg: '/emojis/daily-test.png',
+      badgeColor: 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
     },
     {
       id: 'mod_c',
       title: 'Module 4: C Language Pointers & Memory Management Module',
-      shortName: '🔧 C Lang (6 Qs)',
+      shortName: 'C Lang (6 Qs)',
       subjectFilter: 'C',
       description: 'Pointers, Dynamic Memory (malloc/calloc), Storage Classes, Struct Padding, and Undefined Behavior.',
       durationMins: 10,
       totalQuestionsCount: 6,
       icon: '🔧',
-      badgeColor: 'bg-violet-500 text-white'
+      iconImg: '/emojis/compiler.png',
+      badgeColor: 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
     },
     {
       id: 'mod_js',
       title: 'Module 5: JavaScript & Full Stack Web Architecture Module',
-      shortName: '🟨 JS & Web (6 Qs)',
+      shortName: 'JS & Web (6 Qs)',
       subjectFilter: 'JavaScript',
       description: 'Closures, Event Loop order, Promises, Hoisting, and strict equality coercions.',
       durationMins: 10,
       totalQuestionsCount: 6,
       icon: '🟨',
-      badgeColor: 'bg-yellow-500 text-slate-900'
+      iconImg: '/emojis/coding.png',
+      badgeColor: 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
     },
     {
       id: 'mod_sql',
       title: 'Module 6: SQL Databases & Relational Schema Module',
-      shortName: '🗄️ SQL DB (5 Qs)',
+      shortName: 'SQL DB (5 Qs)',
       subjectFilter: 'SQL',
       description: 'ACID transactions, Joins, Group By vs Having, B-Tree Indexes, and 1NF-3NF Normalization.',
       durationMins: 10,
       totalQuestionsCount: 5,
       icon: '🗄️',
-      badgeColor: 'bg-cyan-500 text-white'
+      iconImg: '/emojis/dashboard.png',
+      badgeColor: 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
     },
     {
       id: 'mod_apt',
       title: 'Module 7: Quantitative Aptitude & Logical Reasoning Module',
-      shortName: '🧮 Aptitude (5 Qs)',
+      shortName: 'Aptitude (5 Qs)',
       subjectFilter: 'Quantitative Aptitude',
       description: 'Speed-Time-Distance, Work-Time, Percentages, Series Completion, and Venn Diagrams.',
       durationMins: 10,
       totalQuestionsCount: 5,
       icon: '🧮',
-      badgeColor: 'bg-rose-500 text-white'
+      iconImg: '/emojis/target.png',
+      badgeColor: 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
     }
   ];
 
@@ -735,9 +744,9 @@ export default function DailyTestPage() {
 
                       <button
                         onClick={() => handleStartModuleTest(mod)}
-                        className="px-4 py-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-black uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+                        className="px-4 py-2 rounded-2xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-1.5"
                       >
-                        <Camera className="w-3.5 h-3.5 text-amber-300" /> Start Proctored Test
+                        <Camera className="w-3.5 h-3.5 text-blue-200" /> Start Proctored Test
                       </button>
                     </div>
                   </div>
@@ -750,13 +759,13 @@ export default function DailyTestPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-indigo-600" /> Select Daily Testing Module:
+                <h3 className="font-display text-base font-extrabold text-[#0f2942] flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-[#1e3a8a]" /> Select Daily Testing Module:
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Click any module to start a proctored assessment session.</p>
+                <p className="font-sans text-xs text-slate-500 mt-0.5">Click any module to start a proctored assessment session.</p>
               </div>
 
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+              <span className="font-mono text-xs font-bold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                 50 Total Questions Verified
               </span>
             </div>
@@ -765,37 +774,38 @@ export default function DailyTestPage() {
               {testingModules.map((mod) => (
                 <div
                   key={mod.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md hover-lift flex flex-col justify-between space-y-4 relative overflow-hidden"
+                  className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs hover:border-[#1e3a8a] transition-all flex flex-col justify-between space-y-4 relative overflow-hidden"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${mod.badgeColor}`}>
-                        {mod.shortName}
+                      <span className={`text-[10px] font-mono font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1.5 ${mod.badgeColor}`}>
+                        <img src={mod.iconImg || '/emojis/daily-test.png'} alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>{mod.shortName}</span>
                       </span>
-                      <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                      <span className="font-mono text-xs font-bold text-slate-400 flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" /> {mod.durationMins} Mins
                       </span>
                     </div>
 
-                    <h4 className="text-base font-extrabold text-slate-900 dark:text-white leading-snug">
+                    <h4 className="font-display text-base font-extrabold text-[#0f2942] leading-snug">
                       {mod.title}
                     </h4>
 
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+                    <p className="font-sans text-xs text-slate-600 font-medium leading-relaxed">
                       {mod.description}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-500">
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="font-mono font-bold text-slate-500">
                       {mod.totalQuestionsCount} Questions
                     </span>
 
                     <button
                       onClick={() => handleStartModuleTest(mod)}
-                      className="px-4 py-2 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-2xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-1.5"
                     >
-                      <Camera className="w-3.5 h-3.5" /> Start Module
+                      <Camera className="w-3.5 h-3.5 text-blue-200" /> Start Module
                     </button>
                   </div>
                 </div>
@@ -803,56 +813,62 @@ export default function DailyTestPage() {
             </div>
           </div>
 
-          {/* Camera Rules & 3-Strike Warning Banner */}
-          <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 rounded-3xl p-6 md:p-8 text-white shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-300">
+          {/* Camera Rules & 3-Strike Warning Banner - Dark Blue and White */}
+          <div className="bg-[#1e3a8a] border border-[#0f2942] rounded-3xl p-6 md:p-8 text-white shadow-sm space-y-4">
+            <div className="flex items-center gap-2 font-mono text-xs font-extrabold uppercase tracking-widest text-blue-200">
               <Camera className="w-4 h-4" /> Live Camera Stream & 3-Strike Violation Rules
             </div>
-            <h2 className="text-xl md:text-2xl font-black text-white">
+            <h2 className="font-display text-xl md:text-2xl font-black text-white tracking-tight">
               Strict 3-Warning Policy for Tab Switching & Out-of-Camera View
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-indigo-100 font-medium pt-2">
-              <div className="p-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20">
-                <strong className="block text-white font-bold mb-1">📹 1. Live Camera Stream</strong>
-                <span>Camera feed stays on throughout the exam for face tracking and presence verification.</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-medium pt-2">
+              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                <strong className="flex items-center gap-1.5 text-white font-bold mb-1 font-display text-sm">
+                  <img src="/emojis/dashboard.png" alt="" className="w-4 h-4 object-contain" /> 1. Live Camera Stream
+                </strong>
+                <span className="font-sans text-blue-100 text-xs">Camera feed stays on throughout the exam for face tracking and presence verification.</span>
               </div>
-              <div className="p-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20">
-                <strong className="block text-amber-300 font-bold mb-1">⚠️ 2. Maximum 3 Warnings</strong>
-                <span>Tab switching or stepping out of camera frame issues warnings #1 and #2.</span>
+              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                <strong className="flex items-center gap-1.5 text-white font-bold mb-1 font-display text-sm">
+                  <img src="/emojis/warning.png" alt="" className="w-4 h-4 object-contain" /> 2. Maximum 3 Warnings
+                </strong>
+                <span className="font-sans text-blue-100 text-xs">Tab switching or stepping out of camera frame issues warnings #1 and #2.</span>
               </div>
-              <div className="p-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20">
-                <strong className="block text-rose-300 font-bold mb-1">🚫 3. Automated Termination</strong>
-                <span>On the 3rd strike, your test is immediately terminated (0 marks) and sent to Placement Cell.</span>
+              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                <strong className="flex items-center gap-1.5 text-white font-bold mb-1 font-display text-sm">
+                  <img src="/emojis/prohibited.png" alt="" className="w-4 h-4 object-contain" /> 3. Automated Termination
+                </strong>
+                <span className="font-sans text-blue-100 text-xs">On the 3rd strike, your test is immediately terminated (0 marks) and sent to Placement Cell.</span>
               </div>
             </div>
           </div>
         </div>
       ) : isTerminated ? (
         /* TERMINATED SCREEN (3 Violations Exceeded) */
-        <div className="bg-white dark:bg-slate-900 border-2 border-rose-500 rounded-3xl p-6 md:p-10 shadow-2xl space-y-6 text-center">
-          <div className="inline-flex p-4 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400">
-            <UserX className="w-16 h-16 animate-bounce" />
+        <div className="bg-white border-2 border-rose-500 rounded-3xl p-6 md:p-10 shadow-sm space-y-6 text-center">
+          <div className="w-20 h-20 rounded-3xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto p-3">
+            <img src="/emojis/prohibited.png" alt="Terminated" className="w-full h-full object-contain" />
           </div>
 
           <div className="space-y-2">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-rose-600 bg-rose-100 dark:bg-rose-950 px-3 py-1 rounded-full border border-rose-200">
+            <span className="font-mono text-xs font-extrabold uppercase tracking-widest text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
               Proctoring Violation Limit Exceeded (3/3 Strikes)
             </span>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white mt-2">
+            <h2 className="font-display text-3xl font-black text-[#0f2942] mt-2">
               {activeModule?.title} Terminated
             </h2>
-            <p className="text-xs md:text-sm text-rose-600 dark:text-rose-400 max-w-xl mx-auto font-semibold leading-relaxed">
+            <p className="font-sans text-xs md:text-sm text-rose-600 max-w-xl mx-auto font-semibold leading-relaxed">
               {terminationReason}
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-slate-700 dark:text-slate-300 max-w-md mx-auto space-y-1 text-left font-medium">
-            <div className="font-bold text-rose-700 dark:text-rose-300 uppercase">Audit Log Entry Filed:</div>
-            <div>• Score Assigned: 0 / 100 Marks</div>
-            <div>• Student: {user.name} ({user.rollNumber || 'N/A'})</div>
-            <div>• Total Violation Strikes: {violationCount} / 3</div>
-            <div>• Primary Reason: {lastViolationType === 'CAMERA_ABSENCE' ? 'Out of Camera View' : 'Tab Switch Exit'}</div>
-            <div>• Reported To: Prof. Sunita Rao (Placement Coordinator)</div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 max-w-md mx-auto space-y-1 text-left font-sans font-medium">
+            <div className="font-mono font-bold text-[#0f2942] uppercase text-[11px]">Audit Log Entry Filed:</div>
+            <div>• Score Assigned: <strong>0 / 100 Marks</strong></div>
+            <div>• Student: <strong>{user.name}</strong> ({user.rollNumber || 'N/A'})</div>
+            <div>• Total Violation Strikes: <strong>{violationCount} / 3</strong></div>
+            <div>• Primary Reason: <strong>{lastViolationType === 'CAMERA_ABSENCE' ? 'Out of Camera View' : 'Tab Switch Exit'}</strong></div>
+            <div>• Reported To: <strong>Prof. Sunita Rao (Placement Coordinator)</strong></div>
           </div>
 
           <div>
@@ -862,7 +878,7 @@ export default function DailyTestPage() {
                 setIsTerminated(false);
                 setSubmittedResult(null);
               }}
-              className="px-6 py-3 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-extrabold uppercase tracking-wider hover:opacity-90 transition-all"
+              className="px-6 py-3.5 rounded-2xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all"
             >
               Return to Placement Testing Modules
             </button>
@@ -870,31 +886,36 @@ export default function DailyTestPage() {
         </div>
       ) : submittedResult ? (
         /* SUBMITTED TEST RESULT SCREEN */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                submittedResult.passed
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-rose-50 text-rose-700 border border-rose-200'
-              }`}>
-                {submittedResult.passed ? '🎉 PASSED MODULE BENCHMARK' : '⚠️ REMEDIAL PRACTICE RECOMMENDED'}
-              </span>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-2">
-                {activeModule?.title} Performance Summary
-              </h2>
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 p-2 flex items-center justify-center shrink-0">
+                <img src={submittedResult.passed ? '/emojis/trophy.png' : '/emojis/warning.png'} alt="" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <span className={`px-3 py-1 rounded-full font-mono text-xs font-bold ${
+                  submittedResult.passed
+                    ? 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
+                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                }`}>
+                  {submittedResult.passed ? 'PASSED MODULE BENCHMARK' : 'REMEDIAL PRACTICE RECOMMENDED'}
+                </span>
+                <h2 className="font-display text-2xl font-black text-[#0f2942] mt-1">
+                  {activeModule?.title} Performance Summary
+                </h2>
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <div className="text-[10px] uppercase font-extrabold text-slate-400">Score Achieved</div>
-                <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400">
+                <div className="font-mono text-[10px] uppercase font-extrabold text-slate-400">Score Achieved</div>
+                <div className="font-display text-3xl font-black text-[#1e3a8a]">
                   {submittedResult.score} / {submittedResult.totalMarks}
                 </div>
               </div>
-              <div className="text-right border-l border-slate-200 dark:border-slate-800 pl-4">
-                <div className="text-[10px] uppercase font-extrabold text-slate-400">Camera & Integrity</div>
-                <div className="text-xs font-bold text-emerald-600">
+              <div className="text-right border-l border-slate-200 pl-4">
+                <div className="font-mono text-[10px] uppercase font-extrabold text-slate-400">Camera & Integrity</div>
+                <div className="font-mono text-xs font-bold text-[#1e3a8a]">
                   {submittedResult.tabSwitchCount === 0 ? '100% Clean' : `${submittedResult.tabSwitchCount} Warning(s)`}
                 </div>
               </div>
@@ -966,7 +987,7 @@ export default function DailyTestPage() {
                 setIsTestActive(false);
                 setSubmittedResult(null);
               }}
-              className="px-6 py-3 rounded-2xl bg-indigo-600 text-white text-xs font-extrabold uppercase tracking-wider hover:bg-indigo-700 transition-all"
+              className="px-6 py-3.5 rounded-2xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all"
             >
               Back to Testing Modules
             </button>
@@ -974,17 +995,17 @@ export default function DailyTestPage() {
         </div>
       ) : (
         /* ACTIVE TEST EXECUTION MODULE SCREEN - TRUE FULLSCREEN PROCTORED TAKEOVER */
-        <div className="fixed inset-0 z-50 bg-slate-100 dark:bg-[#070b14] overflow-y-auto flex flex-col p-3 sm:p-5 md:p-6 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 bg-[#f8fafc] overflow-y-auto flex flex-col p-3 sm:p-5 md:p-6 animate-in fade-in duration-200">
           <div className="max-w-7xl w-full mx-auto space-y-4">
             {/* Top Bar for Proctored Fullscreen Session */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 shadow-md flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
                 <div>
-                  <div className="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                    Proctored Fullscreen Assessment
+                  <div className="font-mono text-[10px] font-extrabold uppercase tracking-wider text-[#1e3a8a]">
+                    Proctored Assessment Session
                   </div>
-                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white leading-tight">
+                  <h3 className="font-display text-sm font-extrabold text-[#0f2942] leading-tight">
                     {activeModule?.title || 'Daily Testing Assessment'}
                   </h3>
                 </div>
@@ -995,10 +1016,10 @@ export default function DailyTestPage() {
                 <button
                   type="button"
                   onClick={toggleBrowserFullscreen}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${
+                  className={`px-3 py-1.5 rounded-xl border font-sans text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs ${
                     isFullscreen
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
-                      : 'bg-amber-500 hover:bg-amber-600 text-slate-950 border-amber-500 font-extrabold animate-pulse'
+                      ? 'bg-blue-50 text-[#1e3a8a] border-blue-200'
+                      : 'bg-[#1e3a8a] hover:bg-[#0f2942] text-white border-[#1e3a8a] font-extrabold animate-pulse'
                   }`}
                   title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
                 >
@@ -1019,18 +1040,18 @@ export default function DailyTestPage() {
                 <div
                   className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-black flex items-center gap-1.5 ${
                     timerSeconds < 120
-                      ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 border border-rose-200 animate-pulse'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
+                      ? 'bg-rose-50 text-rose-600 border border-rose-200 animate-pulse'
+                      : 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
                   }`}
                 >
-                  <Clock className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <Clock className="w-3.5 h-3.5 text-[#1e3a8a]" />
                   <span>{formatTime(timerSeconds)}</span>
                 </div>
 
                 {/* Submit Button */}
                 <button
                   onClick={handleSubmitQuiz}
-                  className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded-xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Submit Exam</span>
@@ -1040,15 +1061,15 @@ export default function DailyTestPage() {
 
             {/* Non-Fullscreen Warning Notice Banner */}
             {!isFullscreen && (
-              <div className="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-amber-800 dark:text-amber-300 shadow-sm">
-                <div className="flex items-center gap-2 text-xs font-bold">
-                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 text-[#0f2942] shadow-xs">
+                <div className="flex items-center gap-2 font-sans text-xs font-bold">
+                  <AlertTriangle className="w-4 h-4 text-[#1e3a8a] shrink-0" />
                   <span>Proctoring Requirement: Please switch to Fullscreen mode to prevent accidental focus loss warnings.</span>
                 </div>
                 <button
                   type="button"
                   onClick={requestBrowserFullscreen}
-                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all shrink-0"
+                  className="px-3.5 py-1.5 rounded-xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs transition-all shrink-0"
                 >
                   <Maximize2 className="w-3.5 h-3.5" /> Enter Fullscreen
                 </button>
@@ -1057,21 +1078,21 @@ export default function DailyTestPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Left Column: Active Question Sheet */}
-          <div className="md:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
+          <div className="md:col-span-8 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
             {/* Module Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                <span className="font-mono text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-blue-50 text-[#1e3a8a] border border-blue-200">
                   Question {currentQuestionIdx + 1} of {activeTestQuestions.length}
                 </span>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300">
+                <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-slate-100 text-[#0f2942]">
                   {activeQ?.subject} • {activeQ?.topic}
                 </span>
               </div>
 
               {/* Timer */}
               <div className={`px-4 py-1.5 rounded-full font-mono text-sm font-black flex items-center gap-1.5 ${
-                timerSeconds < 120 ? 'bg-rose-50 text-rose-600 animate-pulse border border-rose-200' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                timerSeconds < 120 ? 'bg-rose-50 text-rose-600 animate-pulse border border-rose-200' : 'bg-blue-50 text-[#1e3a8a] border border-blue-200'
               }`}>
                 <Clock className="w-4 h-4" /> {formatTime(timerSeconds)}
               </div>
@@ -1080,7 +1101,7 @@ export default function DailyTestPage() {
             {/* Active Question Body */}
             {activeQ && (
               <div className="space-y-6">
-                <div className="text-base md:text-lg font-bold text-slate-900 dark:text-white leading-relaxed whitespace-pre-line">
+                <div className="font-display text-base md:text-lg font-bold text-[#0f2942] leading-relaxed whitespace-pre-line">
                   {activeQ.questionText}
                 </div>
 
@@ -1106,17 +1127,17 @@ export default function DailyTestPage() {
                         }
                         className={`w-full p-4 rounded-2xl border text-left text-xs md:text-sm font-semibold transition-all flex items-center justify-between ${
                           isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                            : 'bg-slate-50 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-400'
+                            ? 'bg-[#1e3a8a] text-white border-[#1e3a8a] shadow-xs'
+                            : 'bg-slate-50 text-slate-800 border-slate-200 hover:border-[#1e3a8a]'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs ${
-                            isSelected ? 'bg-white text-indigo-700' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                          <span className={`w-7 h-7 rounded-xl font-mono flex items-center justify-center font-black text-xs ${
+                            isSelected ? 'bg-white text-[#1e3a8a]' : 'bg-slate-200 text-slate-700'
                           }`}>
                             {opt.key}
                           </span>
-                          <span>{opt.text}</span>
+                          <span className="font-sans">{opt.text}</span>
                         </div>
                         {isSelected && <Check className="w-5 h-5 text-white" />}
                       </button>
@@ -1127,12 +1148,12 @@ export default function DailyTestPage() {
             )}
 
             {/* Navigation & Submission Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200">
               <div className="flex items-center gap-2">
                 <button
                   disabled={currentQuestionIdx === 0}
                   onClick={() => setCurrentQuestionIdx((prev) => prev - 1)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 disabled:opacity-40"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 font-sans text-xs font-bold text-slate-700 disabled:opacity-40 hover:bg-slate-50"
                 >
                   Previous
                 </button>
@@ -1144,10 +1165,10 @@ export default function DailyTestPage() {
                       [activeQ.id]: !prev[activeQ.id]
                     }))
                   }
-                  className={`px-4 py-2.5 rounded-xl border text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                  className={`px-4 py-2.5 rounded-xl border font-sans text-xs font-extrabold flex items-center gap-1.5 transition-all ${
                     markedForReview[activeQ.id]
-                      ? 'bg-amber-500 text-white border-amber-500'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                      ? 'bg-[#1e3a8a] text-white border-[#1e3a8a]'
+                      : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                   }`}
                 >
                   <Bookmark className="w-4 h-4" />
@@ -1158,7 +1179,7 @@ export default function DailyTestPage() {
               {currentQuestionIdx < activeTestQuestions.length - 1 ? (
                 <button
                   onClick={() => setCurrentQuestionIdx((prev) => prev + 1)}
-                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-md transition-all flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-2"
                 >
                   <span>Next Question</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1166,7 +1187,7 @@ export default function DailyTestPage() {
               ) : (
                 <button
                   onClick={handleSubmitQuiz}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-md transition-all flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Submit Module Test</span>
@@ -1178,10 +1199,10 @@ export default function DailyTestPage() {
           {/* Right Column: Question Palette & Live Camera Stream Box */}
           <div className="md:col-span-4 space-y-4">
             {/* Question Palette */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-extrabold text-slate-900 dark:text-white">
-                <span>Question Palette</span>
-                <span className="text-[11px] text-indigo-600">{answeredCount} / {activeTestQuestions.length} Answered</span>
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2 text-xs font-extrabold text-[#0f2942]">
+                <span className="font-display">Question Palette</span>
+                <span className="font-mono text-[11px] text-[#1e3a8a] font-bold">{answeredCount} / {activeTestQuestions.length} Answered</span>
               </div>
 
               <div className="grid grid-cols-5 gap-2 max-h-[180px] overflow-y-auto pr-1">
@@ -1190,16 +1211,16 @@ export default function DailyTestPage() {
                   const isRev = !!markedForReview[q.id];
                   const isCurr = currentQuestionIdx === idx;
 
-                  let btnBg = 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
-                  if (isAns) btnBg = 'bg-emerald-600 text-white border-emerald-600 font-bold';
-                  if (isRev) btnBg = 'bg-amber-500 text-white border-amber-500 font-bold';
-                  if (isCurr) btnBg = 'bg-indigo-600 text-white ring-2 ring-indigo-400 font-black';
+                  let btnBg = 'bg-slate-100 text-slate-700 border-slate-200';
+                  if (isAns) btnBg = 'bg-[#1e3a8a] text-white border-[#1e3a8a] font-bold';
+                  if (isRev) btnBg = 'bg-slate-800 text-white border-slate-800 font-bold';
+                  if (isCurr) btnBg = 'bg-blue-50 text-[#1e3a8a] ring-2 ring-[#1e3a8a] font-black';
 
                   return (
                     <button
                       key={q.id}
                       onClick={() => setCurrentQuestionIdx(idx)}
-                      className={`h-9 rounded-xl border text-xs flex items-center justify-center transition-all ${btnBg}`}
+                      className={`h-9 rounded-xl border font-mono text-xs flex items-center justify-center transition-all ${btnBg}`}
                     >
                       {idx + 1}
                     </button>
@@ -1207,33 +1228,33 @@ export default function DailyTestPage() {
                 })}
               </div>
 
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] grid grid-cols-2 gap-2 text-slate-500 font-medium">
+              <div className="pt-2 border-t border-slate-100 text-[10px] grid grid-cols-2 gap-2 text-slate-500 font-medium">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> Answered ({answeredCount})
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#1e3a8a]"></span> Answered ({answeredCount})
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Review ({reviewCount})
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-800"></span> Review ({reviewCount})
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></span> Unanswered ({activeTestQuestions.length - answeredCount})
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Unanswered ({activeTestQuestions.length - answeredCount})
                 </div>
               </div>
             </div>
 
             {/* LIVE CAMERA STREAM & OUT-OF-FRAME PROCTORING BOX */}
-            <div className="bg-slate-950 border border-slate-800 rounded-3xl p-4 shadow-xl space-y-3 relative overflow-hidden">
+            <div className="bg-[#0f172a] border border-slate-800 rounded-3xl p-4 shadow-xs space-y-3 relative overflow-hidden">
               <div className="flex items-center justify-between text-xs text-white font-bold border-b border-slate-800 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className={`w-2.5 h-2.5 rounded-full ${isFaceDetected ? 'bg-emerald-500 animate-ping' : 'bg-rose-500 animate-bounce'}`}></span>
-                  <span className={`uppercase tracking-widest text-[10px] ${isFaceDetected ? 'text-emerald-400' : 'text-rose-400 font-black'}`}>
-                    {isFaceDetected ? 'Camera Stream Active' : '⚠️ OUT OF CAMERA VIEW'}
+                  <span className={`w-2.5 h-2.5 rounded-full ${isFaceDetected ? 'bg-emerald-400 animate-ping' : 'bg-rose-500 animate-bounce'}`}></span>
+                  <span className={`uppercase tracking-widest text-[10px] font-mono ${isFaceDetected ? 'text-emerald-400' : 'text-rose-400 font-black'}`}>
+                    {isFaceDetected ? 'Camera Stream Active' : 'OUT OF CAMERA VIEW'}
                   </span>
                 </div>
                 <Camera className="w-4 h-4 text-slate-400" />
               </div>
 
               {/* Video Element & Real-Time Target Mesh */}
-              <div className="relative aspect-video rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden flex items-center justify-center">
+              <div className="relative aspect-video rounded-2xl bg-black border border-slate-800 overflow-hidden flex items-center justify-center">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -1252,7 +1273,7 @@ export default function DailyTestPage() {
                     {isFaceDetected ? <Eye className="w-8 h-8 text-emerald-400/70" /> : <EyeOff className="w-8 h-8 text-rose-500" />}
                   </div>
                   <span className={`mt-2 text-[9px] font-mono px-2 py-0.5 rounded border ${isFaceDetected ? 'text-emerald-400 bg-black/80 border-emerald-500/30' : 'text-rose-400 bg-rose-950 border-rose-500'}`}>
-                    {isFaceDetected ? 'AI FACE PRESENCE • OK' : '⚠️ OUT OF CAMERA FRAME'}
+                    {isFaceDetected ? 'AI FACE PRESENCE • OK' : 'OUT OF CAMERA FRAME'}
                   </span>
                 </div>
 
@@ -1271,11 +1292,11 @@ export default function DailyTestPage() {
               </button>
 
               <div className="p-3 rounded-2xl bg-rose-950/50 border border-rose-800/80 text-xs space-y-1">
-                <div className="font-extrabold text-rose-400 flex items-center justify-between text-[11px]">
+                <div className="font-extrabold text-rose-400 flex items-center justify-between text-[11px] font-mono">
                   <span>Violation Warnings (Max 3):</span>
                   <span className="text-sm font-black text-rose-300">{violationCount} / 3</span>
                 </div>
-                <div className="text-[10px] text-slate-300">
+                <div className="text-[10px] text-slate-300 font-sans">
                   {3 - violationCount} warning(s) remaining before automatic exam termination!
                 </div>
               </div>
@@ -1289,38 +1310,38 @@ export default function DailyTestPage() {
       {/* STRICT 3-WARNING MODAL (TAB SWITCH OR OUT OF CAMERA VIEW) */}
       {showWarningModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border-2 border-rose-500 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5 text-center">
-            <div className="inline-flex p-3.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-600">
-              <AlertTriangle className="w-10 h-10 animate-bounce text-rose-600" />
+          <div className="bg-white border-2 border-rose-500 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-5 text-center">
+            <div className="w-16 h-16 rounded-3xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto p-3">
+              <img src="/emojis/warning.png" alt="Warning" className="w-full h-full object-contain animate-bounce" />
             </div>
 
             <div className="space-y-2">
-              <span className="text-xs font-black uppercase tracking-widest text-rose-600 bg-rose-100 dark:bg-rose-950 px-3 py-1 rounded-full border border-rose-300">
-                ⚠️ PROCTORING WARNING ({violationCount} / 3 STRIKES)
+              <span className="font-mono text-xs font-black uppercase tracking-widest text-rose-600 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+                PROCTORING WARNING ({violationCount} / 3 STRIKES)
               </span>
 
-              <h3 className="text-xl font-black text-slate-900 dark:text-white mt-2">
+              <h3 className="font-display text-xl font-black text-[#0f2942] mt-2">
                 {lastViolationType === 'CAMERA_ABSENCE' ? 'Out of Camera View Detected!' : 'Tab Switch Exit Detected!'}
               </h3>
 
-              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed pt-1">
+              <p className="font-sans text-xs text-slate-600 font-medium leading-relaxed pt-1">
                 {lastViolationType === 'CAMERA_ABSENCE'
                   ? 'You moved away from the camera or your face was not detected in the video frame.'
                   : 'You switched tabs, minimized the browser, or clicked away from the proctored test window.'}
               </p>
 
-              <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 font-bold">
+              <div className="p-3 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-[#0f2942] font-bold">
                 {violationCount === 1 ? (
-                  <span>⚠️ Warning 1 of 3: You have <strong>2 warnings remaining</strong> before automatic termination.</span>
+                  <span>Warning 1 of 3: You have <strong>2 warnings remaining</strong> before automatic termination.</span>
                 ) : (
-                  <span className="text-rose-600 font-black">🚨 Warning 2 of 3: FINAL WARNING! Next violation will terminate your test with 0 marks!</span>
+                  <span className="text-rose-600 font-black">Warning 2 of 3: FINAL WARNING! Next violation will terminate your test with 0 marks!</span>
                 )}
               </div>
             </div>
 
             <button
               onClick={() => setShowWarningModal(false)}
-              className="w-full py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-lg transition-all"
+              className="w-full py-3.5 rounded-2xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all"
             >
               I Understand — Return to Exam Immediately
             </button>
@@ -1331,18 +1352,18 @@ export default function DailyTestPage() {
       {/* MANDATORY FULLSCREEN LOCK SCREEN (COVERS BROWSER TABS & ENFORCES F11 FULLSCREEN) */}
       {isTestActive && !isFullscreen && !submittedResult && !isTerminated && (
         <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center text-white space-y-6 animate-in fade-in duration-200">
-          <div className="w-20 h-20 rounded-3xl bg-indigo-600/20 border-2 border-indigo-500/40 flex items-center justify-center text-indigo-400 shadow-2xl">
-            <Maximize2 className="w-10 h-10 animate-bounce" />
+          <div className="w-20 h-20 rounded-3xl bg-white/10 border-2 border-white/20 flex items-center justify-center p-4 shadow-2xl">
+            <img src="/emojis/shield.png" alt="Security" className="w-full h-full object-contain" />
           </div>
 
           <div className="max-w-lg space-y-2">
-            <span className="text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+            <span className="font-mono text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-blue-500/20 text-blue-200 border border-blue-500/30">
               Exam Security & Anti-Cheating Protocol
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-2">
+            <h2 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-white mt-2">
               Fullscreen Mode Required
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
+            <p className="font-sans text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
               To hide browser tabs and ensure an uninterrupted proctored exam, click the button below to expand into Fullscreen mode.
             </p>
           </div>
@@ -1350,13 +1371,13 @@ export default function DailyTestPage() {
           <button
             type="button"
             onClick={requestBrowserFullscreen}
-            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-extrabold uppercase tracking-wider text-xs sm:text-sm shadow-2xl transition-all flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"
+            className="px-8 py-4 rounded-2xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans font-extrabold uppercase tracking-wider text-xs sm:text-sm shadow-2xl transition-all flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer"
           >
             <Maximize2 className="w-5 h-5" /> Click Here to Enter Fullscreen Mode
           </button>
 
-          <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800">
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
+          <div className="flex items-center gap-2 text-[11px] text-slate-300 bg-white/10 px-4 py-2 rounded-xl border border-white/10">
+            <ShieldAlert className="w-4 h-4 text-blue-300" />
             <span>Browser tabs, URL bars, and desktop icons will be completely hidden.</span>
           </div>
         </div>
