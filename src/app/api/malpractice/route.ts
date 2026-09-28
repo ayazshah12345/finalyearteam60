@@ -190,6 +190,28 @@ export async function POST(req: Request) {
     const body = await req.json();
     const supabase = getSupabaseClient();
 
+    if (body.action === 'CLEAR_ALL') {
+      dbStore.clearAllMalpracticeIncidents();
+      try {
+        await supabase
+          .from('AuditLog')
+          .delete()
+          .eq('action', 'MALPRACTICE_RECORDED');
+      } catch (e) {
+        console.warn('Supabase clear error:', e);
+      }
+      try {
+        await prisma.auditLog.deleteMany({
+          where: { action: 'MALPRACTICE_RECORDED' }
+        });
+      } catch (pe) {}
+
+      return NextResponse.json(
+        { success: true, message: 'All malpractice incidents cleared', unnotedCount: 0 },
+        { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+      );
+    }
+
     if (body.action === 'MARK_NOTED') {
       dbStore.markAllMalpracticeNoted();
       const nowIso = new Date().toISOString();
@@ -437,3 +459,35 @@ export async function PATCH(req: Request) {
     );
   }
 }
+
+export async function DELETE() {
+  try {
+    const supabase = getSupabaseClient();
+    dbStore.clearAllMalpracticeIncidents();
+    try {
+      await supabase
+        .from('AuditLog')
+        .delete()
+        .eq('action', 'MALPRACTICE_RECORDED');
+    } catch (e) {
+      console.warn('Supabase clear error:', e);
+    }
+    try {
+      await prisma.auditLog.deleteMany({
+        where: { action: 'MALPRACTICE_RECORDED' }
+      });
+    } catch (pe) {}
+
+    return NextResponse.json(
+      { success: true, message: 'All malpractice incidents cleared', unnotedCount: 0 },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    );
+  } catch (err: any) {
+    console.error('Failed to clear malpractice incidents:', err);
+    return NextResponse.json(
+      { error: 'Failed to clear malpractice incidents' },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } }
+    );
+  }
+}
+

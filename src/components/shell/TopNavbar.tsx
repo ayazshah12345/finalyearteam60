@@ -13,20 +13,15 @@ interface TopNavbarProps {
 }
 
 export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
-  const [darkMode, setDarkMode] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     fetchUnreadNotifications();
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('vsb_theme') : null;
-    if (saved === 'dark' || (!saved && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      setDarkMode(false);
+    if (typeof window !== 'undefined') {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('vsb_theme', 'light');
     }
   }, []);
 
@@ -40,43 +35,31 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
     }
   };
 
-  const toggleTheme = () => {
-    const nextMode = !darkMode;
-    setDarkMode(nextMode);
-    if (nextMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('vsb_theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('vsb_theme', 'light');
-    }
-  };
-
   return (
     <>
-      <header className="h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+      <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <div className="flex items-center gap-2">
           {/* Mobile Hamburger Menu Toggle */}
           {onToggleMobileMenu && (
             <button
               onClick={onToggleMobileMenu}
-              className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              className="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-all"
               title="Open Navigation Menu"
             >
-              <Menu className="w-5 h-5 text-indigo-600" />
+              <Menu className="w-5 h-5 text-[#1e3a8a]" />
             </button>
           )}
 
           {/* Global Search Bar Trigger */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 rounded-xl bg-slate-100/80 hover:bg-slate-100 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 text-xs transition-all w-44 sm:w-64 md:w-80 justify-between shadow-xs"
+            className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-800 text-xs transition-all w-44 sm:w-64 md:w-80 justify-between shadow-xs"
           >
             <div className="flex items-center gap-2 truncate">
-              <Search className="w-4 h-4 text-indigo-500 shrink-0" />
+              <Search className="w-4 h-4 text-[#1e3a8a] shrink-0" />
               <span className="font-medium truncate">Search...</span>
             </div>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-600 shadow-xs">
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-white text-slate-500 rounded border border-slate-200 shadow-xs">
               Ctrl K
             </kbd>
           </button>
@@ -87,31 +70,22 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
           {/* Notifications Button */}
           <button
             onClick={() => setNotificationsOpen(true)}
-            className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 transition-all"
+            className="relative p-2 rounded-xl text-slate-600 hover:bg-blue-50 hover:text-[#1e3a8a] transition-all"
             title="Notifications"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-extrabold text-white shadow-xs">
+              <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#1e3a8a] text-[10px] font-extrabold text-white shadow-xs">
                 {unreadCount}
               </span>
             )}
           </button>
 
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-slate-800 hover:text-amber-600 transition-all"
-            title="Toggle Light / Dark Mode"
-          >
-            {darkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-600" />}
-          </button>
-
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+          <div className="h-6 w-px bg-slate-200 mx-1"></div>
 
           {/* User Profile Summary & Login Link */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-white p-0.5 border-2 border-indigo-500/40 shadow-xs flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-white p-0.5 border-2 border-[#1e3a8a]/40 shadow-xs flex items-center justify-center shrink-0">
               <img
                 src={user.role === 'STUDENT' ? '/vsb-logo.png' : (user.avatarUrl || '/vsb-logo.png')}
                 alt={user.name}
@@ -119,8 +93,8 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
               />
             </div>
             <div className="hidden md:block text-left">
-              <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{user.name}</div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              <div className="text-xs font-bold text-slate-900 leading-tight">{user.name}</div>
+              <div className="text-[10px] text-slate-500 font-medium">
                 {user.role === 'STUDENT' ? `Roll: ${user.rollNumber}` : user.department}
               </div>
             </div>
@@ -129,14 +103,14 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
               <>
                 <a
                   href="/faculty"
-                  className="ml-1 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold transition-all flex items-center gap-1.5"
+                  className="ml-1 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#1e3a8a] border border-blue-200 text-xs font-bold transition-all flex items-center gap-1.5"
                   title="Faculty Command Desk"
                 >
                   <span>Faculty Desk</span>
                 </a>
                 <a
                   href="/coordinator"
-                  className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold transition-all flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5"
                   title="Placement Coordinator Desk"
                 >
                   <span>Coordinator Desk</span>
@@ -152,7 +126,7 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
                 clearSession();
                 window.location.href = '/login';
               }}
-              className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />

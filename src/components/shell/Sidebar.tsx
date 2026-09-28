@@ -90,12 +90,18 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
       fetchMalpracticeCount();
     };
 
+    const handleClearedEvent = () => {
+      setMalpracticeBadgeCount(0);
+    };
+
     window.addEventListener('malpracticeNoted', handleNotedEvent);
+    window.addEventListener('malpracticeCleared', handleClearedEvent);
     window.addEventListener('malpracticeLogged', handleLoggedEvent);
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('malpracticeNoted', handleNotedEvent);
+      window.removeEventListener('malpracticeCleared', handleClearedEvent);
       window.removeEventListener('malpracticeLogged', handleLoggedEvent);
     };
   }, [user.role, pathname]);
@@ -135,7 +141,7 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed md:sticky top-0 z-50 md:z-40 h-screen w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex flex-col justify-between transition-transform duration-300 shadow-xl md:shadow-none ${
+        className={`fixed md:sticky top-0 z-50 md:z-40 h-screen w-64 bg-white border-r border-slate-200 text-slate-700 flex flex-col justify-between transition-transform duration-300 shadow-xl md:shadow-none ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
@@ -143,20 +149,20 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
           {/* Platform Brand */}
           <div className="flex items-center justify-between px-2 py-1">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white p-0.5 border border-amber-400/60 shadow-md flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-white p-0.5 border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
                 <img src="/vsb-logo.png" alt="VSB Logo" className="w-full h-full object-contain" />
               </div>
               <div>
-                <div className="flex items-center gap-1 font-extrabold text-slate-900 dark:text-white text-sm tracking-tight">
-                  VSB COLLEGE <span className="text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-mono font-extrabold">ERP</span>
+                <div className="flex items-center gap-1 font-extrabold text-[#0f2942] text-sm tracking-tight">
+                  VSB COLLEGE <span className="text-[9px] bg-blue-50 text-[#1e3a8a] border border-blue-200 px-1.5 py-0.5 rounded font-mono font-extrabold">ERP</span>
                 </div>
-                <div className="text-[9px] text-amber-600 dark:text-amber-400 uppercase tracking-widest font-extrabold truncate">VSB Engineering College</div>
+                <div className="text-[9px] text-[#1e3a8a] uppercase tracking-widest font-extrabold truncate">VSB Engineering College</div>
               </div>
             </div>
             {onCloseMobile && (
               <button
                 onClick={onCloseMobile}
-                className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -164,8 +170,8 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
           </div>
 
           {/* Current Active Persona Info Card */}
-          <div className="bg-gradient-to-br from-indigo-50/70 via-blue-50/50 to-white dark:from-slate-800/80 dark:to-slate-800/50 border border-indigo-100/90 dark:border-slate-700/80 rounded-2xl p-3 flex items-center gap-3 shadow-xs">
-            <div className="w-10 h-10 rounded-xl bg-white p-1 border-2 border-indigo-500/30 shadow-sm flex items-center justify-center shrink-0">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex items-center gap-3 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-white p-1 border-2 border-slate-200 shadow-xs flex items-center justify-center shrink-0">
               <img
                 src={user.role === 'STUDENT' ? '/vsb-logo.png' : (user.avatarUrl || '/vsb-logo.png')}
                 alt={user.name}
@@ -173,13 +179,13 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
               />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate font-medium">{user.department}</div>
+              <div className="text-xs font-bold text-slate-900 truncate">{user.name}</div>
+              <div className="text-[10px] text-slate-500 truncate font-medium">{user.department}</div>
               <div className="mt-1 flex items-center gap-1">
                 <span className={`text-[9px] px-2 py-0.5 rounded-md font-extrabold uppercase tracking-wider ${
-                  user.role === 'STUDENT' ? 'bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-900/40 dark:text-blue-300' :
-                  user.role === 'FACULTY' ? 'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-300' :
-                  'bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300'
+                  user.role === 'STUDENT' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
+                  user.role === 'FACULTY' ? 'bg-slate-100 text-slate-800 border border-slate-300' :
+                  'bg-emerald-100 text-emerald-800 border border-emerald-200'
                 }`}>
                   {user.role}
                 </span>
@@ -189,7 +195,7 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
 
           {/* Navigation Items */}
           <nav className="space-y-1">
-            <div className="px-2 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Navigation</div>
+            <div className="px-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Navigation</div>
             {mainNav.map((item) => {
               const Icon = item.icon;
               const isActive =
@@ -212,8 +218,8 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
                   }}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-200/60 dark:shadow-none'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
+                      ? 'bg-[#1e3a8a] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-[#1e3a8a] hover:bg-blue-50/70'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -242,16 +248,16 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
         </div>
 
         {/* Footer / Audit Logs Link */}
-        <div className="p-4 border-t border-slate-200/80 dark:border-slate-800 space-y-2">
+        <div className="p-4 border-t border-slate-200 space-y-2">
           <Link
             href="/audit"
             onClick={onCloseMobile}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-[#1e3a8a] hover:bg-blue-50/60 transition-all"
           >
             <ShieldAlert className="w-4 h-4 text-slate-400" />
             <span>Security & Audit Log</span>
           </Link>
-          <div className="text-[10px] text-slate-400 dark:text-slate-500 px-3 text-center font-medium">
+          <div className="text-[10px] text-slate-400 px-3 text-center font-medium">
             Engineering College Edition
           </div>
         </div>

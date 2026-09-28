@@ -700,6 +700,12 @@ class DatabaseStore {
     }
     return false;
   }
+
+  public clearAllMalpracticeIncidents(): void {
+    this.data.malpracticeIncidents = [];
+    this.data.lastMalpracticeNotedAt = new Date().toISOString();
+    this.saveData();
+  }
 }
 
 export const dbStore = new DatabaseStore();
