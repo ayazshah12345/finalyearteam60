@@ -93,8 +93,8 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
               />
             </div>
             <div className="hidden md:block text-left">
-              <div className="text-xs font-bold text-slate-900 leading-tight">{user.name}</div>
-              <div className="text-[10px] text-slate-500 font-medium">
+              <div className="font-display text-xs font-bold text-[#0f2942] leading-tight">{user.name}</div>
+              <div className="font-mono text-[10px] text-slate-500 font-semibold">
                 {user.role === 'STUDENT' ? `Roll: ${user.rollNumber}` : user.department}
               </div>
             </div>

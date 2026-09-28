@@ -153,10 +153,10 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
                 <img src="/vsb-logo.png" alt="VSB Logo" className="w-full h-full object-contain" />
               </div>
               <div>
-                <div className="flex items-center gap-1 font-extrabold text-[#0f2942] text-sm tracking-tight">
-                  VSB COLLEGE <span className="text-[9px] bg-blue-50 text-[#1e3a8a] border border-blue-200 px-1.5 py-0.5 rounded font-mono font-extrabold">ERP</span>
+                <div className="flex items-center gap-1 font-cinzel font-black text-[#0f2942] text-sm tracking-wider">
+                  VSB COLLEGE <span className="text-[9px] bg-blue-50 text-[#1e3a8a] border border-blue-200 px-1.5 py-0.2 rounded font-mono font-black">ERP</span>
                 </div>
-                <div className="text-[9px] text-[#1e3a8a] uppercase tracking-widest font-extrabold truncate">VSB Engineering College</div>
+                <div className="text-[9.5px] text-[#1e3a8a] font-serif italic font-bold tracking-tight truncate">Karur, Tamil Nadu</div>
               </div>
             </div>
             {onCloseMobile && (
@@ -179,10 +179,10 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
               />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-slate-900 truncate">{user.name}</div>
-              <div className="text-[10px] text-slate-500 truncate font-medium">{user.department}</div>
+              <div className="font-display text-xs font-bold text-[#0f2942] truncate">{user.name}</div>
+              <div className="font-sans text-[10px] text-slate-500 truncate font-medium">{user.department}</div>
               <div className="mt-1 flex items-center gap-1">
-                <span className={`text-[9px] px-2 py-0.5 rounded-md font-extrabold uppercase tracking-wider ${
+                <span className={`font-mono text-[9px] px-2 py-0.5 rounded-md font-extrabold uppercase tracking-wider ${
                   user.role === 'STUDENT' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
                   user.role === 'FACULTY' ? 'bg-slate-100 text-slate-800 border border-slate-300' :
                   'bg-emerald-100 text-emerald-800 border border-emerald-200'

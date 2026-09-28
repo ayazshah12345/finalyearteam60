@@ -157,7 +157,7 @@ export default function DashboardPage() {
         {/* ========================================================================= */}
         <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center p-1.5">
           {/* Static Live Badge on the Left */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#1e3a8a] text-white font-black text-[11px] uppercase tracking-wider shrink-0 z-10 shadow-xs">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#1e3a8a] text-white font-cinzel font-black text-[11px] uppercase tracking-wider shrink-0 z-10 shadow-xs">
             <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
             <span className="flex items-center gap-1.5">
               <Award className="w-3.5 h-3.5" />
@@ -167,28 +167,28 @@ export default function DashboardPage() {
 
           {/* Marquee Moving Content */}
           <div className="overflow-hidden w-full relative flex items-center select-none py-1">
-            <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-extrabold tracking-wider">
+            <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-semibold tracking-wider">
               {[1, 2, 3, 4].map((idx) => (
                 <span key={idx} className="flex items-center gap-8">
-                  <span className="flex items-center gap-2 text-[#0f2942] uppercase font-black tracking-widest text-xs">
+                  <span className="flex items-center gap-2 text-[#0f2942] uppercase tracking-wider text-xs">
                     <span className="text-[#1e3a8a]">🏛️</span>
-                    <span className="text-[#1e3a8a] font-black">
+                    <span className="text-[#1e3a8a] font-cinzel font-extrabold tracking-widest text-xs">
                       VSB ENGINEERING COLLEGE
                     </span>
-                    <span className="text-slate-400">—</span>
-                    <span className="text-[#0f2942] font-black">
-                      A PLACE FOR PLACEMENT
+                    <span className="text-slate-300">—</span>
+                    <span className="text-[#0f2942] font-serif italic font-bold text-sm tracking-normal">
+                      A Place For Placement
                     </span>
                   </span>
 
-                  <span className="text-[#1e3a8a] font-black">✦</span>
+                  <span className="text-[#1e3a8a] font-bold text-xs">✦</span>
 
-                  <span className="flex items-center gap-2 text-slate-700 font-bold uppercase text-[11px] tracking-wider">
+                  <span className="flex items-center gap-2 text-slate-700 font-sans font-semibold uppercase text-[11px] tracking-wider">
                     <Sparkles className="w-3.5 h-3.5 text-[#1e3a8a]" />
                     <span>Top Tier-1 Recruiters • High CTC Opportunities • 100% Placement Record</span>
                   </span>
 
-                  <span className="text-[#1e3a8a] font-black">✦</span>
+                  <span className="text-[#1e3a8a] font-bold text-xs">✦</span>
                 </span>
               ))}
             </div>
@@ -199,24 +199,24 @@ export default function DashboardPage() {
         <div className="bg-[#1e3a8a] border border-[#172554] rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xs">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-white/10 border border-white/20 text-white">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest bg-white/10 border border-white/20 text-blue-100">
                 <Sparkles className="w-3.5 h-3.5 text-white" /> VSB CAMPUS INTELLIGENCE • STUDENT PORTAL
               </div>
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-2 text-white font-serif">
+              <h1 className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight mt-2 text-white">
                 Welcome, {user.name} 👋
               </h1>
-              <p className="text-xs md:text-sm text-blue-100 mt-2 max-w-xl font-medium">
+              <p className="text-xs md:text-sm text-blue-100 mt-2 max-w-xl font-sans font-normal leading-relaxed">
                 {user.department} • Semester {user.semester || 6} • Roll Number: <span className="font-mono bg-white/15 text-white border border-white/30 px-2 py-0.5 rounded font-bold">{user.rollNumber || '21CS104'}</span>
               </p>
               <div className="mt-3.5 flex items-center gap-2 flex-wrap">
                 <Link
                   href="/profile"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#1e3a8a] text-xs font-black transition-all shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#1e3a8a] text-xs font-sans font-extrabold uppercase tracking-wider transition-all shadow-xs"
                 >
                   <GraduationCap className="w-3.5 h-3.5" />
                   <span>Update Academic Profile &amp; CGPA</span>
                 </Link>
-                <span className="text-[11px] text-white font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+                <span className="text-[11px] text-white font-mono font-semibold bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
                   🏛️ VSB Karur Campus
                 </span>
               </div>
@@ -225,10 +225,10 @@ export default function DashboardPage() {
             {/* XP Widget */}
             <div className="flex items-center gap-3">
               <div className="bg-white/10 border border-white/20 rounded-2xl px-5 py-3 text-center shadow-xs">
-                <div className="flex items-center justify-center gap-1 text-white text-xs font-black uppercase tracking-wider">
+                <div className="flex items-center justify-center gap-1 text-blue-200 text-xs font-mono font-bold uppercase tracking-wider">
                   <Zap className="w-4 h-4 fill-white" /> SGIP XP
                 </div>
-                <div className="text-2xl font-black text-white mt-0.5 font-mono">2,450 XP</div>
+                <div className="text-3xl font-display font-black text-white mt-0.5 tracking-tight">2,450 XP</div>
               </div>
             </div>
           </div>
@@ -238,8 +238,11 @@ export default function DashboardPage() {
         {/* VSB STUDENT DASHBOARD TOOLKIT CARDS (5 STUDENT TOOLS) */}
         {/* ---------------------------------------------------- */}
         <div className="space-y-4">
-          <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#1e3a8a]" /> VSB Student Platform Quick Tools
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg sm:text-xl font-display font-extrabold text-[#0f2942] tracking-tight flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-[#1e3a8a]" /> VSB Student Platform Quick Tools
+            </h2>
+            <span className="text-[11px] font-mono text-slate-500 font-semibold uppercase tracking-wider">5 Integrated Systems</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
@@ -252,10 +255,10 @@ export default function DashboardPage() {
                 <Code2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">LeetCode Coding Practice</h3>
-                <p className="text-xs text-slate-600 mt-1">Connect profile, solve DSA problems, and track solved counts.</p>
+                <h3 className="text-base font-display font-bold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">LeetCode Practice</h3>
+                <p className="text-xs font-sans text-slate-600 mt-1 leading-relaxed">Connect profile, solve DSA problems, and track solved counts.</p>
               </div>
-              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
+              <div className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#1e3a8a] flex items-center gap-1">
                 <span>Start Practice</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -269,10 +272,10 @@ export default function DashboardPage() {
                 <UserCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Student Update Profile</h3>
-                <p className="text-xs text-slate-600 mt-1">Update CGPA ({studentCgpa}), Arrears ({studentArrears}), and academic details.</p>
+                <h3 className="text-base font-display font-bold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Update Profile</h3>
+                <p className="text-xs font-sans text-slate-600 mt-1 leading-relaxed">Update CGPA ({studentCgpa}), Arrears ({studentArrears}), and academic details.</p>
               </div>
-              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
+              <div className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#1e3a8a] flex items-center gap-1">
                 <span>Update Profile</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -286,10 +289,10 @@ export default function DashboardPage() {
                 <Mic className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">AI Voice Mock Interview</h3>
-                <p className="text-xs text-slate-600 mt-1">Practice 5-round interviews & evaluate Technical and Communication Marks.</p>
+                <h3 className="text-base font-display font-bold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">AI Mock Interview</h3>
+                <p className="text-xs font-sans text-slate-600 mt-1 leading-relaxed">Practice 5-round interviews &amp; evaluate Technical and Communication Marks.</p>
               </div>
-              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
+              <div className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#1e3a8a] flex items-center gap-1">
                 <span>Start Practice</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -303,10 +306,10 @@ export default function DashboardPage() {
                 <Zap className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Gap Analyzer</h3>
-                <p className="text-xs text-slate-600 mt-1">Compare your profile against Google, Microsoft, and Amazon benchmarks.</p>
+                <h3 className="text-base font-display font-bold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Gap Analyzer</h3>
+                <p className="text-xs font-sans text-slate-600 mt-1 leading-relaxed">Compare your profile against Google, Microsoft, and Amazon benchmarks.</p>
               </div>
-              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
+              <div className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#1e3a8a] flex items-center gap-1">
                 <span>Analyze Gaps</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -320,10 +323,10 @@ export default function DashboardPage() {
                 <FileText className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Resume Analyzer</h3>
-                <p className="text-xs text-slate-600 mt-1">Build & score your ATS resume for corporate placement eligibility.</p>
+                <h3 className="text-base font-display font-bold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Resume Analyzer</h3>
+                <p className="text-xs font-sans text-slate-600 mt-1 leading-relaxed">Build &amp; score your ATS resume for corporate placement eligibility.</p>
               </div>
-              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
+              <div className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#1e3a8a] flex items-center gap-1">
                 <span>Analyze Resume</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -333,34 +336,34 @@ export default function DashboardPage() {
         {/* Academic Overview — CGPA & Arrears Record */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-              <GraduationCap className="w-4 h-4 text-[#1e3a8a]" /> Student Academic Overview — CGPA &amp; Arrears Record
-            </div>
-            <span className="text-xs text-slate-500 font-medium">Synced with Institution ERP</span>
+            <h2 className="text-lg sm:text-xl font-display font-extrabold text-[#0f2942] tracking-tight flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-[#1e3a8a]" /> Academic Performance &amp; Record
+            </h2>
+            <span className="text-[11px] font-mono text-slate-500 font-semibold uppercase tracking-wider">Official ERP Record</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* 1. CGPA Detailed Card */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <Award className="w-4 h-4 text-[#1e3a8a]" /> Cumulative Grade Point Average (CGPA)
+                  <div className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                    <Award className="w-4 h-4 text-[#1e3a8a]" /> Cumulative GPA (CGPA)
                   </div>
-                  <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                  <span className="text-xs font-sans font-bold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                     First Class with Distinction
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-3 mt-4">
-                  <span className="text-4xl sm:text-5xl font-black text-[#0f2942] tracking-tight">{studentCgpa.toFixed(1)}</span>
-                  <span className="text-sm font-bold text-slate-400">/ 10.0</span>
-                  <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                  <span className="text-5xl sm:text-6xl font-display font-black text-[#0f2942] tracking-tighter">{studentCgpa.toFixed(1)}</span>
+                  <span className="text-sm font-mono font-bold text-slate-400">/ 10.0</span>
+                  <span className="text-xs font-mono font-bold text-[#1e3a8a] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
                     Target: 8.8
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-600 mt-2 font-medium">
+                <p className="text-xs font-sans text-slate-600 mt-2 font-normal leading-relaxed">
                   {studentCgpa >= 8.0
                     ? 'Excellent academic record! You meet the minimum CGPA requirement (8.0+) for 100% of Tier-1 placement companies.'
                     : 'Good standing. Maintain study consistency to boost CGPA above 7.5 for maximum placement opportunities.'}
@@ -368,7 +371,7 @@ export default function DashboardPage() {
 
                 {/* Semester Breakdown Bars */}
                 <div className="mt-5 space-y-2">
-                  <div className="text-[11px] font-bold text-slate-500 uppercase">Semester CGPA Progression:</div>
+                  <div className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider">Semester CGPA Progression:</div>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                     {[
                       { sem: 'S1', gpa: 8.1 },
@@ -378,45 +381,45 @@ export default function DashboardPage() {
                       { sem: 'S5', gpa: 8.6 },
                       { sem: 'S6', gpa: studentCgpa }
                     ].map((s, idx) => (
-                      <div key={idx} className="bg-slate-50 p-2 rounded-xl border border-slate-200">
-                        <div className="text-[10px] text-slate-400 font-bold">{s.sem}</div>
-                        <div className="text-xs font-extrabold text-[#0f2942] mt-0.5">{s.gpa.toFixed(1)}</div>
+                      <div key={idx} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                        <div className="text-[10px] font-mono text-slate-500 font-bold">{s.sem}</div>
+                        <div className="text-sm font-display font-extrabold text-[#0f2942] mt-0.5">{s.gpa.toFixed(1)}</div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
+              <div className="pt-3 border-t border-slate-100 text-xs font-sans text-slate-500 flex justify-between items-center">
                 <span>Verified by Academic Registrar</span>
-                <span className="font-bold text-[#1e3a8a]">6 Semesters Evaluated</span>
+                <span className="font-mono font-bold text-[#1e3a8a]">6 Semesters Evaluated</span>
               </div>
             </div>
 
             {/* 2. Number of Arrears / Backlogs Card */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                  <div className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-[#1e3a8a]" /> Active Arrears (Backlogs) Record
                   </div>
-                  <span className="text-xs font-bold px-3 py-1 rounded-full border text-[#1e3a8a] bg-blue-50 border-blue-200">
+                  <span className="text-xs font-sans font-bold px-3 py-1 rounded-full border text-[#1e3a8a] bg-blue-50 border-blue-200">
                     {studentArrears === 0 ? 'Zero Arrears' : `${studentArrears} Active ${studentArrears === 1 ? 'Arrear' : 'Arrears'}`}
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-3 mt-4">
-                  <span className="text-5xl font-black tracking-tight text-[#0f2942]">
+                  <span className="text-5xl sm:text-6xl font-display font-black tracking-tighter text-[#0f2942]">
                     {studentArrears}
                   </span>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Backlogs</span>
+                  <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Active Backlogs</span>
                 </div>
 
                 <div className="mt-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
-                  <div className="font-bold text-slate-700">
+                  <div className="font-sans font-bold text-slate-700">
                     Placement Eligibility Impact:
                   </div>
-                  <p className="text-slate-600 leading-relaxed font-medium">
+                  <p className="font-sans text-slate-600 leading-relaxed font-normal">
                     {studentArrears === 0
                       ? 'Congratulations! With 0 active arrears, you are fully eligible to apply for top-tier companies like Google, Microsoft, and Amazon.'
                       : `You currently have ${studentArrears} active arrear(s). Most Tier-1 drives require 0 backlogs. Use the remedial test portal to prepare for upcoming backlog clearance exams.`}
@@ -424,15 +427,15 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Backlog Clearance History */}
-                <div className="mt-4 flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Cleared Arrears History: <strong className="text-[#0f2942]">0 History Cleared</strong></span>
-                  <span className="text-[#1e3a8a] font-bold">100% Attendance Record</span>
+                <div className="mt-4 flex items-center justify-between text-xs text-slate-500 font-sans">
+                  <span>Cleared Arrears History: <strong className="text-[#0f2942] font-mono font-bold">0 History Cleared</strong></span>
+                  <span className="text-[#1e3a8a] font-sans font-bold">100% Attendance Record</span>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 text-xs flex justify-between items-center">
+              <div className="pt-3 border-t border-slate-100 text-xs font-sans flex justify-between items-center">
                 <span className="text-slate-500">Academic Standing Status</span>
-                <span className="font-bold text-[#1e3a8a]">
+                <span className="font-sans font-bold text-[#1e3a8a]">
                   {studentArrears === 0 ? 'Clean Record ✓' : 'Requires Remedial Review'}
                 </span>
               </div>
@@ -443,22 +446,22 @@ export default function DashboardPage() {
         {/* ---------------------------------------------------- */}
         {/* DAILY TEST ATTENDING PROMPT BANNER                   */}
         {/* ---------------------------------------------------- */}
-        <div className="bg-white border border-[#1e3a8a] rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#1e3a8a]">
+        <div className="bg-white border-2 border-[#1e3a8a] rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 font-mono text-xs font-extrabold uppercase tracking-wider text-[#1e3a8a]">
               <Zap className="w-4 h-4 fill-[#1e3a8a]" /> Daily Test Attending Portal
             </div>
-            <h3 className="text-lg font-extrabold text-[#0f2942]">
+            <h3 className="font-display text-xl font-extrabold text-[#0f2942] tracking-tight">
               Today's Placement Aptitude &amp; Technical Test is Live!
             </h3>
-            <p className="text-xs text-slate-600 font-medium">
+            <p className="font-sans text-xs text-slate-600 font-medium leading-relaxed">
               Attend today's 10-minute timed test on DSA &amp; System Fundamentals to earn +150 XP and boost your SGIP Growth Score.
             </p>
           </div>
 
           <Link
             href="/daily-test"
-            className="px-6 py-3 rounded-2xl bg-[#1e3a8a] text-white text-xs font-extrabold uppercase tracking-wider shadow-xs hover:bg-[#172554] transition-all flex items-center justify-center gap-2 shrink-0"
+            className="px-6 py-3.5 rounded-2xl bg-[#1e3a8a] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-sm hover:bg-[#0f2942] transition-all flex items-center justify-center gap-2 shrink-0"
           >
             <span>Attend Today's Test</span>
             <ArrowRight className="w-4 h-4" />
@@ -475,17 +478,17 @@ export default function DashboardPage() {
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-xs font-bold text-[#1e3a8a] uppercase tracking-widest flex items-center gap-1.5">
+                <div className="font-mono text-xs font-extrabold text-[#1e3a8a] uppercase tracking-widest flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#1e3a8a]" /> SGIP AI Placement Agent
                 </div>
-                <h3 className="text-base font-extrabold text-[#0f2942]">
+                <h3 className="font-display text-lg font-bold text-[#0f2942]">
                   Ask AI Anything About Campus Placements &amp; Interview Prep
                 </h3>
               </div>
             </div>
 
             {isTestLocked && (
-              <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-300 text-[11px] font-bold flex items-center gap-1">
+              <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-mono text-[11px] font-bold flex items-center gap-1">
                 <Lock className="w-3.5 h-3.5" /> Locked During Daily Test
               </span>
             )}
@@ -496,33 +499,33 @@ export default function DashboardPage() {
             <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-[#0f2942] font-semibold flex items-center gap-3">
               <ShieldAlert className="w-6 h-6 text-[#1e3a8a] shrink-0" />
               <div>
-                <strong className="block text-[#0f2942] font-black">🚫 AI Agent Locked During Exam</strong>
-                <span>The AI Placement Agent is strictly disabled during active proctored daily tests to enforce exam integrity. Complete or submit your daily test to unlock AI guidance.</span>
+                <strong className="block text-[#0f2942] font-display font-extrabold text-sm">🚫 AI Agent Locked During Exam</strong>
+                <span className="font-sans text-xs">The AI Placement Agent is strictly disabled during active proctored daily tests to enforce exam integrity. Complete or submit your daily test to unlock AI guidance.</span>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
               {/* Preset Sample Prompt Buttons */}
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-[11px] text-slate-400 font-bold uppercase">Quick Questions:</span>
+                <span className="font-mono text-[11px] text-slate-400 font-bold uppercase tracking-wider">Quick Questions:</span>
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'Am I eligible for Google and Microsoft with my CGPA?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
                 >
                   🎯 Am I eligible for Google &amp; Microsoft?
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'How do active backlogs affect my campus placement drives?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
                 >
                   ⚠️ How do arrears/backlogs affect drives?
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'What DSA topics are asked in Tier-1 coding rounds?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 font-sans text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
                 >
                   💻 Key DSA topics for coding tests
                 </button>
@@ -543,16 +546,16 @@ export default function DashboardPage() {
                     <div
                       className={`max-w-xl p-3.5 rounded-2xl ${
                         msg.role === 'user'
-                          ? 'bg-[#1e3a8a] text-white font-medium shadow-xs'
+                          ? 'bg-[#1e3a8a] text-white font-sans font-medium shadow-xs'
                           : 'bg-white text-[#0f2942] border border-slate-200 shadow-xs'
                       }`}
                     >
-                      <div className="whitespace-pre-line text-xs">{msg.content}</div>
+                      <div className="whitespace-pre-line font-sans text-xs leading-relaxed">{msg.content}</div>
                       {msg.sources?.length > 0 && (
-                        <div className="mt-2.5 pt-2 border-t border-slate-200 text-[10px] text-slate-500 space-y-0.5">
-                          <span className="font-bold uppercase tracking-wider text-[#1e3a8a]">Reference Source:</span>
+                        <div className="mt-2.5 pt-2 border-t border-slate-200 text-[10px] space-y-0.5">
+                          <span className="font-mono font-bold uppercase tracking-wider text-[#1e3a8a]">Reference Source:</span>
                           {msg.sources.map((s: any, idx: number) => (
-                            <div key={idx} className="text-[#1e3a8a] font-semibold">• {s.title}</div>
+                            <div key={idx} className="font-mono text-[#1e3a8a] font-semibold">• {s.title}</div>
                           ))}
                         </div>
                       )}
@@ -561,9 +564,9 @@ export default function DashboardPage() {
                 ))}
 
                 {aiLoading && (
-                  <div className="flex gap-2 items-center text-xs text-slate-400 font-medium py-1">
+                  <div className="flex gap-2 items-center font-mono text-xs text-slate-500 font-medium py-1">
                     <div className="w-4 h-4 border-2 border-[#1e3a8a] border-t-transparent rounded-full animate-spin"></div>
-                    <span>ChatGPT AI Agent is thinking...</span>
+                    <span>SGIP Placement Agent is deliberating...</span>
                   </div>
                 )}
               </div>
@@ -575,15 +578,15 @@ export default function DashboardPage() {
                   value={aiQuery}
                   onChange={(e) => setAiQuery(e.target.value)}
                   placeholder="Ask any question (e.g. 'Write Dijkstra algorithm in Python', 'Tell me about yourself', 'Check Google eligibility')..."
-                  className="flex-1 px-4 py-3 rounded-2xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#1e3a8a] font-medium"
+                  className="flex-1 px-4 py-3 rounded-2xl bg-white border border-slate-200 font-sans text-xs text-slate-900 focus:outline-none focus:border-[#1e3a8a] font-medium"
                 />
                 <button
                   type="submit"
                   disabled={aiLoading}
-                  className="px-6 py-3 rounded-2xl bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-2 disabled:opacity-50"
+                  className="px-6 py-3 rounded-2xl bg-[#1e3a8a] hover:bg-[#0f2942] text-white font-sans text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-2 disabled:opacity-50"
                 >
                   {aiLoading ? (
-                    <span>Generating...</span>
+                    <span className="font-mono">Processing...</span>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
@@ -602,13 +605,13 @@ export default function DashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+              <div className="font-mono text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[#1e3a8a]" /> SGIP Placement Cell — Company Details &amp; Eligibility
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">Real-time automated evaluation of your CGPA ({studentCgpa}) and Arrears ({studentArrears}) against company rules.</p>
+              <p className="font-sans text-xs text-slate-500 mt-0.5">Real-time automated evaluation of your CGPA (<span className="font-mono font-bold text-[#1e3a8a]">{studentCgpa}</span>) and Arrears (<span className="font-mono font-bold text-[#0f2942]">{studentArrears}</span>) against company rules.</p>
             </div>
 
-            <Link href="/placement" className="text-xs font-bold text-[#1e3a8a] hover:underline flex items-center gap-1">
+            <Link href="/placement" className="font-mono text-xs font-bold text-[#1e3a8a] hover:underline flex items-center gap-1 uppercase tracking-wider">
               View All Drives <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -624,23 +627,23 @@ export default function DashboardPage() {
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                      <span className="font-mono text-xs font-extrabold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                         {drive.packageLPA} LPA CTC
                       </span>
-                      <span className="text-xs text-slate-400 font-mono">Drive Date: {drive.driveDate}</span>
+                      <span className="font-mono text-xs text-slate-500">Drive Date: {drive.driveDate}</span>
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-[#0f2942] mt-3">{drive.companyName}</h3>
-                    <div className="text-xs font-semibold text-[#1e3a8a]">{drive.roleTitle}</div>
-                    <p className="text-xs text-slate-600 mt-2 leading-relaxed font-medium line-clamp-2">{drive.jobDescription}</p>
+                    <h3 className="font-display text-xl font-extrabold text-[#0f2942] mt-3 tracking-tight">{drive.companyName}</h3>
+                    <div className="font-sans text-xs font-bold text-[#1e3a8a] uppercase tracking-wide">{drive.roleTitle}</div>
+                    <p className="font-sans text-xs text-slate-600 mt-2 leading-relaxed font-medium line-clamp-2">{drive.jobDescription}</p>
 
                     {/* Company Requirements */}
-                    <div className="mt-4 p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
-                      <div className="font-bold text-slate-500 uppercase text-[10px]">Company Eligibility Criteria:</div>
-                      <div className="text-slate-700 font-medium">
-                        Min Required CGPA: <strong className="text-[#1e3a8a]">{drive.eligibility.minCgpa}</strong> • Max Allowed Backlogs: <strong className="text-[#0f2942]">{drive.eligibility.maxBacklogs}</strong>
+                    <div className="mt-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                      <div className="font-mono font-bold text-slate-500 uppercase text-[10px] tracking-wider">Company Eligibility Criteria:</div>
+                      <div className="font-sans text-slate-700 font-medium">
+                        Min Required CGPA: <strong className="font-mono text-[#1e3a8a] font-bold">{drive.eligibility.minCgpa}</strong> • Max Allowed Backlogs: <strong className="font-mono text-[#0f2942] font-bold">{drive.eligibility.maxBacklogs}</strong>
                       </div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="font-sans text-[11px] text-slate-500">
                         Location: {drive.location}
                       </div>
                     </div>
@@ -649,13 +652,13 @@ export default function DashboardPage() {
                   {/* Real-time Rule Evaluation Result */}
                   <div className="pt-3 border-t border-slate-100 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-500">Your Eligibility Status:</span>
+                      <span className="font-sans font-bold text-slate-500">Your Eligibility Status:</span>
                       {evalResult.isEligible ? (
-                        <span className="text-[#1e3a8a] font-bold bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 flex items-center gap-1">
+                        <span className="font-mono text-xs text-[#1e3a8a] font-extrabold bg-blue-50 px-3 py-1 rounded-md border border-blue-200 flex items-center gap-1 uppercase tracking-wider">
                           <Check className="w-3.5 h-3.5" /> ELIGIBLE
                         </span>
                       ) : (
-                        <span className="text-slate-600 font-bold bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 flex items-center gap-1">
+                        <span className="font-mono text-xs text-slate-600 font-extrabold bg-slate-100 px-3 py-1 rounded-md border border-slate-200 flex items-center gap-1 uppercase tracking-wider">
                           <AlertCircle className="w-3.5 h-3.5" /> INELIGIBLE
                         </span>
                       )}
@@ -663,9 +666,9 @@ export default function DashboardPage() {
 
                     <Link
                       href="/placement"
-                      className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                      className={`w-full py-2.5 rounded-xl font-sans text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
                         evalResult.isEligible
-                          ? 'bg-[#1e3a8a] text-white hover:bg-[#172554] shadow-xs'
+                          ? 'bg-[#1e3a8a] text-white hover:bg-[#0f2942] shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
@@ -687,18 +690,18 @@ export default function DashboardPage() {
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                <div className="font-mono text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#1e3a8a]" /> SGIP Growth Score
                 </div>
-                <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                <span className="font-mono text-xs font-extrabold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wider">
                   Top 8% Rank
                 </span>
               </div>
               <div className="flex items-baseline gap-3 mt-4">
-                <span className="text-5xl font-black text-[#0f2942] tracking-tight">{growth?.overallScore || 88}</span>
-                <span className="text-sm font-bold text-slate-400">/ 100</span>
+                <span className="font-display text-5xl sm:text-6xl font-black text-[#0f2942] tracking-tighter">{growth?.overallScore || 88}</span>
+                <span className="font-mono text-sm font-bold text-slate-400">/ 100</span>
               </div>
-              <p className="text-xs text-slate-600 mt-2 leading-relaxed font-medium">
+              <p className="font-sans text-xs text-slate-600 mt-2 leading-relaxed font-medium">
                 Calculated across Learning Hours, LeetCode Solved, Quiz Scores, Assignments &amp; Daily Reports.
               </p>
             </div>
@@ -706,9 +709,9 @@ export default function DashboardPage() {
             {/* Component Progress Bars */}
             <div className="mt-6 space-y-3.5">
               <div>
-                <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1.5">
+                <div className="flex justify-between font-sans text-xs font-semibold text-slate-700 mb-1.5">
                   <span>Coding &amp; DSA (LeetCode/GFG)</span>
-                  <span className="font-bold text-[#1e3a8a]">{growth?.codingScore || 85}%</span>
+                  <span className="font-mono font-bold text-[#1e3a8a]">{growth?.codingScore || 85}%</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                   <div className="bg-[#1e3a8a] h-full rounded-full" style={{ width: `${growth?.codingScore || 85}%` }}></div>
@@ -716,9 +719,9 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1.5">
+                <div className="flex justify-between font-sans text-xs font-semibold text-slate-700 mb-1.5">
                   <span>Assessments &amp; Quizzes</span>
-                  <span className="font-bold text-[#1e3a8a]">{growth?.assessmentScore || 90}%</span>
+                  <span className="font-mono font-bold text-[#1e3a8a]">{growth?.assessmentScore || 90}%</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                   <div className="bg-[#1e3a8a] h-full rounded-full" style={{ width: `${growth?.assessmentScore || 90}%` }}></div>
@@ -731,18 +734,18 @@ export default function DashboardPage() {
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                <div className="font-mono text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-[#1e3a8a]" /> Placement Readiness
                 </div>
-                <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                <span className="font-mono text-xs font-extrabold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200 uppercase tracking-wider">
                   Tier-1 Ready
                 </span>
               </div>
               <div className="flex items-baseline gap-3 mt-4">
-                <span className="text-5xl font-black text-[#0f2942] tracking-tight">{readiness?.overallReadiness || 82}%</span>
-                <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Tier-1 Eligible</span>
+                <span className="font-display text-5xl sm:text-6xl font-black text-[#0f2942] tracking-tighter">{readiness?.overallReadiness || 82}%</span>
+                <span className="font-mono text-xs font-extrabold text-[#1e3a8a] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 uppercase">Tier-1 Eligible</span>
               </div>
-              <p className="text-xs text-slate-600 mt-2 leading-relaxed font-medium">
+              <p className="font-sans text-xs text-slate-600 mt-2 leading-relaxed font-medium">
                 Eligible for Google Cloud (24.5 LPA) &amp; Microsoft (28 LPA) drives.
               </p>
             </div>
@@ -750,16 +753,16 @@ export default function DashboardPage() {
             {/* Breakdown Metrics */}
             <div className="mt-6 grid grid-cols-3 gap-2.5 text-center">
               <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="text-[10px] text-slate-500 uppercase font-extrabold">Technical</div>
-                <div className="text-base font-black text-[#0f2942] mt-0.5">{readiness?.technicalScore || 84}%</div>
+                <div className="font-mono text-[10px] text-slate-500 uppercase font-extrabold tracking-wider">Technical</div>
+                <div className="font-display text-lg font-black text-[#0f2942] mt-0.5">{readiness?.technicalScore || 84}%</div>
               </div>
               <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="text-[10px] text-slate-500 uppercase font-extrabold">Portfolio</div>
-                <div className="text-base font-black text-[#0f2942] mt-0.5">{readiness?.portfolioScore || 80}%</div>
+                <div className="font-mono text-[10px] text-slate-500 uppercase font-extrabold tracking-wider">Portfolio</div>
+                <div className="font-display text-lg font-black text-[#0f2942] mt-0.5">{readiness?.portfolioScore || 80}%</div>
               </div>
               <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
-                <div className="text-[10px] text-slate-500 uppercase font-extrabold">ATS Resume</div>
-                <div className="text-base font-black text-[#0f2942] mt-0.5">{readiness?.resumeScore || 88}%</div>
+                <div className="font-mono text-[10px] text-slate-500 uppercase font-extrabold tracking-wider">ATS Resume</div>
+                <div className="font-display text-lg font-black text-[#0f2942] mt-0.5">{readiness?.resumeScore || 88}%</div>
               </div>
             </div>
           </div>
@@ -778,8 +781,8 @@ export default function DashboardPage() {
               <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#1e3a8a] group-hover:translate-x-1 transition-transform" />
             </div>
             <div className="mt-4">
-              <div className="text-sm font-bold text-[#0f2942]">Courses &amp; Lessons</div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">Advanced DSA &amp; Full Stack</div>
+              <div className="font-display text-base font-bold text-[#0f2942]">Courses &amp; Lessons</div>
+              <div className="font-sans text-xs text-slate-500 font-medium mt-0.5">Advanced DSA &amp; Full Stack</div>
             </div>
           </Link>
 
@@ -794,8 +797,8 @@ export default function DashboardPage() {
               <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#1e3a8a] group-hover:translate-x-1 transition-transform" />
             </div>
             <div className="mt-4">
-              <div className="text-sm font-bold text-[#0f2942]">Coding Tracker</div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">312 Solved • 14 Day Streak</div>
+              <div className="font-display text-base font-bold text-[#0f2942]">Coding Tracker</div>
+              <div className="font-sans text-xs text-slate-500 font-medium mt-0.5">312 Solved • 14 Day Streak</div>
             </div>
           </Link>
 
@@ -810,8 +813,8 @@ export default function DashboardPage() {
               <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#1e3a8a] group-hover:translate-x-1 transition-transform" />
             </div>
             <div className="mt-4">
-              <div className="text-sm font-bold text-[#0f2942]">Daily Study Report</div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">Log today's 4.5 study hours</div>
+              <div className="font-display text-base font-bold text-[#0f2942]">Daily Study Report</div>
+              <div className="font-sans text-xs text-slate-500 font-medium mt-0.5">Log today's 4.5 study hours</div>
             </div>
           </Link>
 
@@ -826,8 +829,8 @@ export default function DashboardPage() {
               <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#1e3a8a] group-hover:translate-x-1 transition-transform" />
             </div>
             <div className="mt-4">
-              <div className="text-sm font-bold text-[#0f2942]">Placement Cell</div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">Check drive eligibility</div>
+              <div className="font-display text-base font-bold text-[#0f2942]">Placement Cell</div>
+              <div className="font-sans text-xs text-slate-500 font-medium mt-0.5">Check drive eligibility</div>
             </div>
           </Link>
         </div>
