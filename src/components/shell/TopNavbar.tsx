@@ -84,20 +84,30 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
           <div className="h-6 w-px bg-slate-200 mx-1"></div>
 
           {/* User Profile Summary & Login Link */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-white p-0.5 border-2 border-[#1e3a8a]/40 shadow-xs flex items-center justify-center shrink-0">
-              <img
-                src={user.role === 'STUDENT' ? '/vsb-logo.png' : (user.avatarUrl || '/vsb-logo.png')}
-                alt={user.name}
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="hidden md:block text-left">
-              <div className="font-display text-xs font-bold text-[#0f2942] leading-tight">{user.name}</div>
-              <div className="font-mono text-[10px] text-slate-500 font-semibold">
-                {user.role === 'STUDENT' ? `Roll: ${user.rollNumber}` : user.department}
-              </div>
-            </div>
+          {(() => {
+            const isManivannan = user.name?.toLowerCase().includes('manivan') || user.email?.toLowerCase().includes('manivan') || (user.avatarUrl && user.avatarUrl.includes('photo-1472099645785'));
+            const avatarSrc = isManivannan
+              ? '/hod-manivannan-suit.jpg'
+              : user.role === 'STUDENT'
+              ? '/vsb-logo.png'
+              : user.avatarUrl || (user.role === 'FACULTY' ? '/hod-manivannan-suit.jpg' : '/vsb-logo.png');
+            const isLogo = avatarSrc.includes('logo');
+
+            return (
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-white border-2 border-[#1e3a8a]/40 shadow-xs flex items-center justify-center shrink-0 overflow-hidden">
+                  <img
+                    src={avatarSrc}
+                    alt={user.name}
+                    className={`w-full h-full ${isLogo ? 'p-0.5 object-contain' : 'object-cover object-top'}`}
+                  />
+                </div>
+                <div className="hidden md:block text-left">
+                  <div className="font-display text-xs font-bold text-[#0f2942] leading-tight">{user.name}</div>
+                  <div className="font-mono text-[10px] text-slate-500 font-semibold">
+                    {user.role === 'STUDENT' ? `Roll: ${user.rollNumber}` : user.department}
+                  </div>
+                </div>
             
             {user.role !== 'STUDENT' && (
               <>
@@ -133,6 +143,8 @@ export function TopNavbar({ user, onToggleMobileMenu }: TopNavbarProps) {
               <span>Sign Out</span>
             </button>
           </div>
+            );
+          })()}
         </div>
       </header>
 

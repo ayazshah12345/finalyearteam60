@@ -170,28 +170,40 @@ export function Sidebar({ user, collapsed = false, mobileOpen = false, onCloseMo
           </div>
 
           {/* Current Active Persona Info Card */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex items-center gap-3 shadow-xs">
-            <div className="w-10 h-10 rounded-xl bg-white p-1 border-2 border-slate-200 shadow-xs flex items-center justify-center shrink-0">
-              <img
-                src={user.role === 'STUDENT' ? '/vsb-logo.png' : (user.avatarUrl || '/vsb-logo.png')}
-                alt={user.name}
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="font-display text-xs font-bold text-[#0f2942] truncate">{user.name}</div>
-              <div className="font-sans text-[10px] text-slate-500 truncate font-medium">{user.department}</div>
-              <div className="mt-1 flex items-center gap-1">
-                <span className={`font-mono text-[9px] px-2 py-0.5 rounded-md font-extrabold uppercase tracking-wider ${
-                  user.role === 'STUDENT' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
-                  user.role === 'FACULTY' ? 'bg-slate-100 text-slate-800 border border-slate-300' :
-                  'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                }`}>
-                  {user.role}
-                </span>
+          {(() => {
+            const isManivannan = user.name?.toLowerCase().includes('manivan') || user.email?.toLowerCase().includes('manivan') || (user.avatarUrl && user.avatarUrl.includes('photo-1472099645785'));
+            const avatarSrc = isManivannan
+              ? '/hod-manivannan-suit.jpg'
+              : user.role === 'STUDENT'
+              ? '/vsb-logo.png'
+              : user.avatarUrl || (user.role === 'FACULTY' ? '/hod-manivannan-suit.jpg' : '/vsb-logo.png');
+            const isLogo = avatarSrc.includes('logo');
+
+            return (
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex items-center gap-3 shadow-xs">
+                <div className="w-10 h-10 rounded-full bg-white border-2 border-slate-200 shadow-xs flex items-center justify-center shrink-0 overflow-hidden">
+                  <img
+                    src={avatarSrc}
+                    alt={user.name}
+                    className={`w-full h-full ${isLogo ? 'p-1 object-contain' : 'object-cover object-top'}`}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-display text-xs font-bold text-[#0f2942] truncate">{user.name}</div>
+                  <div className="font-sans text-[10px] text-slate-500 truncate font-medium">{user.department}</div>
+                  <div className="mt-1 flex items-center gap-1">
+                    <span className={`font-mono text-[9px] px-2 py-0.5 rounded-md font-extrabold uppercase tracking-wider ${
+                      user.role === 'STUDENT' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
+                      user.role === 'FACULTY' ? 'bg-slate-100 text-slate-800 border border-slate-300' :
+                      'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    }`}>
+                      {user.role}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Navigation Items */}
           <nav className="space-y-1">

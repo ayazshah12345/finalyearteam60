@@ -14,8 +14,12 @@ export function getSessionRole(): string | null {
   return localStorage.getItem('sgip_session_role');
 }
 
-export function setSessionUser(user?: { id: string; role: string; name?: string; email?: string } | null) {
+export function setSessionUser(user?: { id: string; role: string; name?: string; email?: string; avatarUrl?: string } | null) {
   if (typeof window === 'undefined' || !user || !user.id) return;
+  const isManivannan = (user.name && user.name.toLowerCase().includes('manivan')) || (user.email && user.email.toLowerCase().includes('manivan'));
+  if (isManivannan || (user.avatarUrl && user.avatarUrl.includes('photo-1472099645785'))) {
+    user.avatarUrl = '/hod-manivannan-suit.jpg';
+  }
   localStorage.setItem('sgip_session_user_id', user.id);
   localStorage.setItem('sgip_session_role', user.role || 'STUDENT');
   localStorage.setItem('sgip_session_user', JSON.stringify(user));

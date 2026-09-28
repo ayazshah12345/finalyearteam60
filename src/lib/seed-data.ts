@@ -52,7 +52,7 @@ export const SEED_USERS: User[] = [
     password: 'manivannan@vsb2027',
     role: 'FACULTY',
     department: 'Computer Science & Engineering',
-    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=250&q=80',
+    avatarUrl: '/hod-manivannan-suit.jpg',
     bio: 'Senior Faculty Member & Academic Coordinator, VSB Engineering College.',
     createdAt: '2026-08-01T10:00:00Z'
   },

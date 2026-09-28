@@ -9,6 +9,24 @@ export const dynamic = 'force-dynamic';
 
 import { parseStudentBio } from '@/lib/student-profile';
 
+function resolveUserAvatar(u?: { name?: string | null; email?: string | null; role?: string | null; avatarUrl?: string | null } | null): string {
+  if (!u) return '/vsb-logo.png';
+  const isManivannan = (u.name && u.name.toLowerCase().includes('manivan')) || (u.email && u.email.toLowerCase().includes('manivan'));
+  if (isManivannan || (u.avatarUrl && u.avatarUrl.includes('photo-1472099645785'))) {
+    return '/hod-manivannan-suit.jpg';
+  }
+  if (u.role === 'STUDENT') {
+    return '/vsb-logo.png';
+  }
+  if (u.avatarUrl) {
+    return u.avatarUrl;
+  }
+  if (u.role === 'FACULTY') {
+    return '/hod-manivannan-suit.jpg';
+  }
+  return '/vsb-logo.png';
+}
+
 export async function GET(req: Request) {
   // 1. Sync from Supabase via Prisma ORM or Supabase Client
   try {
@@ -26,7 +44,7 @@ export async function GET(req: Request) {
           batch: u.batch || '2022-2026',
           semester: u.semester || 6,
           rollNumber: u.rollNumber || undefined,
-          avatarUrl: u.role === 'STUDENT' ? '/vsb-logo.png' : (u.avatarUrl || '/vsb-logo.png'),
+          avatarUrl: resolveUserAvatar(u),
           cgpa: u.cgpa ?? 8.0,
           backlogs: u.backlogs ?? 0,
           bio: parsed.about || u.bio || 'VSB Student',
@@ -63,7 +81,7 @@ export async function GET(req: Request) {
             batch: u.batch || '2022-2026',
             semester: u.semester || 6,
             rollNumber: u.rollNumber || undefined,
-            avatarUrl: u.role === 'STUDENT' ? '/vsb-logo.png' : (u.avatarUrl || '/vsb-logo.png'),
+            avatarUrl: resolveUserAvatar(u),
             cgpa: u.cgpa ?? 8.0,
             backlogs: u.backlogs ?? 0,
             bio: parsed.about || u.bio || 'VSB Student',
@@ -114,7 +132,7 @@ export async function GET(req: Request) {
               batch: supaUser.batch || '2022-2026',
               semester: supaUser.semester || 6,
               rollNumber: supaUser.rollNumber || undefined,
-              avatarUrl: supaUser.role === 'STUDENT' ? '/vsb-logo.png' : (supaUser.avatarUrl || '/vsb-logo.png'),
+              avatarUrl: resolveUserAvatar(supaUser),
               cgpa: supaUser.cgpa ?? 8.0,
               backlogs: supaUser.backlogs ?? 0,
               bio: parsed.about || supaUser.bio || 'VSB Student',
@@ -234,7 +252,7 @@ export async function POST(req: Request) {
               batch: dbUser.batch || '2022-2026',
               semester: dbUser.semester || 6,
               rollNumber: dbUser.rollNumber || undefined,
-              avatarUrl: dbUser.role === 'STUDENT' ? '/vsb-logo.png' : (dbUser.avatarUrl || '/vsb-logo.png'),
+              avatarUrl: resolveUserAvatar(dbUser),
               cgpa: dbUser.cgpa ?? 8.0,
               backlogs: dbUser.backlogs ?? 0,
               bio: parsed.about || dbUser.bio || 'VSB Student',
@@ -291,7 +309,7 @@ export async function POST(req: Request) {
               batch: supaUser.batch || '2022-2026',
               semester: supaUser.semester || 6,
               rollNumber: supaUser.rollNumber || undefined,
-              avatarUrl: supaUser.role === 'STUDENT' ? '/vsb-logo.png' : (supaUser.avatarUrl || '/vsb-logo.png'),
+              avatarUrl: resolveUserAvatar(supaUser),
               cgpa: supaUser.cgpa ?? 8.0,
               backlogs: supaUser.backlogs ?? 0,
               bio: parsed.about || supaUser.bio || 'VSB Student',

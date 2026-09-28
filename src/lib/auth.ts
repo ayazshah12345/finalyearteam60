@@ -27,7 +27,9 @@ export async function getAuthenticatedUser(req?: Request): Promise<User> {
             batch: dbUser.batch || '2022-2026',
             semester: dbUser.semester || 6,
             rollNumber: dbUser.rollNumber || undefined,
-            avatarUrl: dbUser.avatarUrl || undefined,
+            avatarUrl: ((dbUser.name && dbUser.name.toLowerCase().includes('manivan')) || (dbUser.email && dbUser.email.toLowerCase().includes('manivan')) || (dbUser.avatarUrl && dbUser.avatarUrl.includes('photo-1472099645785')))
+              ? '/hod-manivannan-suit.jpg'
+              : (dbUser.avatarUrl || undefined),
             cgpa: dbUser.cgpa || 8.0,
             backlogs: dbUser.backlogs || 0,
             bio: dbUser.bio || 'VSB Student',
@@ -62,7 +64,9 @@ export async function getAuthenticatedUser(req?: Request): Promise<User> {
             batch: dbUser.batch || '2022-2026',
             semester: dbUser.semester || 6,
             rollNumber: dbUser.rollNumber || undefined,
-            avatarUrl: dbUser.avatarUrl || undefined,
+            avatarUrl: ((dbUser.name && dbUser.name.toLowerCase().includes('manivan')) || (dbUser.email && dbUser.email.toLowerCase().includes('manivan')) || (dbUser.avatarUrl && dbUser.avatarUrl.includes('photo-1472099645785')))
+              ? '/hod-manivannan-suit.jpg'
+              : (dbUser.avatarUrl || undefined),
             cgpa: dbUser.cgpa || 8.0,
             backlogs: dbUser.backlogs || 0,
             bio: dbUser.bio || 'VSB Student',
