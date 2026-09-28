@@ -153,11 +153,11 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         {/* ========================================================================= */}
-        {/* INNOVATIVE VSB MOVING MARQUEE TICKER: A PLACE FOR PLACEMENT               */}
+        {/* VSB MOVING MARQUEE TICKER: A PLACE FOR PLACEMENT                          */}
         {/* ========================================================================= */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/10 via-indigo-600/15 to-violet-600/10 border border-amber-500/30 dark:border-amber-400/20 shadow-sm backdrop-blur-md flex items-center p-1.5 group">
+        <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center p-1.5">
           {/* Static Live Badge on the Left */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[11px] uppercase tracking-wider shadow-sm shrink-0 z-10">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#1e3a8a] text-white font-black text-[11px] uppercase tracking-wider shrink-0 z-10 shadow-xs">
             <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
             <span className="flex items-center gap-1.5">
               <Award className="w-3.5 h-3.5" />
@@ -170,56 +170,53 @@ export default function DashboardPage() {
             <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-extrabold tracking-wider">
               {[1, 2, 3, 4].map((idx) => (
                 <span key={idx} className="flex items-center gap-8">
-                  <span className="flex items-center gap-2 text-slate-900 dark:text-white uppercase font-black tracking-widest text-xs">
-                    <span className="text-amber-500">🏛️</span>
-                    <span className="bg-gradient-to-r from-amber-500 via-indigo-600 to-violet-600 bg-clip-text text-transparent font-black">
+                  <span className="flex items-center gap-2 text-[#0f2942] uppercase font-black tracking-widest text-xs">
+                    <span className="text-[#1e3a8a]">🏛️</span>
+                    <span className="text-[#1e3a8a] font-black">
                       VSB ENGINEERING COLLEGE
                     </span>
-                    <span className="text-slate-400 dark:text-slate-500">—</span>
-                    <span className="text-amber-600 dark:text-amber-400 font-black">
+                    <span className="text-slate-400">—</span>
+                    <span className="text-[#0f2942] font-black">
                       A PLACE FOR PLACEMENT
                     </span>
                   </span>
 
-                  <span className="text-indigo-400 dark:text-indigo-500 font-black">✦</span>
+                  <span className="text-[#1e3a8a] font-black">✦</span>
 
-                  <span className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-bold uppercase text-[11px] tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="flex items-center gap-2 text-slate-700 font-bold uppercase text-[11px] tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5 text-[#1e3a8a]" />
                     <span>Top Tier-1 Recruiters • High CTC Opportunities • 100% Placement Record</span>
                   </span>
 
-                  <span className="text-indigo-400 dark:text-indigo-500 font-black">✦</span>
+                  <span className="text-[#1e3a8a] font-black">✦</span>
                 </span>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Welcome Header Banner - Royal Sapphire & Gold */}
-        <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-amber-400/80 rounded-3xl p-4 sm:p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-blue-950/10">
-          <div className="absolute -right-10 -top-10 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl -z-0 pointer-events-none"></div>
-          <div className="absolute -left-10 -bottom-10 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl -z-0 pointer-events-none"></div>
-
+        {/* Welcome Header Banner - Classic Dark Blue & White */}
+        <div className="bg-[#1e3a8a] border border-[#172554] rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xs">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-amber-400/15 border border-amber-400/50 text-amber-300">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" /> VSB CAMPUS INTELLIGENCE • STUDENT PORTAL
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-white/10 border border-white/20 text-white">
+                <Sparkles className="w-3.5 h-3.5 text-white" /> VSB CAMPUS INTELLIGENCE • STUDENT PORTAL
               </div>
               <h1 className="text-2xl md:text-3xl font-black tracking-tight mt-2 text-white font-serif">
                 Welcome, {user.name} 👋
               </h1>
-              <p className="text-xs md:text-sm text-slate-300 mt-2 max-w-xl font-medium">
-                {user.department} • Semester {user.semester || 6} • Roll Number: <span className="font-mono bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded font-bold">{user.rollNumber || '21CS104'}</span>
+              <p className="text-xs md:text-sm text-blue-100 mt-2 max-w-xl font-medium">
+                {user.department} • Semester {user.semester || 6} • Roll Number: <span className="font-mono bg-white/15 text-white border border-white/30 px-2 py-0.5 rounded font-bold">{user.rollNumber || '21CS104'}</span>
               </p>
               <div className="mt-3.5 flex items-center gap-2 flex-wrap">
                 <Link
                   href="/profile"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition-all shadow-md"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#1e3a8a] text-xs font-black transition-all shadow-xs"
                 >
                   <GraduationCap className="w-3.5 h-3.5" />
                   <span>Update Academic Profile &amp; CGPA</span>
                 </Link>
-                <span className="text-[11px] text-amber-200/90 font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
+                <span className="text-[11px] text-white font-bold bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
                   🏛️ VSB Karur Campus
                 </span>
               </div>
@@ -227,9 +224,9 @@ export default function DashboardPage() {
 
             {/* XP Widget */}
             <div className="flex items-center gap-3">
-              <div className="bg-white/10 backdrop-blur-md border border-amber-400/40 rounded-2xl px-5 py-3 text-center shadow-md">
-                <div className="flex items-center justify-center gap-1 text-amber-300 text-xs font-black uppercase tracking-wider">
-                  <Zap className="w-4 h-4 fill-amber-300" /> SGIP XP
+              <div className="bg-white/10 border border-white/20 rounded-2xl px-5 py-3 text-center shadow-xs">
+                <div className="flex items-center justify-center gap-1 text-white text-xs font-black uppercase tracking-wider">
+                  <Zap className="w-4 h-4 fill-white" /> SGIP XP
                 </div>
                 <div className="text-2xl font-black text-white mt-0.5 font-mono">2,450 XP</div>
               </div>
@@ -238,27 +235,27 @@ export default function DashboardPage() {
         </div>
 
         {/* ---------------------------------------------------- */}
-        {/* VSB STUDENT DASHBOARD TOOLKIT CARDS (4 STUDENT TOOLS) */}
+        {/* VSB STUDENT DASHBOARD TOOLKIT CARDS (5 STUDENT TOOLS) */}
         {/* ---------------------------------------------------- */}
         <div className="space-y-4">
-          <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500" /> VSB Student Platform Quick Tools
+          <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#1e3a8a]" /> VSB Student Platform Quick Tools
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
             {/* Tool 0: LeetCode Practice */}
             <Link
               href="/coding"
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md hover:border-amber-500/50 transition-all space-y-3 group"
+              className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs hover:border-[#1e3a8a] transition-all space-y-3 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold group-hover:scale-110 transition-all shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold group-hover:bg-[#1e3a8a] group-hover:text-white transition-all shadow-xs">
                 <Code2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors">LeetCode Coding Practice</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Connect profile, solve DSA problems, and track solved counts.</p>
+                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">LeetCode Coding Practice</h3>
+                <p className="text-xs text-slate-600 mt-1">Connect profile, solve DSA problems, and track solved counts.</p>
               </div>
-              <div className="text-[11px] font-bold text-amber-600 flex items-center gap-1">
+              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
                 <span>Start Practice</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -266,16 +263,16 @@ export default function DashboardPage() {
             {/* Tool 1: Student Update Profile */}
             <Link
               href="/profile"
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md hover:border-indigo-500/50 transition-all space-y-3 group"
+              className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs hover:border-[#1e3a8a] transition-all space-y-3 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold group-hover:scale-110 transition-all shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold group-hover:bg-[#1e3a8a] group-hover:text-white transition-all shadow-xs">
                 <UserCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">Student Update Profile</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Update CGPA ({studentCgpa}), Arrears ({studentArrears}), and academic details.</p>
+                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Student Update Profile</h3>
+                <p className="text-xs text-slate-600 mt-1">Update CGPA ({studentCgpa}), Arrears ({studentArrears}), and academic details.</p>
               </div>
-              <div className="text-[11px] font-bold text-indigo-600 flex items-center gap-1">
+              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
                 <span>Update Profile</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -283,16 +280,16 @@ export default function DashboardPage() {
             {/* Tool 2: AI Voice Mock Interview */}
             <Link
               href="/mock-interview"
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md hover:border-indigo-500/50 transition-all space-y-3 group"
+              className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs hover:border-[#1e3a8a] transition-all space-y-3 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold group-hover:scale-110 transition-all shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold group-hover:bg-[#1e3a8a] group-hover:text-white transition-all shadow-xs">
                 <Mic className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">AI Voice Mock Interview</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Practice 5-round interviews & evaluate Technical and Communication Marks.</p>
+                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">AI Voice Mock Interview</h3>
+                <p className="text-xs text-slate-600 mt-1">Practice 5-round interviews & evaluate Technical and Communication Marks.</p>
               </div>
-              <div className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
                 <span>Start Practice</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -300,16 +297,16 @@ export default function DashboardPage() {
             {/* Tool 3: Gap Analyzer */}
             <Link
               href="/gap-analyzer"
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md hover:border-indigo-500/50 transition-all space-y-3 group"
+              className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs hover:border-[#1e3a8a] transition-all space-y-3 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold group-hover:scale-110 transition-all shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold group-hover:bg-[#1e3a8a] group-hover:text-white transition-all shadow-xs">
                 <Zap className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">Gap Analyzer</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Compare your profile against Google, Microsoft, and Amazon benchmarks.</p>
+                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Gap Analyzer</h3>
+                <p className="text-xs text-slate-600 mt-1">Compare your profile against Google, Microsoft, and Amazon benchmarks.</p>
               </div>
-              <div className="text-[11px] font-bold text-amber-600 flex items-center gap-1">
+              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
                 <span>Analyze Gaps</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
@@ -317,51 +314,53 @@ export default function DashboardPage() {
             {/* Tool 4: Resume Analyzer */}
             <Link
               href="/resume"
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-md hover:border-indigo-500/50 transition-all space-y-3 group"
+              className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs hover:border-[#1e3a8a] transition-all space-y-3 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-violet-950 text-violet-600 dark:text-violet-400 flex items-center justify-center font-bold group-hover:scale-110 transition-all shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold group-hover:bg-[#1e3a8a] group-hover:text-white transition-all shadow-xs">
                 <FileText className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">Resume Analyzer</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Build & score your ATS resume for corporate placement eligibility.</p>
+                <h3 className="text-sm font-extrabold text-[#0f2942] group-hover:text-[#1e3a8a] transition-colors">Resume Analyzer</h3>
+                <p className="text-xs text-slate-600 mt-1">Build & score your ATS resume for corporate placement eligibility.</p>
               </div>
-              <div className="text-[11px] font-bold text-violet-600 flex items-center gap-1">
+              <div className="text-[11px] font-bold text-[#1e3a8a] flex items-center gap-1">
                 <span>Analyze Resume</span> <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </Link>
           </div>
         </div>
+
+        {/* Academic Overview — CGPA & Arrears Record */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-              <GraduationCap className="w-4 h-4 text-indigo-600" /> Student Academic Overview — CGPA & Arrears Record
+            <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-[#1e3a8a]" /> Student Academic Overview — CGPA &amp; Arrears Record
             </div>
             <span className="text-xs text-slate-500 font-medium">Synced with Institution ERP</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* 1. CGPA Detailed Card */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-6 shadow-md hover-lift flex flex-col justify-between space-y-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <Award className="w-4 h-4 text-indigo-600" /> Cumulative Grade Point Average (CGPA)
+                    <Award className="w-4 h-4 text-[#1e3a8a]" /> Cumulative Grade Point Average (CGPA)
                   </div>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
+                  <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                     First Class with Distinction
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-3 mt-4">
-                  <span className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">{studentCgpa.toFixed(1)}</span>
+                  <span className="text-4xl sm:text-5xl font-black text-[#0f2942] tracking-tight">{studentCgpa.toFixed(1)}</span>
                   <span className="text-sm font-bold text-slate-400">/ 10.0</span>
-                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                  <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
                     Target: 8.8
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 font-medium">
+                <p className="text-xs text-slate-600 mt-2 font-medium">
                   {studentCgpa >= 8.0
                     ? 'Excellent academic record! You meet the minimum CGPA requirement (8.0+) for 100% of Tier-1 placement companies.'
                     : 'Good standing. Maintain study consistency to boost CGPA above 7.5 for maximum placement opportunities.'}
@@ -369,7 +368,7 @@ export default function DashboardPage() {
 
                 {/* Semester Breakdown Bars */}
                 <div className="mt-5 space-y-2">
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">Semester CGPA Progression:</div>
+                  <div className="text-[11px] font-bold text-slate-500 uppercase">Semester CGPA Progression:</div>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                     {[
                       { sem: 'S1', gpa: 8.1 },
@@ -379,49 +378,45 @@ export default function DashboardPage() {
                       { sem: 'S5', gpa: 8.6 },
                       { sem: 'S6', gpa: studentCgpa }
                     ].map((s, idx) => (
-                      <div key={idx} className="bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <div key={idx} className="bg-slate-50 p-2 rounded-xl border border-slate-200">
                         <div className="text-[10px] text-slate-400 font-bold">{s.sem}</div>
-                        <div className="text-xs font-extrabold text-slate-900 dark:text-white mt-0.5">{s.gpa.toFixed(1)}</div>
+                        <div className="text-xs font-extrabold text-[#0f2942] mt-0.5">{s.gpa.toFixed(1)}</div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 flex justify-between items-center">
+              <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
                 <span>Verified by Academic Registrar</span>
-                <span className="font-bold text-indigo-600">6 Semesters Evaluated</span>
+                <span className="font-bold text-[#1e3a8a]">6 Semesters Evaluated</span>
               </div>
             </div>
 
             {/* 2. Number of Arrears / Backlogs Card */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-6 shadow-md hover-lift flex flex-col justify-between space-y-4">
+            <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                    <AlertCircle className={`w-4 h-4 ${studentArrears === 0 ? 'text-emerald-600' : 'text-rose-600'}`} /> Active Arrears (Backlogs) Record
+                    <AlertCircle className="w-4 h-4 text-[#1e3a8a]" /> Active Arrears (Backlogs) Record
                   </div>
-                  <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
-                    studentArrears === 0
-                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
-                      : 'text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800'
-                  }`}>
+                  <span className="text-xs font-bold px-3 py-1 rounded-full border text-[#1e3a8a] bg-blue-50 border-blue-200">
                     {studentArrears === 0 ? 'Zero Arrears' : `${studentArrears} Active ${studentArrears === 1 ? 'Arrear' : 'Arrears'}`}
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-3 mt-4">
-                  <span className={`text-5xl font-black tracking-tight ${studentArrears === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  <span className="text-5xl font-black tracking-tight text-[#0f2942]">
                     {studentArrears}
                   </span>
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Backlogs</span>
                 </div>
 
-                <div className="mt-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-1 text-xs">
-                  <div className="font-bold text-slate-700 dark:text-slate-200">
+                <div className="mt-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
+                  <div className="font-bold text-slate-700">
                     Placement Eligibility Impact:
                   </div>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                  <p className="text-slate-600 leading-relaxed font-medium">
                     {studentArrears === 0
                       ? 'Congratulations! With 0 active arrears, you are fully eligible to apply for top-tier companies like Google, Microsoft, and Amazon.'
                       : `You currently have ${studentArrears} active arrear(s). Most Tier-1 drives require 0 backlogs. Use the remedial test portal to prepare for upcoming backlog clearance exams.`}
@@ -430,14 +425,14 @@ export default function DashboardPage() {
 
                 {/* Backlog Clearance History */}
                 <div className="mt-4 flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span>Cleared Arrears History: <strong className="text-slate-900 dark:text-white">0 History Cleared</strong></span>
-                  <span className="text-indigo-600 font-bold">100% Attendance Record</span>
+                  <span>Cleared Arrears History: <strong className="text-[#0f2942]">0 History Cleared</strong></span>
+                  <span className="text-[#1e3a8a] font-bold">100% Attendance Record</span>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-xs flex justify-between items-center">
+              <div className="pt-3 border-t border-slate-100 text-xs flex justify-between items-center">
                 <span className="text-slate-500">Academic Standing Status</span>
-                <span className={`font-bold ${studentArrears === 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <span className="font-bold text-[#1e3a8a]">
                   {studentArrears === 0 ? 'Clean Record ✓' : 'Requires Remedial Review'}
                 </span>
               </div>
@@ -448,22 +443,22 @@ export default function DashboardPage() {
         {/* ---------------------------------------------------- */}
         {/* DAILY TEST ATTENDING PROMPT BANNER                   */}
         {/* ---------------------------------------------------- */}
-        <div className="bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-violet-500/10 border border-indigo-200/80 dark:border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        <div className="bg-white border border-[#1e3a8a] rounded-3xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-              <Zap className="w-4 h-4 fill-amber-500" /> Daily Test Attending Portal
+            <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#1e3a8a]">
+              <Zap className="w-4 h-4 fill-[#1e3a8a]" /> Daily Test Attending Portal
             </div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
-              Today's Placement Aptitude & Technical Test is Live!
+            <h3 className="text-lg font-extrabold text-[#0f2942]">
+              Today's Placement Aptitude &amp; Technical Test is Live!
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-              Attend today's 10-minute timed test on DSA & System Fundamentals to earn +150 XP and boost your SGIP Growth Score.
+            <p className="text-xs text-slate-600 font-medium">
+              Attend today's 10-minute timed test on DSA &amp; System Fundamentals to earn +150 XP and boost your SGIP Growth Score.
             </p>
           </div>
 
           <Link
             href="/daily-test"
-            className="px-6 py-3 rounded-2xl bg-indigo-600 text-white text-xs font-extrabold uppercase tracking-wider shadow-md hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shrink-0"
+            className="px-6 py-3 rounded-2xl bg-[#1e3a8a] text-white text-xs font-extrabold uppercase tracking-wider shadow-xs hover:bg-[#172554] transition-all flex items-center justify-center gap-2 shrink-0"
           >
             <span>Attend Today's Test</span>
             <ArrowRight className="w-4 h-4" />
@@ -473,24 +468,24 @@ export default function DashboardPage() {
         {/* ---------------------------------------------------- */}
         {/* SGIP AI PLACEMENT AGENT ADVISOR WIDGET                */}
         {/* ---------------------------------------------------- */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
+              <div className="w-10 h-10 rounded-2xl bg-[#1e3a8a] text-white flex items-center justify-center shadow-xs">
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" /> SGIP AI Placement Agent
+                <div className="text-xs font-bold text-[#1e3a8a] uppercase tracking-widest flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#1e3a8a]" /> SGIP AI Placement Agent
                 </div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  Ask AI Anything About Campus Placements & Interview Prep
+                <h3 className="text-base font-extrabold text-[#0f2942]">
+                  Ask AI Anything About Campus Placements &amp; Interview Prep
                 </h3>
               </div>
             </div>
 
             {isTestLocked && (
-              <span className="px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-[11px] font-bold flex items-center gap-1">
+              <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-300 text-[11px] font-bold flex items-center gap-1">
                 <Lock className="w-3.5 h-3.5" /> Locked During Daily Test
               </span>
             )}
@@ -498,10 +493,10 @@ export default function DashboardPage() {
 
           {/* Test Lock Security Alert */}
           {isTestLocked ? (
-            <div className="p-4 rounded-2xl bg-rose-50/70 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-3">
-              <ShieldAlert className="w-6 h-6 text-rose-600 shrink-0" />
+            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-[#0f2942] font-semibold flex items-center gap-3">
+              <ShieldAlert className="w-6 h-6 text-[#1e3a8a] shrink-0" />
               <div>
-                <strong className="block text-slate-900 dark:text-white font-black">🚫 AI Agent Locked During Exam</strong>
+                <strong className="block text-[#0f2942] font-black">🚫 AI Agent Locked During Exam</strong>
                 <span>The AI Placement Agent is strictly disabled during active proctored daily tests to enforce exam integrity. Complete or submit your daily test to unlock AI guidance.</span>
               </div>
             </div>
@@ -513,51 +508,51 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'Am I eligible for Google and Microsoft with my CGPA?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
                 >
-                  🎯 Am I eligible for Google & Microsoft?
+                  🎯 Am I eligible for Google &amp; Microsoft?
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'How do active backlogs affect my campus placement drives?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
                 >
                   ⚠️ How do arrears/backlogs affect drives?
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAskPlacementAI(undefined, 'What DSA topics are asked in Tier-1 coding rounds?')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50 hover:text-[#1e3a8a] text-slate-700 text-xs font-semibold border border-slate-200 hover:border-[#1e3a8a] transition-all"
                 >
                   💻 Key DSA topics for coding tests
                 </button>
               </div>
 
               {/* ChatGPT Conversational Stream Container */}
-              <div className="max-h-[380px] overflow-y-auto space-y-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
+              <div className="max-h-[380px] overflow-y-auto space-y-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
                 {aiMessages.map((msg) => (
                   <div
                     key={msg.id}
                     className={`flex gap-3 leading-relaxed ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     {msg.role === 'assistant' && (
-                      <div className="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-md">
+                      <div className="w-7 h-7 rounded-xl bg-[#1e3a8a] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                         <Bot className="w-4 h-4" />
                       </div>
                     )}
                     <div
                       className={`max-w-xl p-3.5 rounded-2xl ${
                         msg.role === 'user'
-                          ? 'bg-indigo-600 text-white font-medium shadow-md'
-                          : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 shadow-xs'
+                          ? 'bg-[#1e3a8a] text-white font-medium shadow-xs'
+                          : 'bg-white text-[#0f2942] border border-slate-200 shadow-xs'
                       }`}
                     >
                       <div className="whitespace-pre-line text-xs">{msg.content}</div>
                       {msg.sources?.length > 0 && (
-                        <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-400 space-y-0.5">
-                          <span className="font-bold uppercase tracking-wider">Reference Source:</span>
+                        <div className="mt-2.5 pt-2 border-t border-slate-200 text-[10px] text-slate-500 space-y-0.5">
+                          <span className="font-bold uppercase tracking-wider text-[#1e3a8a]">Reference Source:</span>
                           {msg.sources.map((s: any, idx: number) => (
-                            <div key={idx} className="text-indigo-500 font-semibold">• {s.title}</div>
+                            <div key={idx} className="text-[#1e3a8a] font-semibold">• {s.title}</div>
                           ))}
                         </div>
                       )}
@@ -567,7 +562,7 @@ export default function DashboardPage() {
 
                 {aiLoading && (
                   <div className="flex gap-2 items-center text-xs text-slate-400 font-medium py-1">
-                    <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-[#1e3a8a] border-t-transparent rounded-full animate-spin"></div>
                     <span>ChatGPT AI Agent is thinking...</span>
                   </div>
                 )}
@@ -580,12 +575,12 @@ export default function DashboardPage() {
                   value={aiQuery}
                   onChange={(e) => setAiQuery(e.target.value)}
                   placeholder="Ask any question (e.g. 'Write Dijkstra algorithm in Python', 'Tell me about yourself', 'Check Google eligibility')..."
-                  className="flex-1 px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-medium"
+                  className="flex-1 px-4 py-3 rounded-2xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#1e3a8a] font-medium"
                 />
                 <button
                   type="submit"
                   disabled={aiLoading}
-                  className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+                  className="px-6 py-3 rounded-2xl bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs font-extrabold uppercase tracking-wider shadow-xs transition-all flex items-center gap-2 disabled:opacity-50"
                 >
                   {aiLoading ? (
                     <span>Generating...</span>
@@ -607,13 +602,13 @@ export default function DashboardPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-emerald-600" /> SGIP Placement Cell — Company Details & Eligibility
+              <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-[#1e3a8a]" /> SGIP Placement Cell — Company Details &amp; Eligibility
               </div>
               <p className="text-xs text-slate-500 mt-0.5">Real-time automated evaluation of your CGPA ({studentCgpa}) and Arrears ({studentArrears}) against company rules.</p>
             </div>
 
-            <Link href="/placement" className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1">
+            <Link href="/placement" className="text-xs font-bold text-[#1e3a8a] hover:underline flex items-center gap-1">
               View All Drives <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -625,25 +620,25 @@ export default function DashboardPage() {
               return (
                 <div
                   key={drive.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md flex flex-col justify-between space-y-4 hover-lift"
+                  className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-[#1e3a8a] transition-all"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 dark:bg-emerald-950 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                      <span className="text-xs font-extrabold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                         {drive.packageLPA} LPA CTC
                       </span>
                       <span className="text-xs text-slate-400 font-mono">Drive Date: {drive.driveDate}</span>
                     </div>
 
-                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mt-3">{drive.companyName}</h3>
-                    <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">{drive.roleTitle}</div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed font-medium line-clamp-2">{drive.jobDescription}</p>
+                    <h3 className="text-lg font-extrabold text-[#0f2942] mt-3">{drive.companyName}</h3>
+                    <div className="text-xs font-semibold text-[#1e3a8a]">{drive.roleTitle}</div>
+                    <p className="text-xs text-slate-600 mt-2 leading-relaxed font-medium line-clamp-2">{drive.jobDescription}</p>
 
                     {/* Company Requirements */}
-                    <div className="mt-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs space-y-1.5">
+                    <div className="mt-4 p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
                       <div className="font-bold text-slate-500 uppercase text-[10px]">Company Eligibility Criteria:</div>
-                      <div className="text-slate-700 dark:text-slate-300 font-medium">
-                        Min Required CGPA: <strong className="text-indigo-600">{drive.eligibility.minCgpa}</strong> • Max Allowed Backlogs: <strong className="text-amber-600">{drive.eligibility.maxBacklogs}</strong>
+                      <div className="text-slate-700 font-medium">
+                        Min Required CGPA: <strong className="text-[#1e3a8a]">{drive.eligibility.minCgpa}</strong> • Max Allowed Backlogs: <strong className="text-[#0f2942]">{drive.eligibility.maxBacklogs}</strong>
                       </div>
                       <div className="text-[11px] text-slate-500">
                         Location: {drive.location}
@@ -652,15 +647,15 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Real-time Rule Evaluation Result */}
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                  <div className="pt-3 border-t border-slate-100 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-slate-500">Your Eligibility Status:</span>
                       {evalResult.isEligible ? (
-                        <span className="text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                        <span className="text-[#1e3a8a] font-bold bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 flex items-center gap-1">
                           <Check className="w-3.5 h-3.5" /> ELIGIBLE
                         </span>
                       ) : (
-                        <span className="text-rose-600 font-bold bg-rose-50 px-2.5 py-0.5 rounded border border-rose-200 flex items-center gap-1">
+                        <span className="text-slate-600 font-bold bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 flex items-center gap-1">
                           <AlertCircle className="w-3.5 h-3.5" /> INELIGIBLE
                         </span>
                       )}
@@ -670,8 +665,8 @@ export default function DashboardPage() {
                       href="/placement"
                       className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                         evalResult.isEligible
-                          ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                          ? 'bg-[#1e3a8a] text-white hover:bg-[#172554] shadow-xs'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
                       <ShieldCheck className="w-4 h-4" />
@@ -689,82 +684,82 @@ export default function DashboardPage() {
         {/* ---------------------------------------------------- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* SGIP Growth Score Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 shadow-md flex flex-col justify-between hover-lift">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-indigo-600" /> SGIP Growth Score
+                <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-[#1e3a8a]" /> SGIP Growth Score
                 </div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
+                <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                   Top 8% Rank
                 </span>
               </div>
               <div className="flex items-baseline gap-3 mt-4">
-                <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">{growth?.overallScore || 88}</span>
+                <span className="text-5xl font-black text-[#0f2942] tracking-tight">{growth?.overallScore || 88}</span>
                 <span className="text-sm font-bold text-slate-400">/ 100</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed font-medium">
-                Calculated across Learning Hours, LeetCode Solved, Quiz Scores, Assignments & Daily Reports.
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed font-medium">
+                Calculated across Learning Hours, LeetCode Solved, Quiz Scores, Assignments &amp; Daily Reports.
               </p>
             </div>
 
             {/* Component Progress Bars */}
             <div className="mt-6 space-y-3.5">
               <div>
-                <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  <span>Coding & DSA (LeetCode/GFG)</span>
-                  <span className="font-bold text-indigo-600">{growth?.codingScore || 85}%</span>
+                <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1.5">
+                  <span>Coding &amp; DSA (LeetCode/GFG)</span>
+                  <span className="font-bold text-[#1e3a8a]">{growth?.codingScore || 85}%</span>
                 </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-gradient-to-r from-indigo-500 to-blue-600 h-full rounded-full" style={{ width: `${growth?.codingScore || 85}%` }}></div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-[#1e3a8a] h-full rounded-full" style={{ width: `${growth?.codingScore || 85}%` }}></div>
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  <span>Assessments & Quizzes</span>
-                  <span className="font-bold text-violet-600">{growth?.assessmentScore || 90}%</span>
+                <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1.5">
+                  <span>Assessments &amp; Quizzes</span>
+                  <span className="font-bold text-[#1e3a8a]">{growth?.assessmentScore || 90}%</span>
                 </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                  <div className="bg-gradient-to-r from-violet-500 to-purple-600 h-full rounded-full" style={{ width: `${growth?.assessmentScore || 90}%` }}></div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-[#1e3a8a] h-full rounded-full" style={{ width: `${growth?.assessmentScore || 90}%` }}></div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Placement Readiness Score Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 shadow-md flex flex-col justify-between hover-lift">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-emerald-600" /> Placement Readiness
+                <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-[#1e3a8a]" /> Placement Readiness
                 </div>
-                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-800">
+                <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                   Tier-1 Ready
                 </span>
               </div>
               <div className="flex items-baseline gap-3 mt-4">
-                <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">{readiness?.overallReadiness || 82}%</span>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Tier-1 Eligible</span>
+                <span className="text-5xl font-black text-[#0f2942] tracking-tight">{readiness?.overallReadiness || 82}%</span>
+                <span className="text-xs font-bold text-[#1e3a8a] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Tier-1 Eligible</span>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed font-medium">
-                Eligible for Google Cloud (24.5 LPA) & Microsoft (28 LPA) drives.
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed font-medium">
+                Eligible for Google Cloud (24.5 LPA) &amp; Microsoft (28 LPA) drives.
               </p>
             </div>
 
             {/* Breakdown Metrics */}
             <div className="mt-6 grid grid-cols-3 gap-2.5 text-center">
-              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
+              <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
                 <div className="text-[10px] text-slate-500 uppercase font-extrabold">Technical</div>
-                <div className="text-base font-black text-slate-900 dark:text-white mt-0.5">{readiness?.technicalScore || 84}%</div>
+                <div className="text-base font-black text-[#0f2942] mt-0.5">{readiness?.technicalScore || 84}%</div>
               </div>
-              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
+              <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
                 <div className="text-[10px] text-slate-500 uppercase font-extrabold">Portfolio</div>
-                <div className="text-base font-black text-slate-900 dark:text-white mt-0.5">{readiness?.portfolioScore || 80}%</div>
+                <div className="text-base font-black text-[#0f2942] mt-0.5">{readiness?.portfolioScore || 80}%</div>
               </div>
-              <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
+              <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
                 <div className="text-[10px] text-slate-500 uppercase font-extrabold">ATS Resume</div>
-                <div className="text-base font-black text-slate-900 dark:text-white mt-0.5">{readiness?.resumeScore || 88}%</div>
+                <div className="text-base font-black text-[#0f2942] mt-0.5">{readiness?.resumeScore || 88}%</div>
               </div>
             </div>
           </div>
@@ -774,64 +769,64 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <Link
             href="/courses"
-            className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-indigo-500/50 shadow-md transition-all hover-lift group flex flex-col justify-between"
+            className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#1e3a8a] shadow-xs transition-all flex flex-col justify-between group"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#1e3a8a]">
                 <BookOpen className="w-5 h-5" />
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#1e3a8a] group-hover:translate-x-1 transition-transform" />
             </div>
             <div className="mt-4">
-              <div className="text-sm font-bold text-slate-900 dark:text-white">Courses & Lessons</div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">Advanced DSA & Full Stack</div>
+              <div className="text-sm font-bold text-[#0f2942]">Courses &amp; Lessons</div>
+              <div className="text-xs text-slate-500 font-medium mt-0.5">Advanced DSA &amp; Full Stack</div>
             </div>
           </Link>
 
           <Link
             href="/coding"
-            className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-violet-500/50 shadow-md transition-all hover-lift group flex flex-col justify-between"
+            className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#1e3a8a] shadow-xs transition-all flex flex-col justify-between group"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950 flex items-center justify-center text-violet-600">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#1e3a8a]">
                 <Code2 className="w-5 h-5" />
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#1e3a8a] group-hover:translate-x-1 transition-transform" />
             </div>
             <div className="mt-4">
-              <div className="text-sm font-bold text-slate-900 dark:text-white">Coding Tracker</div>
+              <div className="text-sm font-bold text-[#0f2942]">Coding Tracker</div>
               <div className="text-xs text-slate-500 font-medium mt-0.5">312 Solved • 14 Day Streak</div>
             </div>
           </Link>
 
           <Link
             href="/daily-reports"
-            className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-500/50 shadow-md transition-all hover-lift group flex flex-col justify-between"
+            className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#1e3a8a] shadow-xs transition-all flex flex-col justify-between group"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center text-emerald-600">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#1e3a8a]">
                 <Clock className="w-5 h-5" />
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#1e3a8a] group-hover:translate-x-1 transition-transform" />
             </div>
             <div className="mt-4">
-              <div className="text-sm font-bold text-slate-900 dark:text-white">Daily Study Report</div>
+              <div className="text-sm font-bold text-[#0f2942]">Daily Study Report</div>
               <div className="text-xs text-slate-500 font-medium mt-0.5">Log today's 4.5 study hours</div>
             </div>
           </Link>
 
           <Link
             href="/placement"
-            className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-amber-500/50 shadow-md transition-all hover-lift group flex flex-col justify-between"
+            className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#1e3a8a] shadow-xs transition-all flex flex-col justify-between group"
           >
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950 flex items-center justify-center text-amber-600">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#1e3a8a]">
                 <Building2 className="w-5 h-5" />
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#1e3a8a] group-hover:translate-x-1 transition-transform" />
             </div>
             <div className="mt-4">
-              <div className="text-sm font-bold text-slate-900 dark:text-white">Placement Cell</div>
+              <div className="text-sm font-bold text-[#0f2942]">Placement Cell</div>
               <div className="text-xs text-slate-500 font-medium mt-0.5">Check drive eligibility</div>
             </div>
           </Link>
@@ -848,13 +843,13 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#1e3a8a] uppercase tracking-widest">
             <ShieldCheck className="w-4 h-4" /> SGIP {user.role === 'FACULTY' ? 'Faculty Command Desk' : 'Placement Coordinator Console'}
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-1">
+          <h1 className="text-3xl font-black tracking-tight text-[#0f2942] mt-1">
             Welcome back, {user.name}
           </h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
+          <p className="text-xs text-slate-600 mt-1 font-medium">
             {user.department} • Department Student Growth Overview
           </p>
         </div>
@@ -863,14 +858,14 @@ export default function DashboardPage() {
           {user.role === 'FACULTY' ? (
             <Link
               href="/quizzes"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-indigo-200 transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs font-bold transition-all shadow-xs"
             >
               <Plus className="w-4 h-4" /> Import CSV Question Bank
             </Link>
           ) : (
             <Link
               href="/placement"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-emerald-200 transition-all shadow-sm"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs font-bold transition-all shadow-xs"
             >
               <Plus className="w-4 h-4" /> Create Placement Drive
             </Link>
@@ -880,47 +875,47 @@ export default function DashboardPage() {
 
       {/* Top 4 Summary Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 rounded-2xl shadow-md shadow-slate-200/40 hover-lift">
+        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500 font-extrabold uppercase">Total Students</span>
-            <Users className="w-4 h-4 text-indigo-600" />
+            <Users className="w-4 h-4 text-[#1e3a8a]" />
           </div>
-          <div className="text-3xl font-black text-slate-900 dark:text-white mt-2">{facultyData?.totalStudents || 42}</div>
-          <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">Active Batch 2026</span>
+          <div className="text-3xl font-black text-[#0f2942] mt-2">{facultyData?.totalStudents || 42}</div>
+          <span className="text-[10px] text-[#1e3a8a] font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 mt-1 inline-block">Active Batch 2026</span>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 rounded-2xl shadow-md shadow-slate-200/40 hover-lift">
+        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500 font-extrabold uppercase">Avg Growth Score</span>
-            <TrendingUp className="w-4 h-4 text-violet-600" />
+            <TrendingUp className="w-4 h-4 text-[#1e3a8a]" />
           </div>
-          <div className="text-3xl font-black text-slate-900 dark:text-white mt-2">{facultyData?.averageGrowthScore || 78}/100</div>
-          <span className="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 mt-1 inline-block">+4.2% from last month</span>
+          <div className="text-3xl font-black text-[#0f2942] mt-2">{facultyData?.averageGrowthScore || 78}/100</div>
+          <span className="text-[10px] text-[#1e3a8a] font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 mt-1 inline-block">+4.2% from last month</span>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 rounded-2xl shadow-md shadow-slate-200/40 hover-lift">
+        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500 font-extrabold uppercase">Avg Placement Readiness</span>
-            <Building2 className="w-4 h-4 text-emerald-600" />
+            <Building2 className="w-4 h-4 text-[#1e3a8a]" />
           </div>
-          <div className="text-3xl font-black text-slate-900 dark:text-white mt-2">{facultyData?.averageReadinessScore || 76}%</div>
-          <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">32 Eligible Students</span>
+          <div className="text-3xl font-black text-[#0f2942] mt-2">{facultyData?.averageReadinessScore || 76}%</div>
+          <span className="text-[10px] text-[#1e3a8a] font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 mt-1 inline-block">32 Eligible Students</span>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 rounded-2xl shadow-md shadow-slate-200/40 hover-lift">
+        <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500 font-extrabold uppercase">At-Risk Intervention</span>
-            <AlertTriangle className="w-4 h-4 text-rose-600" />
+            <AlertTriangle className="w-4 h-4 text-[#1e3a8a]" />
           </div>
-          <div className="text-3xl font-black text-rose-600 mt-2">{facultyData?.atRiskStudents?.length || 1}</div>
-          <span className="text-[10px] text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200 mt-1 inline-block">Requires Review</span>
+          <div className="text-3xl font-black text-[#0f2942] mt-2">{facultyData?.atRiskStudents?.length || 1}</div>
+          <span className="text-[10px] text-[#1e3a8a] font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 mt-1 inline-block">Requires Review</span>
         </div>
       </div>
 
-      {/* Requirement 22: Attention Required / At-Risk Students Section */}
-      <div className="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 rounded-3xl p-6 shadow-md shadow-slate-200/40 space-y-4">
+      {/* Attention Required / At-Risk Students Section */}
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#1e3a8a]">
             <AlertTriangle className="w-4 h-4" /> Attention Required — At-Risk Students Identified
           </div>
           <span className="text-xs text-slate-500 font-medium">Auto-flagged by SGIP Intelligence Rules</span>
@@ -928,28 +923,28 @@ export default function DashboardPage() {
 
         <div className="space-y-3">
           {facultyData?.atRiskStudents?.map((st: any) => (
-            <div key={st.studentId} className="p-4 rounded-2xl bg-rose-50/60 dark:bg-slate-800/80 border border-rose-100 dark:border-slate-700/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={st.studentId} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-sm">
+                <div className="w-10 h-10 rounded-full bg-blue-50 text-[#1e3a8a] flex items-center justify-center font-bold text-sm border border-blue-200">
                   {st.name.charAt(0)}
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <div className="text-sm font-bold text-[#0f2942] flex items-center gap-2">
                     {st.name} <span className="text-xs text-slate-500 font-mono">({st.rollNumber})</span>
                   </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
-                    CGPA: <span className="font-bold text-amber-600">{st.cgpa}</span> • Active Backlogs: <span className="font-bold text-rose-600">{st.backlogs}</span> • Growth Score: <span className="font-bold text-slate-800">{st.growthScore}</span>
+                  <div className="text-xs text-slate-600 mt-0.5 font-medium">
+                    CGPA: <span className="font-bold text-[#1e3a8a]">{st.cgpa}</span> • Active Backlogs: <span className="font-bold text-[#0f2942]">{st.backlogs}</span> • Growth Score: <span className="font-bold text-[#0f2942]">{st.growthScore}</span>
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-xs bg-rose-100 text-rose-700 px-3 py-1 rounded-full border border-rose-200 font-semibold">
-                  Low learning hours & 2 backlogs
+                <span className="text-xs bg-blue-50 text-[#1e3a8a] px-3 py-1 rounded-full border border-blue-200 font-semibold">
+                  Low learning hours &amp; 2 backlogs
                 </span>
                 <Link
                   href="/daily-reports"
-                  className="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-all flex items-center gap-1 shadow-xs"
+                  className="px-3.5 py-1.5 rounded-xl bg-[#1e3a8a] hover:bg-[#172554] text-white text-xs font-bold transition-all flex items-center gap-1 shadow-xs"
                 >
                   Review Student <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
