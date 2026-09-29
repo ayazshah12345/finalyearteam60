@@ -881,13 +881,20 @@ export default function FacultyStudentProfilesPage() {
                               Score: {mi.overallScore}%
                             </div>
                           </div>
-                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">
-                            {mi.hiringRecommendation}
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase inline-flex items-center gap-1">
+                            <img src="/emojis/trophy.png" alt="" className="w-3 h-3 object-contain" />
+                            <span>{mi.hiringRecommendation}</span>
                           </span>
                         </div>
                         <div className="pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] grid grid-cols-2 gap-2 text-slate-500">
-                          <div>Technical: <strong className="text-slate-900 dark:text-white">{mi.technicalScore}%</strong></div>
-                          <div>Communication: <strong className="text-slate-900 dark:text-white">{mi.communicationScore}%</strong></div>
+                          <div className="flex items-center gap-1.5">
+                            <img src="/emojis/compiler.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                            <span>Technical: <strong className="text-slate-900 dark:text-white">{mi.technicalScore}%</strong></span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <img src="/emojis/speech.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                            <span>Communication: <strong className="text-slate-900 dark:text-white">{mi.communicationScore}%</strong></span>
+                          </div>
                         </div>
                         <p className="text-[11px] text-slate-600 dark:text-slate-400 italic">
                           "{mi.feedbackSummary}"

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { User, ResumeData, MockInterviewSession } from '@/types';
+import { User, ResumeData, MockInterviewSession, MockInterviewRoundQuestion } from '@/types';
 import {
   Mic,
   MicOff,
@@ -26,41 +26,107 @@ import {
   Loader2,
   ChevronRight,
   Flame,
-  Star
+  Star,
+  Zap,
+  HelpCircle,
+  Lightbulb,
+  Upload,
+  RefreshCw,
+  Sliders,
+  Radio,
+  Eye
 } from 'lucide-react';
 import Link from 'next/link';
+
+interface QuestionBankItem {
+  id: string;
+  roundTitle: string;
+  question: string;
+  difficulty: 'Easy' | 'Hard' | 'Tough';
+  topic: string;
+  expectedKeywords: string[];
+}
+
+interface ResumeAnalysisData {
+  candidateSummary: string;
+  detectedTechStack: string[];
+  keyProjects: string[];
+  strengths: string[];
+  recommendedFocus: string;
+  questions: {
+    easy: QuestionBankItem[];
+    hard: QuestionBankItem[];
+    tough: QuestionBankItem[];
+  };
+}
 
 export default function AIMockInterviewPage() {
   const [user, setUser] = useState<User | null>(null);
   const [resume, setResume] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Resume Analysis & Question Bank State
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisData, setAnalysisData] = useState<ResumeAnalysisData | null>(null);
+  const [activeTierPreview, setActiveTierPreview] = useState<'easy' | 'hard' | 'tough'>('easy');
+
   // Interview Workspace State: 'intro' | 'interviewing' | 'evaluating' | 'result'
   const [step, setStep] = useState<'intro' | 'interviewing' | 'evaluating' | 'result'>('intro');
   const [targetRole, setTargetRole] = useState('Full Stack Software Engineer');
+  const [interviewMode, setInterviewMode] = useState<'progressive' | 'easy' | 'hard' | 'tough'>('progressive');
+
+  // Total Rounds: Progressive = 5 (2 Easy -> 2 Hard -> 1 Tough), or 3 for single tier
+  const totalRounds = interviewMode === 'progressive' ? 5 : 3;
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
+
+  // Active Live Question State
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [currentRoundTitle, setCurrentRoundTitle] = useState('');
+  const [currentDifficulty, setCurrentDifficulty] = useState<'Easy' | 'Hard' | 'Tough'>('Easy');
+  const [currentInterviewerReaction, setCurrentInterviewerReaction] = useState('');
+  const [currentTips, setCurrentTips] = useState('');
+  const [isAiThinking, setIsAiThinking] = useState(false);
 
   // Voice Assistance State
   const [isSpeakingAI, setIsSpeakingAI] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [spokenTranscript, setSpokenTranscript] = useState('');
   const [voiceSupported, setVoiceSupported] = useState(true);
+  const [autoListenMode, setAutoListenMode] = useState(true);
+  const [audioMuted, setAudioMuted] = useState(false);
 
-  // Student Answers array for all 5 rounds
-  const [roundAnswers, setRoundAnswers] = useState<
-    { round: number; roundTitle: string; question: string; studentAnswer: string }[]
-  >([]);
+  // Student Answers transcript for all completed rounds
+  const [transcriptHistory, setTranscriptHistory] = useState<MockInterviewRoundQuestion[]>([]);
 
-  // Generated Result Card
+  // Generated Result Card & History
   const [resultSession, setResultSession] = useState<MockInterviewSession | null>(null);
   const [pastSessions, setPastSessions] = useState<MockInterviewSession[]>([]);
 
+  // Direct Resume Upload State in Mock Interview
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [resumeUploadSuccess, setResumeUploadSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Web Speech API Refs
   const recognitionRef = useRef<any>(null);
+  const isComponentMounted = useRef(true);
 
   useEffect(() => {
+    isComponentMounted.current = true;
     fetchInitialData();
     checkSpeechSupport();
+
+    return () => {
+      isComponentMounted.current = false;
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
+      }
+    };
   }, []);
 
   const fetchInitialData = async () => {
@@ -72,9 +138,11 @@ export default function AIMockInterviewPage() {
 
       // Fetch student resume
       const resRes = await fetch('/api/resume');
+      let loadedResume: ResumeData | null = null;
       if (resRes.ok) {
         const resData = await resRes.json();
-        setResume(resData.resume);
+        loadedResume = resData.resume;
+        setResume(loadedResume);
       }
 
       // Fetch past interview history
@@ -83,10 +151,40 @@ export default function AIMockInterviewPage() {
         const histData = await histRes.json();
         setPastSessions(histData.interviews || []);
       }
+
+      // Analyze resume with Gemini AI automatically
+      if (loadedResume || authData.activeUser) {
+        triggerResumeAnalysis(loadedResume, targetRole);
+      }
     } catch (e) {
-      console.error(e);
+      console.error('Error loading initial mock interview data:', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const triggerResumeAnalysis = async (resumeToAnalyze: any, role: string) => {
+    setAnalysisLoading(true);
+    try {
+      const res = await fetch('/api/interview/analyze-resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resume: resumeToAnalyze,
+          targetRole: role
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.analysis) {
+          setAnalysisData(data.analysis);
+        }
+      }
+    } catch (err) {
+      console.error('Error triggering resume analysis:', err);
+    } finally {
+      setAnalysisLoading(false);
     }
   };
 
@@ -99,71 +197,103 @@ export default function AIMockInterviewPage() {
     }
   };
 
-  // Generate 5 Personalised Rounds based on Student Resume & Skills
-  const userSkills = resume?.skills?.flatMap((s) => s.list).join(', ') || 'Python, Data Structures, SQL, React';
-  
-  const interviewRounds = [
-    {
-      round: 1,
-      title: 'Round 1: Candidate Background & Resume Introduction',
-      question: `Welcome to the technical interview for the position of ${targetRole}. Please introduce yourself, your academic background (CGPA: ${user?.cgpa || 8.5}), and summarize your key projects using ${userSkills}.`
-    },
-    {
-      round: 2,
-      title: 'Round 2: Core Computer Science & Language Technicals',
-      question: `Great start. Now let's dive into your primary technical stack (${userSkills}). Can you explain memory management, object-oriented principles, and how your language handles multithreading or asynchronous execution?`
-    },
-    {
-      round: 3,
-      title: 'Round 3: Data Structures & Algorithmic Logic',
-      question: `Let's test your problem-solving logic. How would you detect a cycle in a directed graph efficiently, and what is the time and space complexity of your approach?`
-    },
-    {
-      round: 4,
-      title: 'Round 4: System Architecture & Scalability',
-      question: `Assume we are building a high-throughput notification system for 100,000 active students. How would you design the backend API, caching layer, and queue infrastructure to ensure low latency?`
-    },
-    {
-      round: 5,
-      title: 'Round 5: HR & Behavioral Competency',
-      question: `Final round. Describe a challenging technical problem you faced during a project. How did you diagnose the issue under pressure, and what was the outcome?`
-    }
-  ];
+  // Upload a new resume directly from Mock Interview page
+  const handleDirectResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  // AI Text-to-Speech (TTS) synthesizer
-  const speakAIQuestion = (text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    
-    window.speechSynthesis.cancel(); // stop previous speech
+    setIsUploadingResume(true);
+    setResumeUploadSuccess(false);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/resume', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setResume(data.resume);
+        setResumeUploadSuccess(true);
+        // Re-analyze new resume with Gemini
+        await triggerResumeAnalysis(data.resume, targetRole);
+      } else {
+        alert('Could not upload resume file. Please ensure it is a valid PDF or document.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading resume file.');
+    } finally {
+      setIsUploadingResume(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  // AI Text-to-Speech (TTS) synthesizer in Voice Mode
+  const speakAIQuestion = (text: string, onFinish?: () => void) => {
+    if (audioMuted || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      if (onFinish) onFinish();
+      return;
+    }
+
+    window.speechSynthesis.cancel(); // stop any active audio
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
+    utterance.rate = 0.96;
     utterance.pitch = 1.0;
-    
-    // Select professional voice if available
+
+    // Pick best natural voice if available
     const voices = window.speechSynthesis.getVoices();
-    const englishVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha')));
-    if (englishVoice) utterance.voice = englishVoice;
+    const naturalVoice = voices.find(
+      (v) =>
+        v.lang.startsWith('en') &&
+        (v.name.includes('Google') ||
+          v.name.includes('Natural') ||
+          v.name.includes('Samantha') ||
+          v.name.includes('Daniel') ||
+          v.name.includes('Jenny'))
+    );
+    if (naturalVoice) utterance.voice = naturalVoice;
 
     utterance.onstart = () => setIsSpeakingAI(true);
-    utterance.onend = () => setIsSpeakingAI(false);
-    utterance.onerror = () => setIsSpeakingAI(false);
+    utterance.onend = () => {
+      setIsSpeakingAI(false);
+      if (onFinish) onFinish();
+      // If Auto-Listen Mode is enabled, automatically activate microphone
+      if (autoListenMode && voiceSupported && !isListening) {
+        setTimeout(() => {
+          startSpeechRecognition();
+        }, 300);
+      }
+    };
+    utterance.onerror = () => {
+      setIsSpeakingAI(false);
+      if (onFinish) onFinish();
+    };
 
     window.speechSynthesis.speak(utterance);
   };
 
+  // Stop any active speech synthesis
+  const stopSpeech = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeakingAI(false);
+    }
+  };
+
   // Start Voice Microphone Listening (STT)
-  const toggleListening = () => {
+  const startSpeechRecognition = () => {
     if (typeof window === 'undefined') return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert('Web Speech API is not supported in your browser. You can type your answers directly!');
       return;
     }
 
-    if (isListening) {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      setIsListening(false);
+    if (isListening && recognitionRef.current) {
       return;
     }
 
@@ -176,93 +306,217 @@ export default function AIMockInterviewPage() {
       recognition.onstart = () => setIsListening(true);
 
       recognition.onresult = (event: any) => {
-        let transcript = '';
+        let currentTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+          currentTranscript += event.results[i][0].transcript;
         }
         setSpokenTranscript((prev) => {
-          const combined = (prev ? prev + ' ' : '') + transcript;
-          return combined;
+          const trimmed = prev.trim();
+          return trimmed ? `${trimmed} ${currentTranscript.trim()}` : currentTranscript.trim();
         });
       };
 
       recognition.onerror = (err: any) => {
-        console.error('Speech recognition error:', err);
+        console.warn('Speech recognition error:', err);
         setIsListening(false);
       };
 
-      recognition.onend = () => setIsListening(false);
+      recognition.onend = () => {
+        setIsListening(false);
+      };
 
       recognitionRef.current = recognition;
       recognition.start();
     } catch (e) {
-      console.error(e);
+      console.warn('Speech recognition start failed:', e);
       setIsListening(false);
     }
   };
 
-  // Start the Interview
-  const handleStartInterview = () => {
+  const stopSpeechRecognition = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      stopSpeechRecognition();
+    } else {
+      stopSpeech();
+      startSpeechRecognition();
+    }
+  };
+
+  // Determine difficulty for current round index
+  const getRoundDifficulty = (index: number): 'Easy' | 'Hard' | 'Tough' => {
+    if (interviewMode === 'easy') return 'Easy';
+    if (interviewMode === 'hard') return 'Hard';
+    if (interviewMode === 'tough') return 'Tough';
+
+    // Progressive mode: Round 1, 2 = Easy; Round 3, 4 = Hard; Round 5 = Tough
+    if (index <= 1) return 'Easy';
+    if (index <= 3) return 'Hard';
+    return 'Tough';
+  };
+
+  // START THE INTERVIEW
+  const handleStartInterview = async () => {
+    stopSpeech();
+    stopSpeechRecognition();
+
     setStep('interviewing');
     setCurrentRoundIndex(0);
-    setRoundAnswers([]);
+    setTranscriptHistory([]);
     setSpokenTranscript('');
-    
-    // Speak Round 1 question aloud
-    setTimeout(() => {
-      speakAIQuestion(interviewRounds[0].question);
-    }, 400);
-  };
+    setIsAiThinking(true);
 
-  // Submit Current Round Answer & Proceed to Next
-  const handleNextRound = () => {
-    if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
+    const initialDifficulty = getRoundDifficulty(0);
+    setCurrentDifficulty(initialDifficulty);
 
-    const currentRound = interviewRounds[currentRoundIndex];
-    const answerToSave = spokenTranscript.trim() || 'No response provided.';
+    try {
+      const res = await fetch('/api/interview/interactive-round', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resume,
+          targetRole,
+          difficulty: initialDifficulty,
+          roundIndex: 0,
+          totalRounds,
+          candidateAnswer: '',
+          previousQuestion: '',
+          transcriptHistory: []
+        })
+      });
 
-    const updatedAnswers = [
-      ...roundAnswers,
-      {
-        round: currentRound.round,
-        roundTitle: currentRound.title,
-        question: currentRound.question,
-        studentAnswer: answerToSave
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCurrentQuestion(data.nextQuestion);
+        setCurrentRoundTitle(data.roundTitle || `Round 1: [${initialDifficulty}] Foundation & Resume Overview`);
+        setCurrentInterviewerReaction(data.interviewerReaction || '');
+        setCurrentTips(data.tips || '');
+
+        // Speak Question Aloud in Voice Mode
+        const speechText = `${data.interviewerReaction ? data.interviewerReaction + ' ' : ''}${data.nextQuestion}`;
+        setTimeout(() => {
+          speakAIQuestion(speechText);
+        }, 400);
+      } else {
+        // Fallback initial question
+        const fallbackQ = `Welcome to the technical interview for ${targetRole}. Please introduce yourself, summarize your primary resume projects, and explain how you built your main technical stack.`;
+        setCurrentQuestion(fallbackQ);
+        setCurrentRoundTitle(`Round 1: [${initialDifficulty}] Background & Project Overview`);
+        setTimeout(() => {
+          speakAIQuestion(fallbackQ);
+        }, 400);
       }
-    ];
-
-    setRoundAnswers(updatedAnswers);
-    setSpokenTranscript('');
-
-    if (currentRoundIndex + 1 < interviewRounds.length) {
-      const nextIdx = currentRoundIndex + 1;
-      setCurrentRoundIndex(nextIdx);
-      setTimeout(() => {
-        speakAIQuestion(interviewRounds[nextIdx].question);
-      }, 500);
-    } else {
-      // All 5 rounds completed -> Submit for AI Evaluation!
-      submitForEvaluation(updatedAnswers);
+    } catch (err) {
+      console.error('Error starting interactive interview:', err);
+    } finally {
+      setIsAiThinking(false);
     }
   };
 
-  // Submit complete interview for AI evaluation backend
-  const submitForEvaluation = async (answersToSubmit: any[]) => {
+  // SUBMIT ANSWER & DYNAMICALLY ASK NEXT QUESTION BASED ON CANDIDATE ANSWER
+  const handleNextRound = async () => {
+    stopSpeechRecognition();
+    stopSpeech();
+
+    const answerToEvaluate = spokenTranscript.trim() || 'No response provided.';
+    setIsAiThinking(true);
+
+    // Call interactive Gemini API with candidate's actual answer!
+    const nextIdx = currentRoundIndex + 1;
+    const nextDifficulty = getRoundDifficulty(nextIdx);
+
+    try {
+      const res = await fetch('/api/interview/interactive-round', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resume,
+          targetRole,
+          difficulty: nextDifficulty,
+          roundIndex: nextIdx,
+          totalRounds,
+          candidateAnswer: answerToEvaluate,
+          previousQuestion: currentQuestion,
+          previousRoundTitle: currentRoundTitle,
+          transcriptHistory
+        })
+      });
+
+      const data = await res.json();
+      const techMark = data.technicalMark || 75;
+      const commMark = data.communicationMark || 75;
+      const score = Math.round((techMark * 0.6) + (commMark * 0.4));
+      const feedback = data.feedback || 'Good articulation of concepts.';
+
+      const roundRecord: MockInterviewRoundQuestion = {
+        round: currentRoundIndex + 1,
+        roundTitle: currentRoundTitle,
+        difficulty: currentDifficulty,
+        interviewerReaction: data.interviewerReaction || '',
+        question: currentQuestion,
+        studentAnswer: answerToEvaluate,
+        technicalMark: techMark,
+        communicationMark: commMark,
+        feedback,
+        score
+      };
+
+      const updatedHistory = [...transcriptHistory, roundRecord];
+      setTranscriptHistory(updatedHistory);
+      setSpokenTranscript('');
+
+      if (nextIdx < totalRounds) {
+        // Continue to Next Round
+        setCurrentRoundIndex(nextIdx);
+        setCurrentDifficulty(nextDifficulty);
+        setCurrentQuestion(data.nextQuestion);
+        setCurrentRoundTitle(data.roundTitle || `Round ${nextIdx + 1}: [${nextDifficulty}] Technical Evaluation`);
+        setCurrentInterviewerReaction(data.interviewerReaction || '');
+        setCurrentTips(data.tips || '');
+
+        // Speak the interviewer's dynamic reaction + next question
+        const speechText = `${data.interviewerReaction ? data.interviewerReaction + '. ' : ''}${data.nextQuestion}`;
+        setTimeout(() => {
+          speakAIQuestion(speechText);
+        }, 500);
+      } else {
+        // All Rounds Completed -> Finalize & Save Evaluation Scorecard!
+        await submitForFinalEvaluation(updatedHistory);
+      }
+    } catch (err) {
+      console.error('Error processing next round:', err);
+    } finally {
+      setIsAiThinking(false);
+    }
+  };
+
+  // Submit complete interview transcript for AI evaluation backend & dbStore persistence
+  const submitForFinalEvaluation = async (answersToSubmit: MockInterviewRoundQuestion[]) => {
     setStep('evaluating');
     try {
+      const skillsEvaluated = analysisData?.detectedTechStack || [
+        'Data Structures & Algorithms',
+        'System Architecture',
+        'Database Management',
+        'Technical Communication'
+      ];
+
       const res = await fetch('/api/interview/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetRole,
-          resumeSummary: `Candidate CGPA ${user?.cgpa || 8.5}, skills in ${userSkills}`,
-          skillsEvaluated: ['DSA', 'Python', 'SQL', 'System Design', 'HR'],
+          resumeSummary: analysisData?.candidateSummary || `Candidate with CGPA ${user?.cgpa || 8.4} in ${user?.department || 'CSE'}`,
+          skillsEvaluated,
           answers: answersToSubmit
         })
       });
@@ -274,300 +528,755 @@ export default function AIMockInterviewPage() {
         fetchInitialData();
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error submitting final evaluation:', e);
     }
   };
 
   if (loading) {
     return (
-      <div className="py-16 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
-        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <span>Loading AI Voice Mock Interview Studio...</span>
+      <div className="py-20 text-center text-slate-500 text-xs flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
+          <img src="/emojis/interview.png" alt="" className="w-5 h-5 object-contain" />
+          <span>Loading Gemini AI Voice Mock Interview Studio...</span>
+        </div>
       </div>
     );
   }
 
-  const activeRound = interviewRounds[currentRoundIndex];
+  const userSkillsText =
+    resume?.skills?.flatMap((s) => s.list).join(', ') || 'Python, Java, Data Structures, SQL, React, Web Development';
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto font-sans">
+    <div className="space-y-8 max-w-6xl mx-auto font-sans pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
-            <Mic className="w-4 h-4 text-indigo-500 animate-pulse" /> AI Voice Assistance Mock Interview
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+            <img src="/emojis/interview.png" alt="" className="w-5 h-5 object-contain animate-bounce" />
+            <span>Gemini AI Voice Mock Interview Assistant</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-1">
-            Personalized Corporate Technical Interview
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            Resume-Trained Corporate Technical Interview
           </h1>
-          <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
-            Connected to your resume details ({userSkills}) • Interactive Speech Synthesizer & Voice Evaluation
+          <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 font-medium">
+            Meticulously analyzes your uploaded resume • Separated in 3 Tiers (Easy, Hard, Tough) • Interactive Voice
+            Mode
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             href="/resume"
-            className="px-4 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-200 transition-all flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 transition-all flex items-center gap-2"
           >
-            <FileText className="w-4 h-4 text-indigo-500" /> View/Update Resume
+            <img src="/emojis/resume.png" alt="" className="w-4 h-4 object-contain" />
+            <span>Resume Builder & ATS</span>
           </Link>
         </div>
       </div>
 
-      {/* STEP 1: INTRO & CONFIGURATION */}
+      {/* ========================================================================= */}
+      {/* STEP 1: INTRO, RESUME ANALYSIS & CONFIGURATION */}
+      {/* ========================================================================= */}
       {step === 'intro' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left Configuration Card */}
-          <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg">
-                <Bot className="w-6 h-6" />
+        <div className="space-y-8">
+          {/* Main Top Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Configuration Card */}
+            <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md">
+                    <img src="/emojis/chatbot.png" alt="Bot" className="w-8 h-8 object-contain" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                      Gemini AI Interviewer Persona
+                      <img src="/emojis/sparkles.png" alt="" className="w-4 h-4 object-contain" />
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Adaptive, conversational technical evaluations tailored to your resume
+                    </p>
+                  </div>
+                </div>
+
+                <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold flex items-center gap-1">
+                  <img src="/emojis/check.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>Gemini 3.5 Active</span>
+                </span>
               </div>
-              <div>
-                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">AI Technical Interviewer Persona</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Serious corporate evaluation based on your resume</p>
+
+              {/* Target Role & Mode */}
+              <div className="space-y-4 text-xs font-medium">
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <img src="/emojis/target.png" alt="" className="w-4 h-4 object-contain" />
+                    <span>Target Placement Role</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={targetRole}
+                    onChange={(e) => setTargetRole(e.target.value)}
+                    placeholder="e.g. Full Stack Developer, SDE 1, Data Engineer, Cloud Architect"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-indigo-500 shadow-inner"
+                  />
+                </div>
+
+                {/* Interview Difficulty Progression Selector */}
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                    Interview Difficulty Structure:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setInterviewMode('progressive')}
+                      className={`p-3 rounded-2xl border text-left transition-all ${
+                        interviewMode === 'progressive'
+                          ? 'border-indigo-600 bg-indigo-50/80 dark:bg-indigo-950/60 shadow-sm'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1 text-[11px] font-black text-indigo-700 dark:text-indigo-300">
+                        <img src="/emojis/trophy.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Adaptive (All 3)</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-1">Easy ➔ Hard ➔ Tough (5 Rounds)</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setInterviewMode('easy')}
+                      className={`p-3 rounded-2xl border text-left transition-all ${
+                        interviewMode === 'easy'
+                          ? 'border-emerald-600 bg-emerald-50/80 dark:bg-emerald-950/60 shadow-sm'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1 text-[11px] font-black text-emerald-700 dark:text-emerald-300">
+                        <img src="/emojis/lightbulb.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Easy Only</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-1">Resume & Core Stack (3 Rounds)</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setInterviewMode('hard')}
+                      className={`p-3 rounded-2xl border text-left transition-all ${
+                        interviewMode === 'hard'
+                          ? 'border-amber-600 bg-amber-50/80 dark:bg-amber-950/60 shadow-sm'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1 text-[11px] font-black text-amber-700 dark:text-amber-300">
+                        <img src="/emojis/fire.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Hard Only</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-1">DSA & Code Logic (3 Rounds)</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setInterviewMode('tough')}
+                      className={`p-3 rounded-2xl border text-left transition-all ${
+                        interviewMode === 'tough'
+                          ? 'border-rose-600 bg-rose-50/80 dark:bg-rose-950/60 shadow-sm'
+                          : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1 text-[11px] font-black text-rose-700 dark:text-rose-300">
+                        <img src="/emojis/shield.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Tough Only</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-1">System Design (3 Rounds)</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Candidate Resume Context & Upload Widget */}
+                <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <img src="/emojis/resume.png" alt="" className="w-4 h-4 object-contain" />
+                      <span>Candidate Resume Connected:</span>
+                    </div>
+
+                    {/* Direct Upload Resume Button */}
+                    <div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleDirectResumeUpload}
+                        accept=".pdf,.doc,.docx,.txt"
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingResume}
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold hover:bg-slate-100 transition-all flex items-center gap-1.5 shadow-xs"
+                      >
+                        {isUploadingResume ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="w-3.5 h-3.5" />
+                        )}
+                        <span>{isUploadingResume ? 'Analyzing...' : 'Upload Different Resume'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="text-slate-700 dark:text-slate-300 text-xs space-y-1 font-medium">
+                    <div>
+                      • Candidate: <strong>{user?.name}</strong> ({user?.rollNumber || '22CS101'})
+                    </div>
+                    <div>
+                      • Department & CGPA: <strong>{user?.department || 'Computer Science'} • {user?.cgpa || 8.4} CGPA</strong>
+                    </div>
+                    <div>
+                      • Detected Stack: <strong className="text-indigo-600 dark:text-indigo-400">{userSkillsText}</strong>
+                    </div>
+                    {resume?.fileName && (
+                      <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 pt-1">
+                        <img src="/emojis/check.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Custom Resume File: {resume.fileName} ({resume.fileSize})</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Voice Mode Controls */}
+                <div className="p-4 rounded-3xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-black text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                      <img src="/emojis/speech.png" alt="" className="w-4 h-4 object-contain" />
+                      <span>Gemini Live Voice Mode Enabled:</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAutoListenMode(!autoListenMode)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all ${
+                          autoListenMode
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        {autoListenMode ? '🎙️ Auto-Mic On' : 'Manual Mic'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAudioMuted(!audioMuted)}
+                        className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-600"
+                        title={audioMuted ? 'Unmute Audio' : 'Mute Audio'}
+                      >
+                        {audioMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-500" /> : <Volume2 className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-slate-600 dark:text-slate-400 text-xs">
+                    Gemini AI will read each question aloud. When Gemini stops speaking, your microphone automatically
+                    listens (or you can type). Your answer dynamically shapes the next question!
+                  </p>
+                </div>
+
+                {/* Begin Interview Button */}
+                <button
+                  onClick={handleStartInterview}
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-xs font-black uppercase tracking-wider shadow-lg hover:shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
+                >
+                  <img src="/emojis/interview.png" alt="" className="w-5 h-5 object-contain" />
+                  <span>Begin {totalRounds}-Round Gemini Voice Mock Interview</span>
+                </button>
               </div>
             </div>
 
-            <div className="space-y-4 text-xs font-medium">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                  Target Placement Role
-                </label>
-                <input
-                  type="text"
-                  value={targetRole}
-                  onChange={(e) => setTargetRole(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-indigo-500"
-                />
+            {/* Right Past Interview Scorecards */}
+            <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <img src="/emojis/trophy.png" alt="" className="w-4 h-4 object-contain" />
+                  <span>Past Scorecards</span>
+                </h3>
+                <span className="text-xs font-bold text-slate-400">{pastSessions.length} Completed</span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 space-y-2">
-                <div className="text-xs font-extrabold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-                  <Brain className="w-4 h-4 text-indigo-600" /> Resume Context Integrated:
+              {pastSessions.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-xs rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700">
+                  <img src="/emojis/lightbulb.png" alt="" className="w-8 h-8 object-contain mx-auto mb-2 opacity-80" />
+                  No past mock interview attempts yet. Begin your first session to build your placement scorecard!
                 </div>
-                <div className="text-slate-700 dark:text-slate-300 space-y-1">
-                  <div>• Student: <strong>{user?.name}</strong> ({user?.rollNumber})</div>
-                  <div>• Department & CGPA: <strong>{user?.department} • {user?.cgpa} CGPA</strong></div>
-                  <div>• Detected Technical Stack: <strong>{userSkills}</strong></div>
+              ) : (
+                <div className="space-y-3 max-h-[440px] overflow-y-auto pr-1">
+                  {pastSessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2 text-xs hover:border-indigo-400 transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-slate-900 dark:text-white">{session.targetRole}</span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-black">
+                          {session.overallScore}% Overall
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 pt-1">
+                        <span className="px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-black text-[10px] flex items-center gap-1 border border-indigo-200 dark:border-indigo-800">
+                          <img src="/emojis/compiler.png" alt="" className="w-3 h-3 object-contain" />
+                          <span>Tech: {session.technicalScore}/100</span>
+                        </span>
+                        <span className="px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-black text-[10px] flex items-center gap-1 border border-emerald-200 dark:border-emerald-800">
+                          <img src="/emojis/speech.png" alt="" className="w-3 h-3 object-contain" />
+                          <span>Comm: {session.communicationScore}/100</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-500 text-[11px] pt-1">
+                        <span>
+                          Status: <strong className="text-emerald-600 dark:text-emerald-400">{session.hiringRecommendation}</strong>
+                        </span>
+                        <span className="font-mono">{new Date(session.completedAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 space-y-1">
-                <div className="text-xs font-extrabold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
-                  <Mic className="w-4 h-4 text-amber-600" /> AI Voice Assistance Active:
-                </div>
-                <p className="text-slate-600 dark:text-slate-400">
-                  The AI interviewer will ask questions aloud using Speech Synthesis. You can answer using your microphone or keyboard. Results are recorded for Faculty review!
-                </p>
-              </div>
-
-              <button
-                onClick={handleStartInterview}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-600 text-white text-xs font-extrabold uppercase tracking-wider shadow-lg hover:opacity-95 transition-all flex items-center justify-center gap-2"
-              >
-                <Play className="w-4 h-4" />
-                <span>Begin 5-Round AI Voice Mock Interview</span>
-              </button>
+              )}
             </div>
           </div>
 
-          {/* Right Past Interview History */}
-          <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md space-y-4">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Award className="w-4 h-4 text-emerald-500" /> Past Interview Scorecards
-            </h3>
+          {/* ========================================================================= */}
+          {/* RESUME ANALYSIS & 3-TIER QUESTION BANK (EASY, HARD, TOUGH) */}
+          {/* ========================================================================= */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                  <img src="/emojis/sparkles.png" alt="" className="w-4 h-4 object-contain" />
+                  <span>Gemini AI Resume Breakdown</span>
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white mt-0.5">
+                  Interview Questions Separated into 3 Difficulty Tiers
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Analyzed from candidate's full resume text, academic projects, and technology competencies
+                </p>
+              </div>
 
-            {pastSessions.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">
-                No past mock interview attempts yet. Start your first session now!
+              {/* 3 Tier Navigation Tabs */}
+              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <button
+                  onClick={() => setActiveTierPreview('easy')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                    activeTierPreview === 'easy'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  <img src="/emojis/lightbulb.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>1. Easy Tier</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTierPreview('hard')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                    activeTierPreview === 'hard'
+                      ? 'bg-amber-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  <img src="/emojis/fire.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>2. Hard Tier</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTierPreview('tough')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                    activeTierPreview === 'tough'
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  <img src="/emojis/trophy.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>3. Tough Tier</span>
+                </button>
+              </div>
+            </div>
+
+            {analysisLoading ? (
+              <div className="py-12 text-center text-xs text-slate-500 flex flex-col items-center gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                <span>Gemini AI is analyzing your uploaded resume and generating tailored questions...</span>
               </div>
             ) : (
-              <div className="space-y-3">
-                {pastSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2 text-xs"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-extrabold text-slate-900 dark:text-white">{session.targetRole}</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold">
-                        {session.overallScore}% Overall
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 pt-1">
-                      <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-extrabold text-[10px]">
-                        🛠️ Tech: {session.technicalScore}/100
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold text-[10px]">
-                        🗣️ Comm: {session.communicationScore}/100
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-500 text-[11px] pt-1">
-                      <span>Status: <strong className="text-emerald-600 dark:text-emerald-400">{session.hiringRecommendation}</strong></span>
-                      <span className="font-mono">{new Date(session.completedAt).toLocaleDateString()}</span>
+              <div className="space-y-6">
+                {/* Executive Summary from Resume */}
+                {analysisData && (
+                  <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs">
+                    <span className="font-black text-indigo-900 dark:text-indigo-300 uppercase tracking-wider block mb-1">
+                      Gemini Candidate Profile Assessment:
+                    </span>
+                    <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                      {analysisData.candidateSummary}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {analysisData.detectedTechStack?.map((tech, i) => (
+                        <span
+                          key={i}
+                          className="px-2.5 py-0.5 rounded-lg bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800 text-[10px]"
+                        >
+                          {tech}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* Question Cards for Selected Tier */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {(analysisData?.questions?.[activeTierPreview] || []).map((q, idx) => (
+                    <div
+                      key={q.id || idx}
+                      className={`p-5 rounded-3xl border transition-all space-y-3 text-xs flex flex-col justify-between ${
+                        activeTierPreview === 'easy'
+                          ? 'bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
+                          : activeTierPreview === 'hard'
+                          ? 'bg-amber-50/30 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
+                          : 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 ${
+                              activeTierPreview === 'easy'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : activeTierPreview === 'hard'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-rose-100 text-rose-800'
+                            }`}
+                          >
+                            <img
+                              src={
+                                activeTierPreview === 'easy'
+                                  ? '/emojis/lightbulb.png'
+                                  : activeTierPreview === 'hard'
+                                  ? '/emojis/fire.png'
+                                  : '/emojis/trophy.png'
+                              }
+                              alt=""
+                              className="w-3 h-3 object-contain"
+                            />
+                            <span>{q.difficulty} Level</span>
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">#{idx + 1}</span>
+                        </div>
+
+                        <div className="font-extrabold text-slate-900 dark:text-white text-xs">{q.roundTitle}</div>
+                        <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic">
+                          "{q.question}"
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                        <span>Topic: <strong>{q.topic}</strong></span>
+                        <button
+                          type="button"
+                          onClick={() => speakAIQuestion(q.question)}
+                          className="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1"
+                        >
+                          <Volume2 className="w-3 h-3" /> Listen
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* STEP 2: ACTIVE MOCK INTERVIEW WORKSPACE */}
+      {/* ========================================================================= */}
+      {/* STEP 2: ACTIVE LIVE MOCK INTERVIEW WORKSPACE (VOICE MODE & INTERACTIVE) */}
+      {/* ========================================================================= */}
       {step === 'interviewing' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
-          
           {/* Progress Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div>
-              <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
-                {activeRound.title}
-              </span>
-              <div className="text-lg font-extrabold text-slate-900 dark:text-white">
-                Round {currentRoundIndex + 1} of 5
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1 ${
+                    currentDifficulty === 'Easy'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : currentDifficulty === 'Hard'
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-rose-100 text-rose-800'
+                  }`}
+                >
+                  <img
+                    src={
+                      currentDifficulty === 'Easy'
+                        ? '/emojis/lightbulb.png'
+                        : currentDifficulty === 'Hard'
+                        ? '/emojis/fire.png'
+                        : '/emojis/trophy.png'
+                    }
+                    alt=""
+                    className="w-3 h-3 object-contain"
+                  />
+                  <span>{currentDifficulty} Tier</span>
+                </span>
+                <span className="text-xs font-bold text-slate-400">
+                  Target: {targetRole}
+                </span>
+              </div>
+              <div className="text-lg font-black text-slate-900 dark:text-white">
+                {currentRoundTitle}
               </div>
             </div>
 
-            {/* 5 Steps Visual Indicator */}
-            <div className="flex items-center gap-1.5">
-              {interviewRounds.map((r, i) => (
-                <div
-                  key={r.round}
-                  className={`w-8 h-2 rounded-full transition-all ${
-                    i === currentRoundIndex
-                      ? 'bg-indigo-600 w-12'
-                      : i < currentRoundIndex
-                      ? 'bg-emerald-500'
-                      : 'bg-slate-200 dark:bg-slate-800'
-                  }`}
-                ></div>
-              ))}
+            {/* Visual Step Progress Bar */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                Round {currentRoundIndex + 1}/{totalRounds}
+              </span>
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: totalRounds }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                      i === currentRoundIndex
+                        ? 'bg-indigo-600 w-10 animate-pulse'
+                        : i < currentRoundIndex
+                        ? 'bg-emerald-500 w-6'
+                        : 'bg-slate-200 dark:bg-slate-800 w-6'
+                    }`}
+                  ></div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* AI Interviewer Speech Box */}
-          <div className="p-6 rounded-3xl bg-slate-900 text-white space-y-4 relative overflow-hidden shadow-xl border border-slate-800">
-            <div className="flex items-center justify-between">
+          {/* AI INTERVIEWER LIVE SPEECH BOX WITH VOICE VISUALIZER */}
+          <div className="p-6 md:p-8 rounded-3xl bg-slate-950 text-white space-y-4 relative overflow-hidden shadow-2xl border border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white ${isSpeakingAI ? 'bg-indigo-600 animate-pulse' : 'bg-slate-800'}`}>
-                  <Bot className="w-6 h-6" />
+                <div
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white transition-all shadow-lg ${
+                    isSpeakingAI
+                      ? 'bg-gradient-to-tr from-indigo-500 to-violet-500 ring-4 ring-indigo-500/40 animate-pulse'
+                      : 'bg-slate-800'
+                  }`}
+                >
+                  <img src="/emojis/chatbot.png" alt="Bot" className="w-8 h-8 object-contain" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">AI Corporate Technical Director</div>
-                  <div className="text-sm font-extrabold text-indigo-300">Live Voice Assistant Active</div>
+                  <div className="text-xs font-black text-indigo-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <span>Gemini AI Corporate Interviewer</span>
+                    <img src="/emojis/sparkles.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  </div>
+                  <div className="text-xs text-slate-400 flex items-center gap-2">
+                    <span>Voice Mode Active</span>
+                    {isSpeakingAI && (
+                      <span className="flex items-center gap-1 text-emerald-400 font-bold text-[10px]">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        Speaking...
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Re-play Question Audio Button */}
-              <button
-                onClick={() => speakAIQuestion(activeRound.question)}
-                className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold transition-all flex items-center gap-1.5"
-              >
-                <Volume2 className="w-4 h-4 text-indigo-400" />
-                <span>Re-play Audio</span>
-              </button>
+              {/* Controls: Replay Audio & Soundwave */}
+              <div className="flex items-center gap-2">
+                {/* Animated Audio Equalizer Bars when AI is speaking */}
+                {isSpeakingAI && (
+                  <div className="flex items-end gap-1 h-6 px-3 py-1 rounded-xl bg-slate-900 border border-slate-800">
+                    <span className="w-1 bg-indigo-400 rounded-full animate-pulse h-3"></span>
+                    <span className="w-1 bg-indigo-300 rounded-full animate-pulse h-5"></span>
+                    <span className="w-1 bg-violet-400 rounded-full animate-pulse h-4"></span>
+                    <span className="w-1 bg-emerald-400 rounded-full animate-pulse h-6"></span>
+                    <span className="w-1 bg-indigo-400 rounded-full animate-pulse h-3"></span>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => speakAIQuestion(`${currentInterviewerReaction ? currentInterviewerReaction + ' ' : ''}${currentQuestion}`)}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-700 shadow-sm"
+                >
+                  <img src="/emojis/speech.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>Re-play Audio</span>
+                </button>
+              </div>
             </div>
 
-            <p className="text-sm md:text-base font-semibold leading-relaxed text-slate-100 pt-2">
-              "{activeRound.question}"
-            </p>
+            {/* Conversational Reaction to Previous Answer */}
+            {currentInterviewerReaction && (
+              <div className="p-3.5 rounded-2xl bg-indigo-950/70 border border-indigo-800/80 text-xs text-indigo-200 font-medium">
+                <span className="font-black uppercase tracking-wider text-indigo-300 block mb-0.5">
+                  Interviewer Reaction to Your Answer:
+                </span>
+                "{currentInterviewerReaction}"
+              </div>
+            )}
+
+            {/* Active Question Text */}
+            <div className="space-y-2 pt-1">
+              <p className="text-base md:text-lg font-bold leading-relaxed text-slate-100 font-sans">
+                "{currentQuestion}"
+              </p>
+              {currentTips && (
+                <div className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 pt-1">
+                  <img src="/emojis/lightbulb.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>Interviewer Tip: {currentTips}</span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Student Candidate Response Section */}
+          {/* CANDIDATE CANDIDATE RESPONSE SECTION (MICROPHONE VOICE + TEXT) */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                Your Answer (Speak via Mic or Type Below):
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <img src="/emojis/interview.png" alt="" className="w-4 h-4 object-contain" />
+                <span>Your Spoken Answer (Mic Voice Mode or Type):</span>
               </label>
 
-              {/* Microphone Toggle Button */}
-              <button
-                onClick={toggleListening}
-                className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
-                  isListening
-                    ? 'bg-rose-600 text-white animate-bounce shadow-lg shadow-rose-600/30'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md'
-                }`}
-              >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                <span>{isListening ? 'Stop Recording Voice' : '🎙️ Speak Answer (Mic Assistant)'}</span>
-              </button>
+              {/* Microphone Action Toggle Button */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  className={`px-5 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-2 shadow-md ${
+                    isListening
+                      ? 'bg-rose-600 hover:bg-rose-700 text-white animate-pulse ring-4 ring-rose-500/30'
+                      : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white'
+                  }`}
+                >
+                  <img src="/emojis/interview.png" alt="" className="w-4 h-4 object-contain" />
+                  <span>{isListening ? 'Stop Recording Voice' : '🎙️ Speak with Microphone'}</span>
+                </button>
+              </div>
             </div>
+
+            {/* Live Audio Listening Notification Banner */}
+            {isListening && (
+              <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 text-xs font-bold flex items-center justify-between animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping"></span>
+                  <span>Live Microphone Active: Speak your technical explanation clearly...</span>
+                </div>
+                <span className="text-[11px] font-mono">Real-Time Speech-to-Text</span>
+              </div>
+            )}
 
             {/* Answer Textarea */}
             <textarea
-              rows={5}
+              rows={6}
               value={spokenTranscript}
               onChange={(e) => setSpokenTranscript(e.target.value)}
-              placeholder="Speak into your microphone or type your technical response here..."
-              className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs md:text-sm font-medium focus:outline-none focus:border-indigo-500 shadow-inner"
+              placeholder="Speak into your microphone or type your response here. Gemini will analyze your answer in real time and ask the next question..."
+              className="w-full p-4 rounded-3xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs md:text-sm font-medium focus:outline-none focus:border-indigo-500 shadow-inner leading-relaxed"
             />
 
             {/* Controls */}
-            <div className="flex items-center justify-between pt-2">
-              <button
-                onClick={() => setSpokenTranscript('')}
-                className="px-3.5 py-2 rounded-xl text-slate-500 hover:text-slate-700 text-xs font-bold flex items-center gap-1"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> Clear Text
-              </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSpokenTranscript('')}
+                  className="px-3 py-1.5 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-xs font-bold flex items-center gap-1"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> Clear Answer
+                </button>
+                <span className="text-[11px] font-mono text-slate-400">
+                  {spokenTranscript.trim() ? `${spokenTranscript.trim().split(/\s+/).length} words` : '0 words'}
+                </span>
+              </div>
 
               <button
+                type="button"
                 onClick={handleNextRound}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-extrabold uppercase tracking-wider shadow-lg hover:opacity-95 transition-all flex items-center gap-2"
+                disabled={isAiThinking}
+                className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black uppercase tracking-wider shadow-lg hover:shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <span>{currentRoundIndex + 1 === interviewRounds.length ? 'Finish & Generate Scorecard' : 'Next Round Question'}</span>
-                <ChevronRight className="w-4 h-4" />
+                {isAiThinking ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Gemini is evaluating your answer...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>
+                      {currentRoundIndex + 1 === totalRounds
+                        ? 'Submit & Generate Placement Scorecard'
+                        : 'Submit Answer & Ask Next Question'}
+                    </span>
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* STEP 3: EVALUATING ANIMATION */}
+      {/* ========================================================================= */}
+      {/* STEP 3: EVALUATION ANIMATION */}
+      {/* ========================================================================= */}
       {step === 'evaluating' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center shadow-2xl space-y-6">
-          <div className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center mx-auto">
-            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-16 text-center shadow-2xl space-y-6">
+          <div className="w-20 h-20 rounded-3xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center mx-auto shadow-inner">
+            <img src="/emojis/trophy.png" alt="" className="w-12 h-12 object-contain animate-bounce" />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">AI Interviewer is Evaluating Your Responses...</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Analyzing Technical Accuracy, Communication Fluency, Algorithmic Logic, and System Design Architecture.
+          <div className="space-y-2 max-w-md mx-auto">
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+              Generating Final Evaluation Scorecard...
+            </h3>
+            <p className="text-xs text-slate-500 font-medium">
+              Gemini AI is compiling your Technical Skill Marks, Spoken Communication Fluency, and Algorithmic Logic
+              against your uploaded resume.
             </p>
           </div>
         </div>
       )}
 
-      {/* STEP 4: GENERATED RESULT REPORT CARD */}
+      {/* ========================================================================= */}
+      {/* STEP 4: COMPREHENSIVE RESULT REPORT CARD */}
+      {/* ========================================================================= */}
       {step === 'result' && resultSession && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-8">
-          
-          {/* Header Result Card */}
+          {/* Header Scorecard */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-slate-800 pb-6">
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-black uppercase">
-                  ⭐ {resultSession.hiringRecommendation}
+                <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-black uppercase flex items-center gap-1.5">
+                  <img src="/emojis/trophy.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <span>{resultSession.hiringRecommendation}</span>
                 </span>
                 <span className="text-xs font-mono text-slate-400">ID: {resultSession.id}</span>
               </div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white">
-                Mock Interview Evaluation Scorecard
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
+                Corporate Mock Interview Evaluation Scorecard
               </h2>
               <p className="text-xs text-slate-500 font-medium">
-                Candidate: <strong>{resultSession.studentName}</strong> ({resultSession.studentRollNumber}) • Target: <strong>{resultSession.targetRole}</strong>
+                Candidate: <strong>{resultSession.studentName}</strong> ({resultSession.studentRollNumber}) • Target
+                Role: <strong>{resultSession.targetRole}</strong>
               </p>
             </div>
 
             {/* Overall Score Dial */}
-            <div className="bg-gradient-to-tr from-indigo-600 to-violet-600 text-white p-5 rounded-3xl text-center shadow-lg min-w-40">
+            <div className="bg-gradient-to-tr from-indigo-600 to-violet-600 text-white p-5 rounded-3xl text-center shadow-lg min-w-44 flex flex-col items-center justify-center">
               <div className="text-4xl font-black">{resultSession.overallScore}%</div>
-              <div className="text-[10px] uppercase font-extrabold tracking-widest text-indigo-200 mt-1">Overall Interview Score</div>
+              <div className="text-[10px] uppercase font-black tracking-widest text-indigo-200 mt-1 flex items-center gap-1">
+                <img src="/emojis/trophy.png" alt="" className="w-3 h-3 object-contain" />
+                <span>Overall Placement Score</span>
+              </div>
             </div>
           </div>
 
@@ -577,18 +1286,29 @@ export default function AIMockInterviewPage() {
             <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-900/90 via-indigo-950 to-slate-900 border-2 border-indigo-500/50 text-white shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
-                    <Brain className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+                    <img src="/emojis/compiler.png" alt="" className="w-7 h-7 object-contain" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-extrabold uppercase tracking-widest text-indigo-300">Technical Skill Mark</h3>
-                    <div className="text-xs text-slate-300 font-medium">Domain Depth, Algorithm & System Design</div>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-indigo-300">
+                      Technical Skill Mark
+                    </h3>
+                    <div className="text-xs text-slate-300 font-medium">
+                      Domain Depth, Code Logic & System Design
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-black text-indigo-300">{resultSession.technicalScore}<span className="text-sm text-indigo-400">/100</span></div>
+                  <div className="text-3xl font-black text-indigo-300">
+                    {resultSession.technicalScore}
+                    <span className="text-sm text-indigo-400">/100</span>
+                  </div>
                   <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
-                    {resultSession.technicalScore >= 85 ? '🌟 Excellent' : resultSession.technicalScore >= 70 ? '👍 Good' : '💡 Needs Practice'}
+                    {resultSession.technicalScore >= 85
+                      ? '🌟 Excellent'
+                      : resultSession.technicalScore >= 70
+                      ? '👍 Good'
+                      : '💡 Practice Recommended'}
                   </div>
                 </div>
               </div>
@@ -607,11 +1327,11 @@ export default function AIMockInterviewPage() {
                   <div className="font-extrabold text-white">{resultSession.logicScore}%</div>
                 </div>
                 <div className="bg-slate-950/60 p-2 rounded-xl border border-indigo-900/50 text-center">
-                  <div className="text-[9px] text-indigo-400 uppercase font-bold">System Design</div>
+                  <div className="text-[9px] text-indigo-400 uppercase font-bold">Architecture</div>
                   <div className="font-extrabold text-white">{Math.min(100, resultSession.technicalScore + 2)}%</div>
                 </div>
                 <div className="bg-slate-950/60 p-2 rounded-xl border border-indigo-900/50 text-center">
-                  <div className="text-[9px] text-indigo-400 uppercase font-bold">Tech Accuracy</div>
+                  <div className="text-[9px] text-indigo-400 uppercase font-bold">Accuracy</div>
                   <div className="font-extrabold text-white">{Math.min(100, resultSession.technicalScore - 1)}%</div>
                 </div>
               </div>
@@ -621,18 +1341,29 @@ export default function AIMockInterviewPage() {
             <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-900/90 via-slate-950 to-slate-900 border-2 border-emerald-500/50 text-white shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300">
-                    <Mic className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center">
+                    <img src="/emojis/speech.png" alt="" className="w-7 h-7 object-contain" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-extrabold uppercase tracking-widest text-emerald-300">Communication Skill Mark</h3>
-                    <div className="text-xs text-slate-300 font-medium">Speech Fluency, Vocabulary & Articulation</div>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-emerald-300">
+                      Communication Skill Mark
+                    </h3>
+                    <div className="text-xs text-slate-300 font-medium">
+                      Speech Fluency, Vocabulary & Articulation
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-black text-emerald-300">{resultSession.communicationScore}<span className="text-sm text-emerald-400">/100</span></div>
+                  <div className="text-3xl font-black text-emerald-300">
+                    {resultSession.communicationScore}
+                    <span className="text-sm text-emerald-400">/100</span>
+                  </div>
                   <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-                    {resultSession.communicationScore >= 85 ? '🗣️ High Fluency' : resultSession.communicationScore >= 70 ? '💬 Clear Voice' : '📢 Practice Tone'}
+                    {resultSession.communicationScore >= 85
+                      ? '🗣️ High Fluency'
+                      : resultSession.communicationScore >= 70
+                      ? '💬 Clear Voice'
+                      : '📢 Articulation Practice'}
                   </div>
                 </div>
               </div>
@@ -651,87 +1382,119 @@ export default function AIMockInterviewPage() {
                   <div className="font-extrabold text-white">{resultSession.communicationScore}%</div>
                 </div>
                 <div className="bg-slate-950/60 p-2 rounded-xl border border-emerald-900/50 text-center">
-                  <div className="text-[9px] text-emerald-400 uppercase font-bold">Articulation</div>
+                  <div className="text-[9px] text-emerald-400 uppercase font-bold">Confidence</div>
                   <div className="font-extrabold text-white">{resultSession.confidenceScore}%</div>
                 </div>
                 <div className="bg-slate-950/60 p-2 rounded-xl border border-emerald-900/50 text-center">
                   <div className="text-[9px] text-emerald-400 uppercase font-bold">HR Readiness</div>
-                  <div className="font-extrabold text-white">{Math.min(100, resultSession.communicationScore + 1)}%</div>
+                  <div className="font-extrabold text-white">
+                    {Math.min(100, resultSession.communicationScore + 1)}%
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Feedback & Strengths */}
+          {/* Strengths & Growth Areas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-2 text-xs">
-              <h4 className="font-extrabold text-emerald-900 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Key Identified Strengths:
+            <div className="p-5 rounded-3xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-2 text-xs">
+              <h4 className="font-black text-emerald-900 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                <img src="/emojis/check.png" alt="" className="w-4 h-4 object-contain" />
+                <span>Identified Core Strengths:</span>
               </h4>
-              <ul className="space-y-1 text-slate-700 dark:text-slate-300 font-medium">
+              <ul className="space-y-1.5 text-slate-700 dark:text-slate-300 font-medium">
                 {resultSession.strengthAreas.map((str, i) => (
-                  <li key={i}>• {str}</li>
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-emerald-500 font-bold">•</span>
+                    <span>{str}</span>
+                  </li>
                 ))}
               </ul>
             </div>
 
-            <div className="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-2 text-xs">
-              <h4 className="font-extrabold text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-amber-600" /> Areas for Growth:
+            <div className="p-5 rounded-3xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-2 text-xs">
+              <h4 className="font-black text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                <img src="/emojis/warning.png" alt="" className="w-4 h-4 object-contain" />
+                <span>Recommended Growth Areas:</span>
               </h4>
-              <ul className="space-y-1 text-slate-700 dark:text-slate-300 font-medium">
+              <ul className="space-y-1.5 text-slate-700 dark:text-slate-300 font-medium">
                 {resultSession.weaknessAreas.map((weak, i) => (
-                  <li key={i}>• {weak}</li>
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-amber-500 font-bold">•</span>
+                    <span>{weak}</span>
+                  </li>
                 ))}
               </ul>
             </div>
           </div>
 
-          {/* QA Transcript with Round-by-Round Technical & Communication Marks */}
+          {/* Question-by-Question Interactive Breakdown */}
           <div className="space-y-4">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
-              Round-by-Round Technical & Communication Skill Breakdown:
+            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <img src="/emojis/interview.png" alt="" className="w-4 h-4 object-contain" />
+              <span>Full Interactive Interview Transcript & Feedback:</span>
             </h3>
 
             <div className="space-y-4">
               {resultSession.transcript.map((item) => (
                 <div
                   key={item.round}
-                  className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3 text-xs"
+                  className="p-5 md:p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3 text-xs shadow-xs"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-700/80 pb-3">
-                    <span className="font-extrabold text-indigo-600 dark:text-indigo-400 text-sm">{item.roundTitle}</span>
-                    
-                    {/* Per-Round Skill Marks Badges */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-700 pb-3">
                     <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-extrabold">
-                        🛠️ Tech Mark: {item.technicalMark || item.score}/100
+                      <span
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase ${
+                          item.difficulty === 'Easy'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : item.difficulty === 'Hard'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-rose-100 text-rose-800'
+                        }`}
+                      >
+                        {item.difficulty || 'Easy'}
                       </span>
-                      <span className="px-3 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-extrabold">
-                        🗣️ Comm Mark: {item.communicationMark || item.score}/100
+                      <span className="font-black text-indigo-600 dark:text-indigo-400 text-sm">{item.roundTitle}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-black text-[11px] flex items-center gap-1">
+                        <img src="/emojis/compiler.png" alt="" className="w-3 h-3 object-contain" />
+                        <span>Tech: {item.technicalMark || item.score}/100</span>
+                      </span>
+                      <span className="px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-black text-[11px] flex items-center gap-1">
+                        <img src="/emojis/speech.png" alt="" className="w-3 h-3 object-contain" />
+                        <span>Comm: {item.communicationMark || item.score}/100</span>
                       </span>
                     </div>
                   </div>
 
-                  <div className="font-semibold text-slate-900 dark:text-white">Q: "{item.question}"</div>
-                  <div className="text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono leading-relaxed">
+                  <div className="font-bold text-slate-900 dark:text-white">Q: "{item.question}"</div>
+                  <div className="text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 font-mono text-xs leading-relaxed">
                     A: {item.studentAnswer}
                   </div>
-                  <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/30 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-900/40">
-                    AI Feedback: {item.feedback}
+
+                  <div className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50/80 dark:bg-emerald-950/40 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800/80 flex items-start gap-2">
+                    <img src="/emojis/sparkles.png" alt="" className="w-3.5 h-3.5 object-contain shrink-0 mt-0.5" />
+                    <div>AI Feedback: {item.feedback}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Return Button */}
+          {/* Action Button */}
           <div className="pt-4 flex justify-end">
             <button
-              onClick={() => setStep('intro')}
-              className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-md"
+              onClick={() => {
+                setStep('intro');
+                setTranscriptHistory([]);
+                setSpokenTranscript('');
+              }}
+              className="px-7 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider shadow-md flex items-center gap-2"
             >
-              Attempt Another Mock Interview
+              <img src="/emojis/interview.png" alt="" className="w-4 h-4 object-contain" />
+              <span>Attempt Another Mock Interview</span>
             </button>
           </div>
         </div>

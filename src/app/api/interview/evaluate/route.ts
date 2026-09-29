@@ -27,8 +27,8 @@ export async function POST(req: Request) {
       const lower = studentText.toLowerCase();
       const wordCount = studentText.split(/\s+/).filter(Boolean).length;
 
-      let techMark = 0;
-      let commMark = 0;
+      let techMark = typeof ans.technicalMark === 'number' && ans.technicalMark > 0 ? ans.technicalMark : 0;
+      let commMark = typeof ans.communicationMark === 'number' && ans.communicationMark > 0 ? ans.communicationMark : 0;
 
       // Check for empty or no-response answers
       const isNoAnswer = !studentText || lower === 'no response provided.' || lower === 'no response.' || lower.includes("don't know") || lower.includes("dont know") || lower.includes("no idea") || lower.includes("skip") || wordCount < 2;
@@ -37,8 +37,8 @@ export async function POST(req: Request) {
         techMark = 0;
         commMark = 0;
         growthSet.add('Unanswered questions detected (0 marks awarded). Ensure mic is enabled or type your response.');
-      } else {
-        // Base score for effort
+      } else if (techMark === 0 && commMark === 0) {
+        // Base score for effort if not pre-evaluated by Gemini
         techMark = 65;
 
         // Check for domain-specific technical terminology & talent indicators
@@ -148,11 +148,13 @@ export async function POST(req: Request) {
       return {
         round: idx + 1,
         roundTitle: ans.roundTitle || `Round ${idx + 1}`,
+        difficulty: ans.difficulty,
+        interviewerReaction: ans.interviewerReaction,
         question: ans.question || 'Interview Question',
         studentAnswer: studentText || 'No response provided.',
         technicalMark: techMark,
         communicationMark: commMark,
-        feedback,
+        feedback: ans.feedback && !isNoAnswer ? ans.feedback : feedback,
         score: roundScore
       };
     });

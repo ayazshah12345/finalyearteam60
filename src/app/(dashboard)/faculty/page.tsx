@@ -770,22 +770,25 @@ export default function FacultyPortalPage() {
                       <td className="p-3.5 font-bold text-slate-800 dark:text-slate-200">{mi.targetRole}</td>
                       <td className="p-3.5 font-black text-indigo-600 text-sm">{mi.overallScore}%</td>
                       <td className="p-3.5">
-                        <span className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-black">
-                          🛠️ {mi.technicalScore}/100
+                        <span className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-black inline-flex items-center gap-1.5">
+                          <img src="/emojis/compiler.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                          <span>{mi.technicalScore}/100</span>
                         </span>
                       </td>
                       <td className="p-3.5">
-                        <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-black">
-                          🗣️ {mi.communicationScore}/100
+                        <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-black inline-flex items-center gap-1.5">
+                          <img src="/emojis/speech.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                          <span>{mi.communicationScore}/100</span>
                         </span>
                       </td>
                       <td className="p-3.5">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase inline-flex items-center gap-1 ${
                           mi.hiringRecommendation === 'Strong Hire' ? 'bg-emerald-100 text-emerald-700' :
                           mi.hiringRecommendation === 'Hire' ? 'bg-blue-100 text-blue-700' :
                           'bg-amber-100 text-amber-700'
                         }`}>
-                          ⭐ {mi.hiringRecommendation}
+                          <img src="/emojis/trophy.png" alt="" className="w-3 h-3 object-contain" />
+                          <span>{mi.hiringRecommendation}</span>
                         </span>
                       </td>
                       <td className="p-3.5 text-right">
@@ -1191,11 +1194,13 @@ export default function FacultyPortalPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-center">
-                      <div className="p-2.5 rounded-xl bg-indigo-950 text-indigo-300 font-extrabold border border-indigo-800">
-                        🛠️ Tech Mark: {mi.technicalScore}/100
+                      <div className="p-2.5 rounded-xl bg-indigo-950 text-indigo-300 font-extrabold border border-indigo-800 flex items-center justify-center gap-1.5">
+                        <img src="/emojis/compiler.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Tech Mark: {mi.technicalScore}/100</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-emerald-950 text-emerald-300 font-extrabold border border-emerald-800">
-                        🗣️ Comm Mark: {mi.communicationScore}/100
+                      <div className="p-2.5 rounded-xl bg-emerald-950 text-emerald-300 font-extrabold border border-emerald-800 flex items-center justify-center gap-1.5">
+                        <img src="/emojis/speech.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Comm Mark: {mi.communicationScore}/100</span>
                       </div>
                     </div>
 

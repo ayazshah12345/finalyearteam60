@@ -414,6 +414,8 @@ export interface MockInterviewRoundQuestion {
   score: number; // 0-100
   technicalMark?: number; // 0-100
   communicationMark?: number; // 0-100
+  difficulty?: 'Easy' | 'Hard' | 'Tough';
+  interviewerReaction?: string;
 }
 
 export interface MockInterviewSession {
