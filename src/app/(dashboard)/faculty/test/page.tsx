@@ -253,7 +253,7 @@ export default function FacultyTestPage() {
       }
 
       const data = await res.json();
-      setSuccessMsg(`🎉 Success! Test "${testTitle}" uploaded with ${draftQuestions.length} questions. It is now live on the Student Daily Test Dashboard!`);
+      setSuccessMsg(`Test "${testTitle}" uploaded with ${draftQuestions.length} questions. It is now live on the Student Daily Test Dashboard!`);
 
       // Reset form
       setTestTitle('');
@@ -313,8 +313,9 @@ export default function FacultyTestPage() {
         <div className="w-16 h-16 bg-rose-500/10 text-rose-600 rounded-full flex items-center justify-center mx-auto border border-rose-500/20">
           <ShieldAlert className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900 dark:text-white">
-          ⛔ Faculty Privileges Required
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center justify-center gap-2">
+          <img src="/emojis/warning.png" alt="" className="w-6 h-6 object-contain" />
+          <span>Faculty Privileges Required</span>
         </h2>
         <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
           The Test Creation & Question Bank desk is restricted to VSB Faculty members. Students can take tests on the Daily Test portal.
@@ -402,14 +403,16 @@ export default function FacultyTestPage() {
                 onClick={() => handleLoadSample('aptitude')}
                 className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-xs font-bold border border-rose-200 hover:bg-rose-100 transition-all flex items-center gap-1.5"
               >
-                <span>🧮 Sample Aptitude</span>
+                <img src="/emojis/lightbulb.png" alt="" className="w-4 h-4 object-contain" />
+                <span>Sample Aptitude</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleLoadSample('coding')}
                 className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold border border-indigo-200 hover:bg-indigo-100 transition-all flex items-center gap-1.5"
               >
-                <span>💻 Sample Coding</span>
+                <img src="/emojis/compiler.png" alt="" className="w-4 h-4 object-contain" />
+                <span>Sample Coding</span>
               </button>
             </div>
           </div>

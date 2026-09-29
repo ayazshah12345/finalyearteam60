@@ -143,30 +143,71 @@ export async function callGeminiMultimodal(
 }
 
 /**
- * Parse an uploaded resume file (PDF or image) with Gemini Multimodal AI
+ * Extract raw text from a PDF, text, or document buffer
+ */
+export async function extractTextFromBuffer(buffer: Buffer, mimeType: string = 'application/pdf'): Promise<string> {
+  // 1. Try PDF parsing via pdf-parse
+  if (mimeType.includes('pdf') || buffer.slice(0, 4).toString() === '%PDF') {
+    try {
+      const pdfModule = require('pdf-parse');
+      if (typeof pdfModule === 'function') {
+        const res = await pdfModule(buffer);
+        if (res && res.text && res.text.trim().length > 20) {
+          return res.text.trim();
+        }
+      } else if (pdfModule && pdfModule.PDFParse) {
+        const parser = new pdfModule.PDFParse({ data: buffer });
+        if (typeof parser.load === 'function') await parser.load();
+        const textResult = await parser.getText();
+        const text = typeof textResult === 'string' ? textResult : (textResult?.text || '');
+        if (text && text.trim().length > 20) {
+          return text.trim();
+        }
+      }
+    } catch (e) {
+      console.warn('[PDF Extract] Warning extracting text via pdf-parse:', e);
+    }
+  }
+
+  // 2. Plain text or json
+  if (mimeType.includes('text') || mimeType.includes('json') || mimeType.includes('csv')) {
+    try {
+      const text = buffer.toString('utf-8');
+      if (text.trim().length > 20) return text.trim();
+    } catch (e) {}
+  }
+
+  return '';
+}
+
+/**
+ * Parse an uploaded resume file (PDF, text, or image) with Gemini AI
+ * Extracts true candidate domain, sector, projects, and skills without ever defaulting to IT!
  */
 export async function parseUploadedResumeWithGemini(
   buffer: Buffer,
   mimeType: string,
   fileName: string = 'resume.pdf'
 ): Promise<Partial<ResumeData>> {
-  const base64Data = buffer.toString('base64');
+  // First, attempt to extract clean text from the PDF/document
+  const extractedText = await extractTextFromBuffer(buffer, mimeType);
 
-  const prompt = `You are an elite, highly accurate Resume Parsing and Candidate Profiling AI.
-Carefully read and analyze the attached document ("${fileName}").
+  const promptInstructions = `You are an elite, highly accurate Resume Parsing and Candidate Profiling AI.
+Carefully read and analyze the candidate's resume ${extractedText ? 'content extracted from' : 'document'} "${fileName}".
 
 CRITICAL INSTRUCTIONS:
 1. DO NOT DEFAULT TO IT OR SOFTWARE ENGINEERING!
-2. Identify the candidate's exact sector and domain. For example:
-   - Financial Markets / Quantitative Trading / Forex / Commodities
+2. Detect the candidate's true sector and domain. For example:
+   - Financial Markets / Quantitative Trading / Forex / Commodities (e.g. XAUUSD Gold, Liquidity, Order Blocks, 1:2 RRR)
    - Artificial Intelligence & Data Science
    - Mechanical Engineering / Core Manufacturing
    - Healthcare / Pharmaceuticals
-   - Operations / Marketing / Sales / HR
-3. Extract the exact candidate information, real skills, actual work experience, research/projects, and education.
+   - Operations / Business / Sales / HR
+3. Extract the exact candidate name, contact, real skills, actual work experience, research/projects, and education from what is written.
 
 Output STRICT JSON ONLY matching this structure:
 {
+  "name": "Candidate Full Name",
   "sector": "Identified Sector (e.g. Financial Markets & Quantitative Trading)",
   "targetRole": "Identified Target Role (e.g. Market Analyst / Quantitative Trader)",
   "title": "Candidate Headline / Title",
@@ -202,7 +243,17 @@ Output STRICT JSON ONLY matching this structure:
 }`;
 
   try {
-    const raw = await callGeminiMultimodal(prompt, mimeType, base64Data, true);
+    let raw = '';
+    if (extractedText && extractedText.length > 50) {
+      // Fast, 100% reliable text-based Gemini call!
+      const prompt = `${promptInstructions}\n\n=== RESUME TEXT CONTENT ===\n${extractedText.slice(0, 15000)}\n===========================`;
+      raw = await callGemini(prompt, 'You are an elite corporate hiring resume analyzer. Output STRICT JSON ONLY.', true);
+    } else {
+      // Fallback to multimodal if no text could be extracted (e.g. scanned image PDF)
+      const base64Data = buffer.toString('base64');
+      raw = await callGeminiMultimodal(promptInstructions, mimeType, base64Data, true);
+    }
+
     const parsed = JSON.parse(raw);
     return {
       sector: parsed.sector || 'Financial Markets & Quantitative Trading',
@@ -216,7 +267,7 @@ Output STRICT JSON ONLY matching this structure:
       certifications: Array.isArray(parsed.certifications) ? parsed.certifications : []
     };
   } catch (err) {
-    console.error('Failed to parse resume with Gemini multimodal, falling back:', err);
+    console.error('[Gemini Parse Resume] Error parsing resume with Gemini, falling back:', err);
     return {};
   }
 }
@@ -639,7 +690,9 @@ export interface InteractiveRoundRequest {
   targetRole: string;
   difficulty: 'Easy' | 'Hard' | 'Tough';
   roundIndex: number;
-  totalRounds: number;
+  totalRounds?: number;
+  timeRemainingSeconds?: number;
+  candidateName?: string;
   candidateAnswer?: string;
   previousQuestion?: string;
   previousRoundTitle?: string;
@@ -669,13 +722,14 @@ export interface InteractiveRoundResponse {
 
 /**
  * Interactive Conversational Round Handler:
- * Adapts to the candidate's specific sector (Finance, Trading, AI, etc.) dynamically!
+ * Conducts a 15-minute realistic technical & domain interview.
+ * Starts with professional greeting & self-introduction, evaluates replies, and dynamically probes deeper based on answers!
  */
 export async function processInteractiveRound(
   req: InteractiveRoundRequest
 ): Promise<InteractiveRoundResponse> {
   const resumeText = formatResumeContext(req.resume);
-  const { difficulty, roundIndex, totalRounds, targetRole, candidateAnswer, previousQuestion, transcriptHistory } = req;
+  const { difficulty, roundIndex, targetRole, candidateAnswer, previousQuestion, transcriptHistory, candidateName, timeRemainingSeconds } = req;
 
   const hasPreviousAnswer = candidateAnswer && candidateAnswer.trim().length > 0 && candidateAnswer.trim() !== 'No response provided.';
 
@@ -686,66 +740,70 @@ export async function processInteractiveRound(
     resumeText.toLowerCase().includes('market analyst');
 
   const interviewerRole = isFinance
-    ? 'Senior Head of Trading Strategy & Portfolio Risk at a Global Institutional Trading Desk'
-    : `Senior Corporate Director & Technical Lead in ${targetRole || 'Engineering'}`;
+    ? 'Senior Head of Trading Strategy & Portfolio Risk at a Global Institutional Proprietary Trading Desk'
+    : `Senior Corporate Technical Hiring Lead in ${targetRole || 'Engineering'}`;
 
-  const systemInstruction = `You are a real-time AI Technical Interviewer conducting a live, voice-interactive corporate interview.
+  const displayName = candidateName || 'there';
+
+  const systemInstruction = `You are a real-time AI Technical & Domain Interviewer conducting a realistic 15-minute live interview.
 Your Persona: ${interviewerRole}.
-You speak clearly, professionally, and encouragingly yet rigorously.
-You adapt to the candidate's answers dynamically.
+You speak clearly, warmly, professionally, and inquisitively.
+You listen to the candidate's exact reply and ask follow-up questions directly grounded in what they just said and what is on their resume.
 
-CRITICAL INSTRUCTION:
-DO NOT DEFAULT TO IT OR SOFTWARE CODING!
-Tailor your questions and evaluations strictly to the candidate's actual sector (e.g. Financial Markets, Forex/Gold Trading, Order Blocks, Liquidity, AI & Data Science).
-${
-  isFinance
-    ? 'All questions and evaluations must be centered on market analysis, institutional concepts (order blocks, liquidity pools, false breakouts), risk management (1:2 RRR, drawdowns), macro events (CPI, NFP, FOMC), and session dynamics (London, New York, Asian)!'
-    : ''
-}
-
-YOUR GOALS:
-1. If the candidate answered a previous question:
-   - Provide a natural, spoken interviewer response (1-2 sentences) acknowledging their points and constructively pointing out strengths or gaps in their domain.
-   - Evaluate their Technical/Analytical Depth (0-100 mark) and Communication Fluency (0-100 mark).
-   - Formulate constructive feedback.
-2. Ask the NEXT interview question:
-   - MUST be tailored to the candidate's uploaded resume (projects, skills, education) and the target role (${targetRole}).
-   - MUST strictly adhere to the requested difficulty tier: "${difficulty}".
-     * Easy: Foundational domain concepts & resume project/strategy walkthrough.
-     * Hard: In-depth technical/market execution, risk-reward ratios, macro news catalysts, and edge-case handling.
-     * Tough: High-stakes crisis management, extreme volatility, capital preservation, and psychological drawdown control.
-   - Formulate the question in a natural conversational tone so that it sounds engaging when read aloud via Speech Synthesis.
+CRITICAL INSTRUCTIONS:
+1. DO NOT DEFAULT TO IT OR SOFTWARE CODING!
+   - Tailor your questions and evaluations strictly to the candidate's actual sector (e.g. Financial Markets, Forex/Gold Trading, Order Blocks, Liquidity, AI & Data Science).
+   ${
+     isFinance
+       ? '- All questions and evaluations must be centered on market analysis, institutional concepts (order blocks, liquidity pools, false breakouts), risk management (1:2 RRR, drawdowns), macro events (CPI, NFP, FOMC), and session dynamics (London, New York, Asian)!'
+       : ''
+   }
+2. NATURAL INTERVIEW FLOW (15-Minute Session):
+   - Turn 1 (Opening): Warm professional greeting. Ask them to introduce themselves, walk through their background, and summarize their core models and strategies from their resume.
+   - Subsequent Turns:
+     * Acknowledge what the candidate actually replied with a realistic 1-2 sentence spoken reaction.
+     * Evaluate their Technical/Domain Mark (0-100) and Communication Fluency Mark (0-100).
+     * Ask a follow-up question that builds directly on what they stated, probing deeper into their logic, risk controls, edge cases, or crisis scenarios.
+3. Keep the interview questions conversational, engaging, and suitable for Text-to-Speech synthesis.
 
 Output STRICT JSON ONLY.`;
 
-  const prompt = `LIVE INTERVIEW CONTEXT:
-Target Placement Role: ${targetRole || 'Market Analyst'}
-Current Round: Round ${roundIndex + 1} of ${totalRounds}
+  const prompt = `LIVE 15-MINUTE INTERVIEW CONTEXT:
+Candidate: ${displayName}
+Target Role: ${targetRole || 'Market Analyst / Quantitative Trader'}
+Question Number: ${roundIndex + 1}
 Difficulty Tier: ${difficulty}
+${timeRemainingSeconds ? `Time Remaining in 15-Min Interview: ${Math.floor(timeRemainingSeconds / 60)}m ${timeRemainingSeconds % 60}s` : ''}
 
 === CANDIDATE RESUME ===
 ${resumeText}
 ========================
 
 ${
-  hasPreviousAnswer
-    ? `=== PREVIOUS QUESTION ASKED ===
+  roundIndex === 0 || !hasPreviousAnswer
+    ? `This is the opening question of the 15-minute interview.
+Start with a warm professional greeting: "Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole}. To start off, please introduce yourself, tell me about your background, and walk me through the key projects and models highlighted in your resume."`
+    : `=== PREVIOUS QUESTION ASKED ===
 "${previousQuestion}"
 
-=== CANDIDATE'S SPOKEN/TYPED ANSWER ===
+=== CANDIDATE'S ACTUAL SPOKEN/TYPED REPLY ===
 "${candidateAnswer}"
 
-Evaluate this answer carefully based on technical/analytical correctness, conceptual depth in their sector, and communication fluency.`
-    : `This is the opening question for the interview or round.`
+Critically evaluate this reply:
+1. Technical/Domain correctness & depth (0-100 mark)
+2. Spoken communication & clarity (0-100 mark)
+3. Constructive feedback notes
+4. Spoken interviewer reaction acknowledging their specific points
+5. The NEXT interview question: Must probe deeper based on what they just explained and their resume!`
 }
 
 ${
   transcriptHistory && transcriptHistory.length > 0
-    ? `=== INTERVIEW HISTORY SO FAR ===\n` +
+    ? `=== INTERVIEW TRANSCRIPT HISTORY SO FAR ===\n` +
       transcriptHistory
         .map(
           (t) =>
-            `Round ${t.round} [${t.difficulty || 'Normal'}]: Q: "${t.question}" -> Candidate: "${t.studentAnswer}" (Tech: ${t.technicalMark || 75}%, Comm: ${t.communicationMark || 75}%)`
+            `Q${t.round} [${t.difficulty || 'Normal'}]: Q: "${t.question}" -> Candidate: "${t.studentAnswer}" (Tech: ${t.technicalMark || 75}/100, Comm: ${t.communicationMark || 75}/100)`
         )
         .join('\n')
     : ''
@@ -753,14 +811,14 @@ ${
 
 Generate the response in this EXACT JSON structure:
 {
-  "interviewerReaction": "Spoken reaction to candidate's answer (1-2 sentences). If first round, a brief warm professional welcome.",
-  "feedback": "Concise bullet-point evaluation of their technical points and communication delivery.",
+  "interviewerReaction": "Natural spoken reaction to candidate's answer (1-2 sentences). If opening question, warm professional greeting.",
+  "feedback": "Bullet-point evaluation of their technical depth, accuracy, and communication delivery.",
   "technicalMark": 85,
   "communicationMark": 88,
-  "nextQuestion": "The next conversational interview question tailored to their resume and difficulty tier (${difficulty}).",
-  "roundTitle": "Round ${roundIndex + 1}: [${difficulty}] Descriptive Round Subtitle",
+  "nextQuestion": "The next conversational interview question tailored to what they answered and their resume.",
+  "roundTitle": "Question ${roundIndex + 1}: [${difficulty}] Descriptive Focus Topic",
   "difficulty": "${difficulty}",
-  "tips": "Quick 1-sentence tip on what interviewers look for in this question."
+  "tips": "Quick 1-sentence tip on what top interviewers look for in this question."
 }`;
 
   try {
@@ -774,26 +832,28 @@ Generate the response in this EXACT JSON structure:
     
     let techMark = 75;
     let commMark = 75;
-    let reaction = 'Thank you for your response.';
+    let reaction = 'Thank you for sharing your thoughts.';
 
     if (hasPreviousAnswer) {
       const words = candidateAnswer.trim().split(/\s+/).length;
       if (words > 40) {
-        techMark = 85;
-        commMark = 88;
-        reaction = 'Good detailed explanation with clear structured analysis.';
+        techMark = 88;
+        commMark = 90;
+        reaction = 'Excellent detail and structured explanation on your methodology.';
       } else if (words > 15) {
         techMark = 78;
-        commMark = 75;
-        reaction = 'Understood your core idea. Let us explore deeper in the next question.';
+        commMark = 76;
+        reaction = 'Good points. Let us dive deeper into the technical execution and risk rules.';
       } else {
-        techMark = 60;
-        commMark = 65;
-        reaction = 'Try to elaborate further with specific strategy details and risk management rules.';
+        techMark = 65;
+        commMark = 68;
+        reaction = 'Understood. Please try to elaborate more with specific numbers, models, and risk rules.';
       }
     } else {
-      reaction = `Welcome to your AI Voice Mock Interview for the position of ${targetRole}. Let us begin with your resume background.`;
+      reaction = `Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole}.`;
     }
+
+    const openingQuestion = `Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole}. To start off, please introduce yourself, tell me about your background, and walk me through the key projects and models highlighted in your resume.`;
 
     const fallbackQuestions: Record<string, string> = isFinance
       ? {
@@ -807,21 +867,25 @@ Generate the response in this EXACT JSON structure:
           Tough: `Walk me through your emergency triage when a critical failure occurs under peak operational stress.`
         };
 
+    const nextQ = (roundIndex === 0 && !hasPreviousAnswer) ? openingQuestion : (fallbackQuestions[difficulty] || fallbackQuestions.Easy);
+
     return {
       interviewerReaction: reaction,
       feedback: hasPreviousAnswer
-        ? 'Demonstrated understanding of core domain principles. Continue to articulate concrete risk management and real-world execution rules.'
+        ? 'Demonstrated understanding of core principles. Continue to articulate concrete risk management and real-world execution rules.'
         : 'Starting interview session.',
       technicalMark: techMark,
       communicationMark: commMark,
       score: Math.round((techMark * 0.6) + (commMark * 0.4)),
-      nextQuestion: fallbackQuestions[difficulty] || fallbackQuestions.Easy,
-      roundTitle: `Round ${roundIndex + 1}: [${difficulty}] Technical Evaluation`,
+      nextQuestion: nextQ,
+      roundTitle: `Question ${roundIndex + 1}: [${difficulty}] Technical Evaluation`,
       difficulty,
       tips: `Focus on clear logical articulation, risk-managed breakdown, and real-world execution rules.`
     };
   }
 }
+
+
 
 export const SYED_AYAZ_RESUME = {
   id: 'res_syed_ayaz',

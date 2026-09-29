@@ -19,10 +19,12 @@ export async function POST(req: Request) {
 
     const roundRequest: InteractiveRoundRequest = {
       resume: resumeData,
-      targetRole: body.targetRole || 'Software Development Engineer',
+      targetRole: body.targetRole || resumeData?.targetRole || 'Market Analyst / Quantitative Trader',
       difficulty: body.difficulty || 'Easy',
       roundIndex: typeof body.roundIndex === 'number' ? body.roundIndex : 0,
       totalRounds: typeof body.totalRounds === 'number' ? body.totalRounds : 5,
+      timeRemainingSeconds: body.timeRemainingSeconds,
+      candidateName: user.name || body.candidateName || 'Syed Ayaz Shah',
       candidateAnswer: body.candidateAnswer,
       previousQuestion: body.previousQuestion,
       previousRoundTitle: body.previousRoundTitle,
