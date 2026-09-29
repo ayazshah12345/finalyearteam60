@@ -12,40 +12,23 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const targetRole = body.targetRole || 'Software Development Engineer';
-
-    // Check if custom resume provided in request, else load from dbStore
     let resumeData: Partial<ResumeData> | null = body.resume || null;
     if (!resumeData) {
       resumeData = dbStore.getResume(user.id) || null;
     }
 
     if (!resumeData) {
+      const { SYED_AYAZ_RESUME } = await import('@/lib/gemini-interview');
       resumeData = {
-        studentId: user.id,
-        title: `${user.name} - Resume`,
-        summary: `Computer Science student at VSB Engineering College (${user.department}), CGPA: ${user.cgpa || 8.4}.`,
-        skills: [
-          { category: 'Programming Languages', list: ['Python', 'Java', 'SQL', 'JavaScript'] },
-          { category: 'Frameworks & Tools', list: ['React', 'Next.js', 'PostgreSQL', 'Git'] }
-        ],
-        projects: [
-          {
-            title: 'Student Growth Intelligence Platform',
-            tech: 'Next.js, TypeScript, PostgreSQL',
-            points: ['Campus placement intelligence and algorithmic evaluation system.']
-          }
-        ],
-        education: [
-          {
-            institution: 'VSB Engineering College',
-            degree: `B.E. ${user.department || 'CSE'}`,
-            year: '2022 - 2026',
-            cgpa: `${user.cgpa || 8.4}`
-          }
-        ]
+        ...SYED_AYAZ_RESUME,
+        studentId: user.id
       };
     }
+
+    const targetRole =
+      body.targetRole && !body.targetRole.includes('Full Stack')
+        ? body.targetRole
+        : resumeData.targetRole || 'Market Analyst / Quantitative Trader';
 
     const analysis = await analyzeResumeWithGemini(resumeData, targetRole);
 

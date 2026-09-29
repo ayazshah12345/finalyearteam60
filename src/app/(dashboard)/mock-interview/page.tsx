@@ -48,6 +48,8 @@ interface QuestionBankItem {
 }
 
 interface ResumeAnalysisData {
+  detectedSector?: string;
+  detectedTargetRole?: string;
   candidateSummary: string;
   detectedTechStack: string[];
   keyProjects: string[];
@@ -72,7 +74,7 @@ export default function AIMockInterviewPage() {
 
   // Interview Workspace State: 'intro' | 'interviewing' | 'evaluating' | 'result'
   const [step, setStep] = useState<'intro' | 'interviewing' | 'evaluating' | 'result'>('intro');
-  const [targetRole, setTargetRole] = useState('Full Stack Software Engineer');
+  const [targetRole, setTargetRole] = useState('Market Analyst / Quantitative Trader');
   const [interviewMode, setInterviewMode] = useState<'progressive' | 'easy' | 'hard' | 'tough'>('progressive');
 
   // Total Rounds: Progressive = 5 (2 Easy -> 2 Hard -> 1 Tough), or 3 for single tier
@@ -139,10 +141,25 @@ export default function AIMockInterviewPage() {
       // Fetch student resume
       const resRes = await fetch('/api/resume');
       let loadedResume: ResumeData | null = null;
+      let effectiveRole = 'Market Analyst / Quantitative Trader';
+
       if (resRes.ok) {
         const resData = await resRes.json();
         loadedResume = resData.resume;
         setResume(loadedResume);
+
+        if (loadedResume) {
+          const detected =
+            loadedResume.targetRole ||
+            (loadedResume.sector?.includes('Financial') || loadedResume.summary?.includes('XAUUSD')
+              ? 'Market Analyst / Quantitative Trader'
+              : loadedResume.title);
+
+          if (detected && !detected.includes('Full Stack')) {
+            effectiveRole = detected;
+            setTargetRole(detected);
+          }
+        }
       }
 
       // Fetch past interview history
@@ -154,7 +171,7 @@ export default function AIMockInterviewPage() {
 
       // Analyze resume with Gemini AI automatically
       if (loadedResume || authData.activeUser) {
-        triggerResumeAnalysis(loadedResume, targetRole);
+        triggerResumeAnalysis(loadedResume, effectiveRole);
       }
     } catch (e) {
       console.error('Error loading initial mock interview data:', e);
@@ -179,6 +196,9 @@ export default function AIMockInterviewPage() {
         const data = await res.json();
         if (data.analysis) {
           setAnalysisData(data.analysis);
+          if (data.analysis.detectedTargetRole && !data.analysis.detectedTargetRole.includes('Full Stack')) {
+            setTargetRole(data.analysis.detectedTargetRole);
+          }
         }
       }
     } catch (err) {
@@ -728,20 +748,30 @@ export default function AIMockInterviewPage() {
                     </div>
                   </div>
 
-                  <div className="text-slate-700 dark:text-slate-300 text-xs space-y-1 font-medium">
-                    <div>
-                      • Candidate: <strong>{user?.name}</strong> ({user?.rollNumber || '22CS101'})
+                  <div className="text-slate-700 dark:text-slate-300 text-xs space-y-1.5 font-medium">
+                    <div className="flex flex-wrap items-center gap-2 pb-1">
+                      <span className="px-2.5 py-1 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-black text-[11px] inline-flex items-center gap-1 border border-indigo-200 dark:border-indigo-800">
+                        <img src="/emojis/target.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Sector: {analysisData?.detectedSector || resume?.sector || 'Financial Markets & Quantitative Trading'}</span>
+                      </span>
+                      <span className="px-2.5 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-black text-[11px] inline-flex items-center gap-1 border border-emerald-200 dark:border-emerald-800">
+                        <img src="/emojis/check.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                        <span>Role: {targetRole}</span>
+                      </span>
                     </div>
                     <div>
-                      • Department & CGPA: <strong>{user?.department || 'Computer Science'} • {user?.cgpa || 8.4} CGPA</strong>
+                      • Candidate: <strong>{user?.name}</strong> ({user?.rollNumber || '922523243111'})
                     </div>
                     <div>
-                      • Detected Stack: <strong className="text-indigo-600 dark:text-indigo-400">{userSkillsText}</strong>
+                      • Department & Academic Background: <strong>{user?.department || 'Artificial Intelligence and Data Science'} • {user?.cgpa || 8.51} CGPA</strong>
+                    </div>
+                    <div>
+                      • Core Competencies & Strategy Models: <strong className="text-indigo-600 dark:text-indigo-400">{userSkillsText}</strong>
                     </div>
                     {resume?.fileName && (
                       <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 pt-1">
                         <img src="/emojis/check.png" alt="" className="w-3.5 h-3.5 object-contain" />
-                        <span>Custom Resume File: {resume.fileName} ({resume.fileSize})</span>
+                        <span>Uploaded Custom Resume: <strong>{resume.fileName}</strong> ({resume.fileSize || '73.6 KB'})</span>
                       </div>
                     )}
                   </div>

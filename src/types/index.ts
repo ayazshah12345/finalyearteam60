@@ -278,6 +278,8 @@ export interface ResumeData {
   fileType?: string;
   uploadedAt?: string;
   atsScore?: number;
+  sector?: string;
+  targetRole?: string;
 }
 
 export interface Company {
