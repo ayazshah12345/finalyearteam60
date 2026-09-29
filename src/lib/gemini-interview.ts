@@ -1,11 +1,12 @@
 import { ResumeData } from '@/types';
 
-// Multi-model fallback sequence for highest availability
-const CANDIDATE_MODELS = [
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-2.5-flash',
-  'gemini-1.5-pro'
+// Multi-model fallback sequence for highest availability (2026 active models)
+export const CANDIDATE_MODELS = [
+  'gemini-3.5-flash-lite',
+  'gemini-3.5-flash',
+  'gemini-3.1-flash-lite',
+  'gemini-3.8-flash',
+  'gemini-flash-latest'
 ];
 
 /**
@@ -94,8 +95,8 @@ export async function callGeminiMultimodal(
         role: 'user',
         parts: [
           {
-            inlineData: {
-              mimeType: mimeType,
+            inline_data: {
+              mime_type: mimeType,
               data: base64Data
             }
           },
@@ -249,39 +250,52 @@ export function extractSkillsAndProfileFromText(
   if (/order block|liquidity pool/i.test(lower)) trading.push('Institutional Order Blocks & Liquidity');
   if (/1:2 rrr|risk to reward/i.test(lower)) trading.push('Risk-to-Reward (1:2 RRR) Management');
 
+  // 4. Accounting, Finance & Auditing
+  const accounting: string[] = [];
+  if (/auditing|audit/i.test(lower)) accounting.push('Auditing');
+  if (/financial accounting|accountant|accounting/i.test(lower)) accounting.push('Financial Accounting');
+  if (/financial reporting|statutory reporting|financial statements/i.test(lower)) accounting.push('Financial Reporting');
+  if (/taxation|tax filing|gst|vat/i.test(lower)) accounting.push('Taxation & Regulatory Filings');
+  if (/gaap|ifrs/i.test(lower)) accounting.push('GAAP / IFRS Standards');
+  if (/bookkeeping|general ledger|ledger|balance sheet/i.test(lower)) accounting.push('General Ledger & Bookkeeping');
+  if (/internal controls|sox/i.test(lower)) accounting.push('Internal Controls & Risk Assessment');
+
   // 5. Mechanical / Core Engineering
   const mechanical: string[] = [];
   if (/autocad|solidworks|catia|creo/i.test(lower)) mechanical.push('CAD Modeling (AutoCAD / SolidWorks)');
   if (/ansys|fea|finite element/i.test(lower)) mechanical.push('Finite Element Analysis (FEA)');
   if (/thermodynamics|heat transfer|fluid mechanics/i.test(lower)) mechanical.push('Thermodynamics & Fluid Dynamics');
 
+  // 6. Civil & Structural Engineering
+  const civil: string[] = [];
+  if (/structural analysis|concrete|staad pro|surveying|civil engineering/i.test(lower)) civil.push('Structural Design & Construction');
+
   const skills: { category: string; list: string[] }[] = [];
+  if (accounting.length > 0) skills.push({ category: 'Accounting, Auditing & Finance', list: accounting });
   if (languages.length > 0) skills.push({ category: 'Programming Languages', list: languages });
   if (coreCs.length > 0) skills.push({ category: 'Core Computer Science', list: coreCs });
   if (frameworks.length > 0) skills.push({ category: 'Frameworks & Tools', list: frameworks });
-  if (trading.length > 0 && languages.length === 0 && frameworks.length === 0) skills.push({ category: 'Market & Technical Analysis', list: trading });
-  if (mechanical.length > 0 && languages.length === 0 && frameworks.length === 0) skills.push({ category: 'Core Engineering & Design', list: mechanical });
-
-  // Default fallback skills if text was brief
-  if (skills.length === 0) {
-    skills.push({
-      category: 'Core Programming & Problem Solving',
-      list: ['Java', 'C++', 'Data Structures & Algorithms', 'OOPs', 'Problem Solving']
-    });
-  }
+  if (trading.length > 0 && languages.length === 0 && accounting.length === 0) skills.push({ category: 'Market & Technical Analysis', list: trading });
+  if (mechanical.length > 0 && languages.length === 0 && accounting.length === 0) skills.push({ category: 'Core Engineering & Design', list: mechanical });
+  if (civil.length > 0 && languages.length === 0 && accounting.length === 0) skills.push({ category: 'Civil & Structural Engineering', list: civil });
 
   // Determine Sector & Target Role
+  const isAccounting = accounting.length > 0 && languages.length === 0;
   const hasJava = languages.includes('Java');
   const hasCpp = languages.includes('C++');
   const hasPython = languages.includes('Python');
   const hasWeb = frameworks.includes('React') || frameworks.includes('Next.js') || frameworks.includes('Node.js / Express') || languages.includes('JavaScript') || languages.includes('TypeScript');
-  const isTrading = trading.length > 0 && languages.length === 0 && frameworks.length === 0;
-  const isMech = mechanical.length > 0 && languages.length === 0 && frameworks.length === 0;
+  const isTrading = trading.length > 0 && languages.length === 0 && frameworks.length === 0 && !isAccounting;
+  const isMech = mechanical.length > 0 && languages.length === 0 && !isAccounting;
+  const isCivil = civil.length > 0 && languages.length === 0 && !isAccounting;
 
   let sector = 'Software Engineering & Computer Science';
   let targetRole = 'Software Development Engineer';
 
-  if (hasJava && hasCpp) {
+  if (isAccounting) {
+    sector = 'Accounting, Finance & Auditing';
+    targetRole = /senior accountant/i.test(lower) ? 'Senior Accountant' : 'Professional Accountant / Financial Auditor';
+  } else if (hasJava && hasCpp) {
     sector = 'Software Engineering & Computer Science';
     targetRole = 'Software Development Engineer (Java / C++)';
   } else if (hasJava) {
@@ -301,6 +315,10 @@ export function extractSkillsAndProfileFromText(
     targetRole = 'Market Analyst / Quantitative Trader';
   } else if (isMech) {
     sector = 'Mechanical Engineering';
+    targetRole = 'Mechanical Engineer';
+  } else if (isCivil) {
+    sector = 'Civil Engineering';
+    targetRole = 'Civil Engineer';
   }
 
   // Extract Project mentions from text
@@ -589,12 +607,108 @@ export function generateSkillTailoredQuestionBank(
     });
   }
 
-  const hasJava = /\bjava\b(?!\s*script)/i.test(lower) || allSkills.some(s => /\bjava\b(?!\s*script)/i.test(s));
-  const hasCpp = /\b(c\+\+|cpp)\b/i.test(lower) || allSkills.some(s => /\b(c\+\+|cpp)\b/i.test(s));
-  const hasPython = /\bpython\b/i.test(lower) || allSkills.some(s => /\bpython\b/i.test(s));
-  const hasWeb = /react|next\.?js|node\.?js|javascript|typescript|web/i.test(lower) || allSkills.some(s => /react|next|node|javascript|typescript|web/i.test(s));
-  const hasTrading = (/xauusd|order block|liquidity pool/i.test(lower)) && !hasJava && !hasCpp && !hasPython && !hasWeb;
-  const hasMech = /cad|solidworks|catia|ansys|thermodynamics|mechanical/i.test(lower) && !hasJava && !hasCpp && !hasPython && !hasWeb;
+  const hasAccounting = (/accountant|accounting|auditing|financial reporting|financial statements|gaap|ifrs|bookkeeping|balance sheet/i.test(lower)) || allSkills.some(s => /accountant|accounting|audit|financial reporting/i.test(s));
+  const hasJava = (/\bjava\b(?!\s*script)/i.test(lower) || allSkills.some(s => /\bjava\b(?!\s*script)/i.test(s))) && !hasAccounting;
+  const hasCpp = (/\b(c\+\+|cpp)\b/i.test(lower) || allSkills.some(s => /\b(c\+\+|cpp)\b/i.test(s))) && !hasAccounting;
+  const hasPython = (/\bpython\b/i.test(lower) || allSkills.some(s => /\bpython\b/i.test(s))) && !hasAccounting;
+  const hasWeb = (/react|next\.?js|node\.?js|javascript|typescript|web/i.test(lower) || allSkills.some(s => /react|next|node|javascript|typescript|web/i.test(s))) && !hasAccounting;
+  const hasTrading = (/xauusd|order block|liquidity pool/i.test(lower)) && !hasJava && !hasCpp && !hasPython && !hasWeb && !hasAccounting;
+  const hasMech = (/cad|solidworks|catia|ansys|thermodynamics|mechanical/i.test(lower)) && !hasJava && !hasCpp && !hasPython && !hasWeb && !hasAccounting;
+
+  // Case 0: ACCOUNTING, FINANCE & AUDITING
+  if (hasAccounting) {
+    const isSenior = /senior accountant/i.test(lower) || (requestedRole && /senior/i.test(requestedRole));
+    const roleTitle = requestedRole || (isSenior ? 'Senior Accountant' : 'Professional Accountant / Financial Auditor');
+    return {
+      detectedSector: 'Accounting, Finance & Auditing',
+      detectedTargetRole: roleTitle,
+      candidateSummary: 'Professional Accountant with deep competency in auditing, statutory financial reporting, general ledger reconciliation, and accounting standards.',
+      detectedTechStack: allSkills.length > 0 ? allSkills : ['Auditing', 'Financial Accounting', 'Financial Reporting', 'GAAP / IFRS Compliance', 'General Ledger Reconciliation', 'Internal Controls'],
+      keyProjects: ['Financial Statement Audit & Statutory Reporting', 'General Ledger Reconciliation & Internal Controls'],
+      strengths: ['Rigorous financial accuracy', 'Deep understanding of accounting standards, internal controls, and financial statement disclosures'],
+      recommendedFocus: 'Material misstatement evaluation, complex revenue recognition, and forensic auditing methodologies',
+      questions: {
+        easy: [
+          {
+            id: 'easy_1',
+            roundTitle: 'Round 1: [Easy] Candidate Background & Accounting Experience',
+            question: 'Welcome! Please introduce yourself, summarize your professional accounting and auditing background, and walk me through your key responsibilities and engagements highlighted on your resume.',
+            difficulty: 'Easy',
+            topic: 'Background & Experience Walkthrough',
+            expectedKeywords: ['accounting', 'auditing', 'reporting', 'experience']
+          },
+          {
+            id: 'easy_2',
+            roundTitle: 'Round 2: [Easy] Complete Set of Financial Statements & Core Components',
+            question: 'Can you walk me through the primary components of a complete set of financial statements under standard accounting frameworks (Balance Sheet, Income Statement, Cash Flow, Equity), and explain how they interlink?',
+            difficulty: 'Easy',
+            topic: 'Financial Statement Interlinkages',
+            expectedKeywords: ['balance sheet', 'income statement', 'cash flow', 'net income', 'retained earnings']
+          },
+          {
+            id: 'easy_3',
+            roundTitle: 'Round 3: [Easy] Accrual vs Cash-Basis & Bank Reconciliations',
+            question: 'What is the fundamental difference between accrual accounting and cash-basis accounting? When closing monthly books, how do you systematically reconcile bank statements with the general ledger?',
+            difficulty: 'Easy',
+            topic: 'Accrual Accounting & Ledger Reconciliation',
+            expectedKeywords: ['accrual basis', 'matching principle', 'bank reconciliation', 'general ledger', 'timing differences']
+          }
+        ],
+        hard: [
+          {
+            id: 'hard_1',
+            roundTitle: 'Round 4: [Hard] Auditing Methodology & Testing Internal Controls',
+            question: 'Describe your methodology for assessing and testing internal controls over financial reporting. How do you evaluate control risk, detect potential material misstatements, and ensure segregation of duties?',
+            difficulty: 'Hard',
+            topic: 'Internal Controls & Audit Risk',
+            expectedKeywords: ['internal controls', 'material misstatement', 'substantive testing', 'control risk', 'segregation of duties']
+          },
+          {
+            id: 'hard_2',
+            roundTitle: 'Round 5: [Hard] Revenue Recognition Standards (ASC 606 / IFRS 15)',
+            question: 'Walk me through the 5-step revenue recognition model under ASC 606 / IFRS 15. How do you determine standalone selling prices and recognize revenue on multi-obligation service contracts?',
+            difficulty: 'Hard',
+            topic: 'Revenue Recognition Standards',
+            expectedKeywords: ['ASC 606', 'IFRS 15', 'performance obligations', 'transaction price', 'contract asset']
+          },
+          {
+            id: 'hard_3',
+            roundTitle: 'Round 6: [Hard] Subsequent Events & Disclosure Requirements',
+            question: 'How do you handle the accounting treatment and disclosure of subsequent events identified between the balance sheet date and the issuance of the audited report? Distinguish adjusting vs non-adjusting events.',
+            difficulty: 'Hard',
+            topic: 'Subsequent Events & Financial Disclosure',
+            expectedKeywords: ['subsequent events', 'adjusting event', 'non-adjusting event', 'disclosure', 'cutoff']
+          }
+        ],
+        tough: [
+          {
+            id: 'tough_1',
+            roundTitle: 'Round 7: [Tough] Material Restatement & Audit Committee Crisis Management',
+            question: 'Suppose you uncover an intentional or major material misstatement in prior periods requiring a restatement. Walk me through your step-by-step crisis protocol for communicating with executive leadership, the audit committee, and external regulators.',
+            difficulty: 'Tough',
+            topic: 'Material Misstatement Restatement Protocol',
+            expectedKeywords: ['restatement', 'materiality', 'audit committee', 'regulatory disclosure', 'remediation']
+          },
+          {
+            id: 'tough_2',
+            roundTitle: 'Round 8: [Tough] Goodwill & Asset Impairment under Volatile Cash Flows',
+            question: 'Under macroeconomic uncertainty where projected discounted cash flows fluctuate wildly, how do you rigorously evaluate goodwill and long-lived asset impairment testing to ensure balance sheet conservatism?',
+            difficulty: 'Tough',
+            topic: 'Asset Impairment & DCF Valuation',
+            expectedKeywords: ['impairment testing', 'goodwill', 'fair value', 'discounted cash flow', 'carrying amount']
+          },
+          {
+            id: 'tough_3',
+            roundTitle: 'Round 9: [Tough] Forensic Auditing & Resolving Creative Accounting Pressure',
+            question: 'You encounter management pressure to record aggressive revenue accruals or conceal contingent liabilities that technically stretch accounting loopholes. Walk me through your forensic audit procedures and ethical escalation protocol.',
+            difficulty: 'Tough',
+            topic: 'Forensic Audit & Ethical Escalation',
+            expectedKeywords: ['forensic audit', 'professional skepticism', 'whistleblower', 'ethical escalation', 'contingent liability']
+          }
+        ]
+      }
+    };
+  }
 
   // Case 1: HIGHLIGHTS BOTH JAVA AND C++
   if (hasJava && hasCpp) {
@@ -1347,13 +1461,16 @@ export async function processInteractiveRound(
   const hasPreviousAnswer = candidateAnswer && candidateAnswer.trim().length > 0 && candidateAnswer.trim() !== 'No response provided.';
 
   const isFinance = questionBank.detectedSector.includes('Financial');
+  const isAccounting = questionBank.detectedSector.includes('Accounting') || questionBank.detectedSector.includes('Auditing');
   const isSoftware = questionBank.detectedSector.includes('Software') || questionBank.detectedSector.includes('Computer');
 
-  const interviewerRole = isSoftware
+  const interviewerRole = isAccounting
+    ? 'Senior Audit Partner & Head of Financial Operations'
+    : isSoftware
     ? 'Senior Principal Software Engineer & Technical Interview Lead'
     : isFinance
     ? 'Senior Head of Trading Strategy & Portfolio Risk at a Global Institutional Proprietary Trading Desk'
-    : `Senior Corporate Technical Hiring Lead in ${targetRole || 'Engineering'}`;
+    : `Senior Corporate Technical Hiring Lead in ${targetRole || questionBank.detectedTargetRole}`;
 
   const displayName = candidateName || 'there';
   const primarySkillsSummary = questionBank.detectedTechStack.slice(0, 4).join(', ');
@@ -1367,6 +1484,7 @@ CRITICAL INSTRUCTIONS:
 1. DYNAMIC SKILL & DOMAIN ADAPTATION:
    - Candidate Highlighted Skills: ${primarySkillsSummary}.
    - You MUST tailor your questions and evaluations directly to these highlighted skills!
+   - If candidate highlighted Accounting / Auditing: Ask deep questions on complete financial statement integration, statutory reporting, internal controls, revenue recognition (ASC 606/IFRS 15), subsequent events, and auditing material misstatements!
    - If candidate highlighted Java & C++: Ask deep questions on memory management, JVM vs Native execution, pointers, RAII, smart pointers, HashMap collisions, multithreading, and low-level debugging!
    - If candidate highlighted Trading: Focus on market analysis, order blocks, liquidity, and 1:2 RRR.
    - If candidate highlighted another domain: Focus on their specific domain principles.

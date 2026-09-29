@@ -117,37 +117,24 @@ export async function POST(req: Request) {
         console.warn('Gemini multimodal parse fallback:', geminiErr);
       }
 
-      const existing = dbStore.getResume(user.id);
-
-      const defaultSector =
-        parsedData.sector ||
-        (user.department?.toLowerCase().includes('mech')
-          ? 'Mechanical Engineering'
-          : user.department?.toLowerCase().includes('civil')
-          ? 'Civil Engineering'
-          : 'Software Engineering & Computer Science');
-
-      const defaultRole =
-        parsedData.targetRole ||
-        (user.department?.toLowerCase().includes('mech')
-          ? 'Mechanical Engineer'
-          : user.department?.toLowerCase().includes('civil')
-          ? 'Civil Engineer'
-          : 'Software Development Engineer');
+      const detectedSector = parsedData.sector || 'General Professional';
+      const detectedRole = parsedData.targetRole || parsedData.title || 'Professional';
 
       const updatedResume = {
-        id: existing?.id || `res_${user.id}`,
+        id: `res_${user.id}_${Date.now()}`,
         studentId: user.id,
-        title: parsedData.title || `Resume - ${user.name || file.name}`,
+        title: parsedData.title || `${detectedRole} Resume`,
         template: 'ATS Resume' as const,
-        sector: defaultSector,
-        targetRole: defaultRole,
+        sector: detectedSector,
+        targetRole: detectedRole,
         summary: parsedData.summary || '',
-        skills: (parsedData.skills && parsedData.skills.length > 0) ? parsedData.skills : (existing?.skills || []),
-        experience: (parsedData.experience && parsedData.experience.length > 0) ? parsedData.experience : (existing?.experience || []),
-        projects: (parsedData.projects && parsedData.projects.length > 0) ? parsedData.projects : (existing?.projects || []),
-        education: (parsedData.education && parsedData.education.length > 0) ? parsedData.education : (existing?.education || []),
-        certifications: (parsedData.certifications && parsedData.certifications.length > 0) ? parsedData.certifications : (existing?.certifications || []),
+        skills: (parsedData.skills && Array.isArray(parsedData.skills) && parsedData.skills.length > 0)
+          ? parsedData.skills
+          : [{ category: 'Core Skills', list: [detectedRole, 'Domain Operations', 'Analysis & Strategy'] }],
+        experience: parsedData.experience || [],
+        projects: parsedData.projects || [],
+        education: parsedData.education || [],
+        certifications: parsedData.certifications || [],
         isCustomUpload: true,
         fileUrl,
         fileName: file.name,
