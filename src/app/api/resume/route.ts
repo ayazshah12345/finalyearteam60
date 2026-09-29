@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db-store';
 import { getAuthenticatedUser } from '@/lib/auth';
-import { parseUploadedResumeWithGemini, SYED_AYAZ_RESUME } from '@/lib/gemini-interview';
+import { parseUploadedResumeWithGemini } from '@/lib/gemini-interview';
 import fs from 'fs';
 import path from 'path';
 
@@ -9,22 +9,9 @@ export async function GET(req: Request) {
   const user = await getAuthenticatedUser(req);
   const { searchParams } = new URL(req.url);
   const targetStudentId = searchParams.get('studentId') || user.id;
-  let resume = dbStore.getResume(targetStudentId);
+  const resume = dbStore.getResume(targetStudentId);
 
-  // If user is Syed Ayaz Shah or no custom upload yet, initialize with his real resume
-  const isAyaz = user.name?.toLowerCase().includes('ayaz') || user.email?.toLowerCase().includes('ayaz') || user.rollNumber === '922523243111' || !resume;
-
-  if (isAyaz || !resume) {
-    if (!resume || !resume.isCustomUpload || resume.skills?.some(s => s.list?.includes('React'))) {
-      resume = {
-        ...SYED_AYAZ_RESUME,
-        studentId: user.id
-      };
-      dbStore.saveResume(resume);
-    }
-  }
-
-  return NextResponse.json({ resume });
+  return NextResponse.json({ resume: resume || null });
 }
 
 export async function POST(req: Request) {
@@ -82,15 +69,30 @@ export async function POST(req: Request) {
 
       const existing = dbStore.getResume(user.id);
 
+      const defaultSector =
+        parsedData.sector ||
+        (user.department?.toLowerCase().includes('mech')
+          ? 'Mechanical Engineering'
+          : user.department?.toLowerCase().includes('civil')
+          ? 'Civil Engineering'
+          : 'Software Engineering & Computer Science');
+
+      const defaultRole =
+        parsedData.targetRole ||
+        (user.department?.toLowerCase().includes('mech')
+          ? 'Mechanical Engineer'
+          : user.department?.toLowerCase().includes('civil')
+          ? 'Civil Engineer'
+          : 'Software Development Engineer');
+
       const updatedResume = {
-        ...(existing || {}),
         id: existing?.id || `res_${user.id}`,
         studentId: user.id,
-        title: parsedData.title || `Uploaded Resume (${file.name})`,
-        template: existing?.template || 'ATS Resume',
-        sector: parsedData.sector || (existing?.sector && !existing.sector.includes('IT / Full Stack') ? existing.sector : 'Domain Specialist'),
-        targetRole: parsedData.targetRole || (existing?.targetRole && !existing.targetRole.includes('Full Stack') ? existing.targetRole : 'Professional Specialist'),
-        summary: parsedData.summary || existing?.summary || '',
+        title: parsedData.title || `Resume - ${user.name || file.name}`,
+        template: 'ATS Resume' as const,
+        sector: defaultSector,
+        targetRole: defaultRole,
+        summary: parsedData.summary || '',
         skills: (parsedData.skills && parsedData.skills.length > 0) ? parsedData.skills : (existing?.skills || []),
         experience: (parsedData.experience && parsedData.experience.length > 0) ? parsedData.experience : (existing?.experience || []),
         projects: (parsedData.projects && parsedData.projects.length > 0) ? parsedData.projects : (existing?.projects || []),

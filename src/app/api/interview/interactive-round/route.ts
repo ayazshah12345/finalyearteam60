@@ -17,14 +17,21 @@ export async function POST(req: Request) {
       resumeData = dbStore.getResume(user.id) || null;
     }
 
+    const userDept = user.department || 'Computer Science & Engineering';
+    const defaultRole = userDept.toLowerCase().includes('mech')
+      ? 'Mechanical Engineer'
+      : userDept.toLowerCase().includes('civil')
+      ? 'Civil Engineer'
+      : 'Software Development Engineer';
+
     const roundRequest: InteractiveRoundRequest = {
       resume: resumeData,
-      targetRole: body.targetRole || resumeData?.targetRole || 'Market Analyst / Quantitative Trader',
+      targetRole: body.targetRole || resumeData?.targetRole || defaultRole,
       difficulty: body.difficulty || 'Easy',
       roundIndex: typeof body.roundIndex === 'number' ? body.roundIndex : 0,
       totalRounds: typeof body.totalRounds === 'number' ? body.totalRounds : 5,
       timeRemainingSeconds: body.timeRemainingSeconds,
-      candidateName: user.name || body.candidateName || 'Syed Ayaz Shah',
+      candidateName: user.name || body.candidateName || 'Candidate',
       candidateAnswer: body.candidateAnswer,
       previousQuestion: body.previousQuestion,
       previousRoundTitle: body.previousRoundTitle,

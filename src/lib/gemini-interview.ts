@@ -196,20 +196,20 @@ export async function parseUploadedResumeWithGemini(
 Carefully read and analyze the candidate's resume ${extractedText ? 'content extracted from' : 'document'} "${fileName}".
 
 CRITICAL INSTRUCTIONS:
-1. DO NOT DEFAULT TO IT OR SOFTWARE ENGINEERING!
-2. Detect the candidate's true sector and domain. For example:
-   - Financial Markets / Quantitative Trading / Forex / Commodities (e.g. XAUUSD Gold, Liquidity, Order Blocks, 1:2 RRR)
-   - Artificial Intelligence & Data Science
-   - Mechanical Engineering / Core Manufacturing
-   - Healthcare / Pharmaceuticals
-   - Operations / Business / Sales / HR
-3. Extract the exact candidate name, contact, real skills, actual work experience, research/projects, and education from what is written.
+1. Objectively identify the candidate's true domain, sector, and highlighted skill set based strictly on what is written in the document.
+2. Examples of sectors include:
+   - Software Engineering & Computer Science (e.g. Java, C++, Python, Data Structures & Algorithms, OOPs, Web Development, Cloud, DBMS)
+   - Artificial Intelligence & Data Science (e.g. Machine Learning, Deep Learning, NLP, Python)
+   - Financial Markets & Quantitative Trading (e.g. XAUUSD Gold, Liquidity, Order Blocks, Risk Management)
+   - Core Engineering (e.g. Mechanical Engineering, CAD, Embedded Systems, Electrical & Electronics)
+   - Operations, Business, Healthcare, etc.
+3. Extract the exact candidate name, contact, real skills (categorized accurately), actual work experience, research/projects, and education from the document.
 
 Output STRICT JSON ONLY matching this structure:
 {
   "name": "Candidate Full Name",
-  "sector": "Identified Sector (e.g. Financial Markets & Quantitative Trading)",
-  "targetRole": "Identified Target Role (e.g. Market Analyst / Quantitative Trader)",
+  "sector": "Identified Sector (e.g. Software Engineering & Computer Science)",
+  "targetRole": "Identified Target Role (e.g. Software Development Engineer)",
   "title": "Candidate Headline / Title",
   "summary": "Exact extracted candidate summary",
   "skills": [
@@ -255,10 +255,27 @@ Output STRICT JSON ONLY matching this structure:
     }
 
     const parsed = JSON.parse(raw);
+
+    const docTextLower = (extractedText + ' ' + (parsed.title || '') + ' ' + (parsed.summary || '') + ' ' + JSON.stringify(parsed.skills || [])).toLowerCase();
+    const hasCoding = /java|c\+\+|cpp|python|javascript|typescript|react|developer|software|node|sql|dsa|oops/.test(docTextLower);
+    const isTrading = (/gold|xauusd|forex|order block|trading|market analyst/.test(docTextLower)) && !hasCoding;
+
+    const fallbackSector = isTrading
+      ? 'Financial Markets & Quantitative Trading'
+      : hasCoding
+      ? 'Software Engineering & Computer Science'
+      : 'Engineering & Technology';
+
+    const fallbackRole = isTrading
+      ? 'Market Analyst / Quantitative Trader'
+      : hasCoding
+      ? 'Software Development Engineer'
+      : 'Technical Specialist';
+
     return {
-      sector: parsed.sector || 'Financial Markets & Quantitative Trading',
-      targetRole: parsed.targetRole || 'Market Analyst / Quantitative Trader',
-      title: parsed.title || `${parsed.targetRole || 'Candidate'} Resume`,
+      sector: parsed.sector || fallbackSector,
+      targetRole: parsed.targetRole || fallbackRole,
+      title: parsed.title || `${parsed.targetRole || fallbackRole} Resume`,
       summary: parsed.summary || '',
       skills: Array.isArray(parsed.skills) ? parsed.skills : [],
       experience: Array.isArray(parsed.experience) ? parsed.experience : [],
@@ -277,7 +294,7 @@ Output STRICT JSON ONLY matching this structure:
  */
 export function formatResumeContext(resume: Partial<ResumeData> | null | undefined): string {
   if (!resume) {
-    return 'Candidate has an analytical background in Artificial Intelligence & Data Science with hands-on focus in Financial Markets, XAUUSD (Gold) Price Action, and Quantitative Trading Models.';
+    return 'Candidate profile: University student in Engineering & Technology with focus on technical skills, foundational problem solving, and project work.';
   }
 
   const sections: string[] = [];
@@ -362,118 +379,131 @@ export async function analyzeResumeWithGemini(
   targetRole?: string
 ): Promise<ResumeAnalysisResult> {
   const resumeText = formatResumeContext(resume);
+  const resumeLower = resumeText.toLowerCase();
+  const hasJavaOrCpp = /java|c\+\+|cpp|oops|stl|jvm|pointers/.test(resumeLower);
+  const isFinance = (/gold|xauusd|order block|trading|market analyst/.test(resumeLower)) && !hasJavaOrCpp;
 
-  const systemInstruction = `You are an elite, senior corporate hiring manager and technical domain interviewer representing top global institutions in the candidate's specific sector.
+  const systemInstruction = `You are an elite, senior corporate hiring manager and technical domain interviewer representing top global organizations in the candidate's specific sector.
 
 CRITICAL MANDATORY INSTRUCTIONS:
-1. DO NOT DEFAULT TO IT OR SOFTWARE ENGINEERING!
-2. Detect the candidate's true sector and domain from their resume.
-   - If the candidate's resume is in Market Analysis, Trading, Forex, Commodities (e.g. XAUUSD Gold), Order Blocks, Liquidity, or Financial Markets, the interviewer MUST act as a Senior Portfolio Manager / Head of Trading & Risk at an institutional proprietary trading firm. All questions MUST be deeply grounded in market analysis, institutional concepts (order blocks, liquidity pools, false breakouts), risk management (1:2 RRR, drawdowns), macro events (CPI, NFP, FOMC), and session dynamics (London, New York, Asian)!
-   - If the resume is in Artificial Intelligence / Data Science, tailor to machine learning, model validation, and analytical strategy.
-   - If the resume is in another sector, tailor 100% to that exact sector.
-3. Generate realistic, highly personalized interview questions divided into 3 distinct difficulty categories: Easy, Hard, and Tough:
-   - Easy: Foundational domain knowledge, candidate background, and high-level strategy/project overview from their resume.
-   - Hard: In-depth technical/analytical execution, risk calculations, edge-case market traps, statistical expectancy, and strategy optimization.
-   - Tough: High-stakes crisis management, black-swan market volatility, drawdown recovery, capital preservation, and institutional trade-offs under extreme pressure.
+1. CAREFULLY ANALYZE THE ENTIRE RESUME AND ALL LISTED SKILLS AND TECHNOLOGIES:
+   - Identify the exact skills the candidate has highlighted (e.g. Java, C++, Python, JavaScript, React, SQL, Data Structures & Algorithms, OOPs, Multithreading, Trading, Core Engineering, etc.).
+   - Tailor all 3 difficulty tiers (Easy, Hard, Tough) strictly to those detected skills and projects!
+2. SKILL SPECIALIZATION GUIDELINES:
+   - IF RESUME HIGHLIGHTS JAVA & C++:
+     * You MUST test both Java and C++ deeply alongside core Object-Oriented Programming and Computer Science concepts.
+     * Easy: Foundational OOPs principles (Polymorphism, Inheritance, Encapsulation, Abstraction), JVM bytecode vs native compiled execution, pointers vs references, and core data structures.
+     * Hard: Language mechanisms & internals:
+       - Java: JVM memory architecture (Heap, Stack, Metaspace), Garbage Collection algorithms (G1/ZGC), Collections internals (HashMap collision chaining vs red-black tree, ConcurrentHashMap), Multithreading (synchronized vs volatile, locks, ThreadPoolExecutor).
+       - C++: Manual memory management, pointer arithmetic, RAII, smart pointers (std::unique_ptr, std::shared_ptr, std::weak_ptr), copy vs move semantics (rvalue references, std::move), rule of 5, virtual functions, and vtable.
+     * Tough: High-performance systems: low-latency concurrent processing, debugging memory leaks and segmentation faults with Valgrind/GDB, lock-free queues, cache line alignment, and scalable distributed architectures.
+   - IF RESUME HIGHLIGHTS FINANCIAL MARKETS & TRADING:
+     * Test institutional price action, liquidity pools, order blocks, risk-to-reward ratio (1:2 RRR), and macroeconomic events (CPI, NFP, FOMC).
+   - IF RESUME HIGHLIGHTS OTHER DOMAINS (AI/ML, Mechanical, Civil, Electrical):
+     * Test their respective domain principles, tools, and technical problem-solving.
+3. Divide into 3 distinct difficulty categories:
+   - Easy: Candidate background, foundational concepts, and core project walkthrough.
+   - Hard: In-depth technical execution, language internals, edge cases, and optimization.
+   - Tough: High-stakes crisis management, high-throughput system bottlenecks, and complex trade-offs under pressure.
 
 Output STRICT JSON ONLY matching the requested schema.`;
 
-  const prompt = `Analyze this candidate's resume completely and determine their exact sector, target placement role, and generate tailored questions:
+  const prompt = `Analyze this candidate's resume completely and determine their exact sector, target placement role, and generate tailored questions based strictly on their highlighted skills:
 
 === CANDIDATE RESUME ===
 ${resumeText}
 ========================
 
 Requirements:
-- Detect the candidate's true sector and target role from their resume (e.g. "Financial Markets & Trading", "Market Analyst / Quantitative Trader").
-- Generate 3 Easy, 3 Hard, and 3 Tough questions tailored strictly to their domain and resume details.
+- Detect the candidate's true sector and target role from their resume (e.g. "Software Engineering & Computer Science", "Financial Markets & Trading", "Mechanical Engineering").
+- Generate 3 Easy, 3 Hard, and 3 Tough questions tailored strictly to their highlighted skills and resume details.
 
 Respond in this EXACT JSON structure:
 {
-  "detectedSector": "e.g. Financial Markets & Trading",
-  "detectedTargetRole": "e.g. Market Analyst / Quantitative Trader",
+  "detectedSector": "e.g. Software Engineering & Computer Science",
+  "detectedTargetRole": "e.g. Software Development Engineer (Java / C++)",
   "candidateSummary": "2-3 sentence executive assessment of the candidate's background, sector, and core methodologies",
-  "detectedTechStack": ["Liquidity Identification", "Order Block Validation", "False Breakout Recognition", "1:2 RRR", "XAUUSD Gold", "Macro Events (CPI/NFP/FOMC)"],
-  "keyProjects": ["Liquidity-Based Trading Model", "Market Analysis & Trap Detection"],
-  "strengths": ["Deep institutional price action understanding", "Strict risk management and drawdown discipline"],
-  "recommendedFocus": "Advanced macro integration and algorithmic backtesting validation",
+  "detectedTechStack": ["Java", "C++", "Data Structures & Algorithms", "OOPs", "Multithreading", "SQL"],
+  "keyProjects": ["Primary Project 1", "Primary Project 2"],
+  "strengths": ["Strong foundations in highlighted skills", "Disciplined analytical problem solving"],
+  "recommendedFocus": "Advanced concurrency, memory profiling, and architecture optimization",
   "questions": {
     "easy": [
       {
         "id": "easy_1",
-        "roundTitle": "Round 1: [Easy] Candidate Background & Core Strategy Overview",
-        "question": "Question inviting them to explain their background in their sector and summarize their primary strategy or project from their resume",
+        "roundTitle": "Round 1: [Easy] Candidate Background & Core Skills Overview",
+        "question": "Question inviting candidate to introduce themselves and walk through their highlighted skills and projects from their resume",
         "difficulty": "Easy",
-        "topic": "Background & Strategy",
-        "expectedKeywords": ["methodology", "structure", "strategy"]
+        "topic": "Background & Core Skills",
+        "expectedKeywords": ["background", "projects", "skills"]
       },
       {
         "id": "easy_2",
-        "roundTitle": "Round 2: [Easy] Core Concepts & Market Dynamics",
-        "question": "Question testing fundamental concepts of their domain (e.g. order blocks vs support/resistance, session liquidity footprints)",
+        "roundTitle": "Round 2: [Easy] Foundational Concepts in Highlighted Tech",
+        "question": "Question testing fundamental principles of their main skills (e.g. OOPs concepts, Java vs C++ execution, or domain fundamentals)",
         "difficulty": "Easy",
-        "topic": "Domain Fundamentals",
-        "expectedKeywords": ["liquidity", "order block", "market structure"]
+        "topic": "Foundations",
+        "expectedKeywords": ["concept", "principle", "implementation"]
       },
       {
         "id": "easy_3",
-        "roundTitle": "Round 3: [Easy] Session Behavior & Setup Criteria",
-        "question": "Question asking about session-based volatility (Asian, London, NY) or entry confirmation rules",
+        "roundTitle": "Round 3: [Easy] Data Structures & Practical Implementation",
+        "question": "Question asking about practical application of data structures, libraries, or tools in their work",
         "difficulty": "Easy",
-        "topic": "Execution Criteria",
-        "expectedKeywords": ["session", "volatility", "confirmation"]
+        "topic": "Practical Application",
+        "expectedKeywords": ["data structures", "workflow", "efficiency"]
       }
     ],
     "hard": [
       {
         "id": "hard_1",
-        "roundTitle": "Round 4: [Hard] False Breakouts & Institutional Trap Recognition",
-        "question": "Challenging technical question on how to structurally differentiate a false breakout/liquidity sweep from genuine continuation",
+        "roundTitle": "Round 4: [Hard] Deep Dive into Language Internals & Memory",
+        "question": "Challenging question on internal mechanisms (e.g. C++ RAII / smart pointers, Java GC / memory model, or domain-specific deep technical logic)",
         "difficulty": "Hard",
-        "topic": "Trap Recognition",
-        "expectedKeywords": ["liquidity sweep", "false breakout", "confirmation"]
+        "topic": "Internals & Memory",
+        "expectedKeywords": ["memory", "allocation", "pointers"]
       },
       {
         "id": "hard_2",
-        "roundTitle": "Round 5: [Hard] Macroeconomic Catalysts & News Volatility",
-        "question": "Deep dive into how high-impact macro releases (CPI, NFP, FOMC) impact their asset volatility and risk rules",
+        "roundTitle": "Round 5: [Hard] Concurrency, Multithreading & Edge Cases",
+        "question": "Question testing concurrency primitives, thread safety, race conditions, or complex edge cases",
         "difficulty": "Hard",
-        "topic": "Macroeconomic Impact",
-        "expectedKeywords": ["CPI", "NFP", "FOMC", "slippage"]
+        "topic": "Concurrency & Edge Cases",
+        "expectedKeywords": ["concurrency", "thread safety", "synchronization"]
       },
       {
         "id": "hard_3",
-        "roundTitle": "Round 6: [Hard] Risk Management & Expectancy (1:2 RRR)",
-        "question": "Question on mathematical position sizing, maintaining 1:2 RRR, and controlled drawdown management",
+        "roundTitle": "Round 6: [Hard] Performance Optimization & System Profiling",
+        "question": "Question on profiling, latency reduction, complexity trade-offs, and rigorous error handling",
         "difficulty": "Hard",
-        "topic": "Risk & Drawdown Control",
-        "expectedKeywords": ["1:2 RRR", "drawdown", "expectancy"]
+        "topic": "Performance & Optimization",
+        "expectedKeywords": ["profiling", "optimization", "trade-offs"]
       }
     ],
     "tough": [
       {
         "id": "tough_1",
-        "roundTitle": "Round 7: [Tough] Black Swan Flash Crash & Liquidity Evaporation",
-        "question": "High-stakes crisis scenario: Extreme volatility or flash crash causes liquidity to evaporate and order blocks to fail. How do you triage capital preservation and emergency hedging under pressure?",
+        "roundTitle": "Round 7: [Tough] High-Throughput / Low-Latency Crisis Scenario",
+        "question": "High-stakes scenario: Debugging segmentation faults, memory leaks, or production outages under extreme demand",
         "difficulty": "Tough",
-        "topic": "Crisis & Capital Preservation",
-        "expectedKeywords": ["capital preservation", "drawdown", "liquidity void"]
+        "topic": "Crisis & Root Cause Debugging",
+        "expectedKeywords": ["debugging", "memory leak", "root cause"]
       },
       {
         "id": "tough_2",
-        "roundTitle": "Round 8: [Tough] Algorithmic Quantitative Modeling & ML Integration",
-        "question": "Given their AI & Data Science background, how would they architect a quantitative/algorithmic pipeline to systematically detect and validate setups without overfitting?",
+        "roundTitle": "Round 8: [Tough] Advanced Architectural Synthesis & Lock-Free Design",
+        "question": "Complex architectural design: designing lock-free data structures, scaling distributed systems, or integrating complex models",
         "difficulty": "Tough",
-        "topic": "Quantitative & ML Synthesis",
-        "expectedKeywords": ["quantitative", "backtesting", "overfitting"]
+        "topic": "Advanced Architecture",
+        "expectedKeywords": ["architecture", "lock-free", "scalability"]
       },
       {
         "id": "tough_3",
-        "roundTitle": "Round 9: [Tough] High-Pressure Psychological Drawdown & Consecutive Losses",
-        "question": "A severe 6-trade losing streak tests their max drawdown threshold during a chaotic market week. How do they enforce emotion control, audit strategy edge, and manage psychological pressure?",
+        "roundTitle": "Round 9: [Tough] High-Pressure Trade-offs & Production Resiliency",
+        "question": "High-pressure trade-offs when resources, memory, or time constraints are severely constrained in mission-critical environments",
         "difficulty": "Tough",
-        "topic": "Psychology & Risk Stress",
-        "expectedKeywords": ["emotion control", "journaling", "risk audit"]
+        "topic": "Production Resiliency",
+        "expectedKeywords": ["resiliency", "trade-offs", "fault tolerance"]
       }
     ]
   }
@@ -485,18 +515,114 @@ Respond in this EXACT JSON structure:
     return parsed;
   } catch (err) {
     console.error('[Gemini Interview] Error analyzing resume, falling back to intelligent template:', err);
-    // Intelligent domain fallback based on resume content
-    const isFinance = resumeText.toLowerCase().includes('gold') ||
-      resumeText.toLowerCase().includes('xauusd') ||
-      resumeText.toLowerCase().includes('trading') ||
-      resumeText.toLowerCase().includes('order block') ||
-      resumeText.toLowerCase().includes('market analyst');
 
+    // 1. Fallback for Java & C++ resumes
+    if (hasJavaOrCpp) {
+      return {
+        detectedSector: 'Software Engineering & Computer Science',
+        detectedTargetRole: targetRole || 'Software Development Engineer (Java / C++)',
+        candidateSummary: 'Candidate with strong foundations in Java, C++, Object-Oriented Programming, and Software Engineering.',
+        detectedTechStack: [
+          'Java',
+          'C++',
+          'Data Structures & Algorithms',
+          'OOPs (Polymorphism, Inheritance)',
+          'Memory Management & Pointers',
+          'STL & Collections Framework',
+          'Multithreading & Concurrency'
+        ],
+        keyProjects: ['High-Performance Software Engineering Projects', 'Data Structures & Algorithms Implementation'],
+        strengths: ['Dual proficiency in Java and C++', 'Solid grasp of low-level memory, OOPs principles, and algorithmic problem solving'],
+        recommendedFocus: 'Lock-free concurrency, JVM garbage collection tuning, and modern C++ smart pointer idioms',
+        questions: {
+          easy: [
+            {
+              id: 'easy_1',
+              roundTitle: 'Round 1: [Easy] Candidate Background & Core Programming Stack',
+              question: 'Welcome! To start off, please introduce yourself, tell me about your technical background, and walk me through your hands-on experience working with Java and C++ in your projects.',
+              difficulty: 'Easy',
+              topic: 'Background & Core Languages',
+              expectedKeywords: ['Java', 'C++', 'projects', 'OOPs']
+            },
+            {
+              id: 'easy_2',
+              roundTitle: 'Round 2: [Easy] Java vs C++ Memory Management & Execution',
+              question: 'What is the fundamental architectural difference between how Java and C++ execute code and manage memory (JVM bytecode and automatic Garbage Collection versus direct native compilation with pointers)?',
+              difficulty: 'Easy',
+              topic: 'Language Architecture',
+              expectedKeywords: ['JVM', 'bytecode', 'Garbage Collection', 'pointers', 'compilation']
+            },
+            {
+              id: 'easy_3',
+              roundTitle: 'Round 3: [Easy] Object-Oriented Programming Principles (OOPs)',
+              question: 'Can you explain the four core pillars of Object-Oriented Programming (Encapsulation, Abstraction, Inheritance, Polymorphism) and provide a concrete coding example of runtime polymorphism in either C++ or Java?',
+              difficulty: 'Easy',
+              topic: 'OOPs Principles',
+              expectedKeywords: ['polymorphism', 'inheritance', 'encapsulation', 'abstraction', 'virtual function']
+            }
+          ],
+          hard: [
+            {
+              id: 'hard_1',
+              roundTitle: 'Round 4: [Hard] C++ Smart Pointers & RAII Paradigm',
+              question: 'In modern C++, explain the RAII (Resource Acquisition Is Initialization) idiom and contrast std::unique_ptr, std::shared_ptr, and std::weak_ptr. How does std::weak_ptr prevent cyclic reference memory leaks?',
+              difficulty: 'Hard',
+              topic: 'C++ Memory & Smart Pointers',
+              expectedKeywords: ['RAII', 'unique_ptr', 'shared_ptr', 'weak_ptr', 'cyclic reference']
+            },
+            {
+              id: 'hard_2',
+              roundTitle: 'Round 5: [Hard] Java Collections Internals & HashMap Hash Collisions',
+              question: 'How does Java 8+ HashMap resolve hash collisions internally? Walk me through how entries are stored in buckets, when a linked list transitions into a Red-Black Tree, and the time complexity impact.',
+              difficulty: 'Hard',
+              topic: 'Java HashMap Internals',
+              expectedKeywords: ['HashMap', 'hash collision', 'Red-Black tree', 'treeify threshold', 'O(1) to O(log n)']
+            },
+            {
+              id: 'hard_3',
+              roundTitle: 'Round 6: [Hard] Multithreading: Java Memory Model vs C++ std::thread',
+              question: 'How do you ensure thread safety in concurrent environments? Contrast the volatile keyword with synchronized blocks and explicit ReentrantLock in Java, and explain how mutexes and atomic variables are used in C++.',
+              difficulty: 'Hard',
+              topic: 'Concurrency & Thread Safety',
+              expectedKeywords: ['volatile', 'synchronized', 'ReentrantLock', 'mutex', 'atomic', 'race condition']
+            }
+          ],
+          tough: [
+            {
+              id: 'tough_1',
+              roundTitle: 'Round 7: [Tough] Debugging Segmentation Faults & Memory Leaks in C++',
+              question: 'Suppose your C++ high-throughput service crashes intermittently with a segmentation fault under peak traffic. What systematic debugging methodology and tooling (GDB, Valgrind, AddressSanitizer, core dumps) do you use to isolate dangling pointers or memory corruption?',
+              difficulty: 'Tough',
+              topic: 'Low-Level Debugging & Memory Safety',
+              expectedKeywords: ['Valgrind', 'AddressSanitizer', 'GDB', 'dangling pointer', 'segmentation fault']
+            },
+            {
+              id: 'tough_2',
+              roundTitle: 'Round 8: [Tough] Designing a Low-Latency Lock-Free Concurrent Queue',
+              question: 'How would you architect a lock-free Single Producer Single Consumer (SPSC) or Multi-Producer Multi-Consumer (MPMC) queue in C++ or Java? How do you prevent false sharing with cache line padding and leverage CAS (Compare-And-Swap) operations?',
+              difficulty: 'Tough',
+              topic: 'Lock-Free Data Structures & Systems',
+              expectedKeywords: ['lock-free', 'CAS', 'Compare-And-Swap', 'cache line padding', 'false sharing']
+            },
+            {
+              id: 'tough_3',
+              roundTitle: 'Round 9: [Tough] High-Throughput Microservice Architecture & GC Pauses',
+              question: 'You are deploying a mission-critical Java service processing 50,000 requests/second. The application is suffering from stop-the-world Garbage Collection latency spikes. How do you tune GC (G1/ZGC), optimize heap allocations, and consider off-heap memory to eliminate latency spikes?',
+              difficulty: 'Tough',
+              topic: 'GC Tuning & High-Throughput Engineering',
+              expectedKeywords: ['Garbage Collection tuning', 'G1GC', 'ZGC', 'off-heap memory', 'stop-the-world']
+            }
+          ]
+        }
+      };
+    }
+
+    // 2. Fallback for Financial Markets / Trading resumes
     if (isFinance) {
       return {
         detectedSector: 'Financial Markets & Quantitative Trading',
-        detectedTargetRole: 'Market Analyst / Quantitative Trader',
-        candidateSummary: 'Self-driven Market Analyst with 3+ years analyzing XAUUSD (Gold) across multiple market cycles, specialized in institutional trading concepts, liquidity, order blocks, and risk management.',
+        detectedTargetRole: targetRole || 'Market Analyst / Quantitative Trader',
+        candidateSummary: 'Self-driven Market Analyst with experience analyzing institutional trading concepts, liquidity, order blocks, and risk management.',
         detectedTechStack: [
           'Liquidity Identification',
           'Order Block Validation',
@@ -513,11 +639,11 @@ Respond in this EXACT JSON structure:
           easy: [
             {
               id: 'easy_1',
-              roundTitle: 'Round 1: [Easy] Candidate Background & Gold (XAUUSD) Strategy Walkthrough',
-              question: 'Welcome to your interview for Market Analyst. You have a background in AI & Data Science and extensive experience analyzing XAUUSD. Can you walk me through your core trading philosophy and how you developed your liquidity-based model?',
+              roundTitle: 'Round 1: [Easy] Candidate Background & Market Strategy Walkthrough',
+              question: 'Welcome to your interview for Market Analyst. Can you walk me through your core trading philosophy, background, and how you developed your liquidity-based strategy?',
               difficulty: 'Easy',
               topic: 'Background & Trading Philosophy',
-              expectedKeywords: ['XAUUSD', 'liquidity', 'market cycles', 'order blocks']
+              expectedKeywords: ['liquidity', 'market cycles', 'order blocks']
             },
             {
               id: 'easy_2',
@@ -530,7 +656,7 @@ Respond in this EXACT JSON structure:
             {
               id: 'easy_3',
               roundTitle: 'Round 3: [Easy] Session-Based Price Behavior (Asian, London, NY)',
-              question: 'Why do Asian, London, and New York sessions exhibit distinctly different volatility patterns for XAUUSD, and how do you identify the optimal execution window?',
+              question: 'Why do Asian, London, and New York sessions exhibit distinctly different volatility patterns, and how do you identify the optimal execution window?',
               difficulty: 'Easy',
               topic: 'Session Dynamics',
               expectedKeywords: ['Asian session', 'London open', 'New York volume', 'execution window']
@@ -540,7 +666,7 @@ Respond in this EXACT JSON structure:
             {
               id: 'hard_1',
               roundTitle: 'Round 4: [Hard] False Breakouts & Liquidity Grab Recognition',
-              question: 'How do you structurally and mathematically differentiate between a genuine trend continuation breakout versus an institutional liquidity grab (false breakout)? What specific confirmation signals do you look for?',
+              question: 'How do you structurally and mathematically differentiate between a genuine trend continuation breakout versus an institutional liquidity grab (false breakout)?',
               difficulty: 'Hard',
               topic: 'False Breakouts & Liquidity Sweeps',
               expectedKeywords: ['liquidity sweep', 'displacement', 'body close', 'volume']
@@ -548,7 +674,7 @@ Respond in this EXACT JSON structure:
             {
               id: 'hard_2',
               roundTitle: 'Round 5: [Hard] High-Impact Macro Events (CPI, NFP, FOMC)',
-              question: 'Gold is exceptionally sensitive to US macroeconomic releases like CPI, Non-Farm Payrolls (NFP), and FOMC interest rate decisions. How does your rule-based strategy adapt to extreme spread widening and slippage during these releases?',
+              question: 'High-impact macroeconomic releases like CPI, Non-Farm Payrolls (NFP), and FOMC interest rate decisions cause severe spread widening. How does your rule-based strategy adapt?',
               difficulty: 'Hard',
               topic: 'Macro News Impact',
               expectedKeywords: ['CPI', 'NFP', 'FOMC', 'spread widening', 'volatility spike']
@@ -556,7 +682,7 @@ Respond in this EXACT JSON structure:
             {
               id: 'hard_3',
               roundTitle: 'Round 6: [Hard] Risk-to-Reward Ratio (1:2 RRR) & Controlled Drawdowns',
-              question: 'In your resume, you emphasize maintaining a 1:2 RRR and money management. How do you dynamically size positions relative to stop-loss distance, and what rules do you enforce when facing a period of adverse market drawdown?',
+              question: 'In your resume, you emphasize maintaining a 1:2 RRR and money management. How do you dynamically size positions relative to stop-loss distance, and what rules do you enforce when facing drawdown?',
               difficulty: 'Hard',
               topic: 'Risk Management & Drawdown',
               expectedKeywords: ['1:2 RRR', 'position sizing', 'max drawdown', 'risk per trade']
@@ -566,15 +692,15 @@ Respond in this EXACT JSON structure:
             {
               id: 'tough_1',
               roundTitle: 'Round 7: [Tough] Black Swan Flash Crash & Liquidity Evaporation',
-              question: 'Suppose an unexpected geopolitical crisis triggers an immediate 150-pip flash crash in Gold during the NY session. All standard liquidity voids are penetrated and normal order blocks fail. What is your real-time crisis protocol to preserve capital and manage risk?',
+              question: 'Suppose an unexpected geopolitical crisis triggers an immediate flash crash where liquidity voids are penetrated and normal order blocks fail. What is your real-time crisis protocol to preserve capital?',
               difficulty: 'Tough',
               topic: 'Crisis Capital Preservation',
               expectedKeywords: ['capital preservation', 'liquidity void', 'slippage', 'emergency hedge']
             },
             {
               id: 'tough_2',
-              roundTitle: 'Round 8: [Tough] Integrating AI & Data Science with Quantitative Order Flow',
-              question: 'Leveraging your AI & Data Science degree, how would you design an algorithmic quantitative model to automatically identify liquidity pools and order blocks without overfitting to historical market noise?',
+              roundTitle: 'Round 8: [Tough] Integrating Quantitative Modeling with Order Flow',
+              question: 'How would you design an algorithmic quantitative model to automatically identify liquidity pools and order blocks without overfitting to historical market noise?',
               difficulty: 'Tough',
               topic: 'Quantitative AI Modeling',
               expectedKeywords: ['algorithmic trading', 'backtesting', 'cross-validation', 'order flow']
@@ -582,7 +708,7 @@ Respond in this EXACT JSON structure:
             {
               id: 'tough_3',
               roundTitle: 'Round 9: [Tough] High-Pressure Psychological Drawdown & Emotional Discipline',
-              question: 'You encounter 6 consecutive losing trades in your model during an unpredictable market consolidation, nearing your maximum monthly drawdown limit. Walk me through your psychological discipline, journaling protocol, and risk audit under intense financial pressure.',
+              question: 'You encounter 6 consecutive losing trades during an unpredictable consolidation, nearing your maximum monthly drawdown limit. Walk me through your psychological discipline, journaling protocol, and risk audit.',
               difficulty: 'Tough',
               topic: 'Psychological Discipline & Risk Audit',
               expectedKeywords: ['emotion control', 'journaling', 'trade review', 'discipline']
@@ -592,29 +718,29 @@ Respond in this EXACT JSON structure:
       };
     }
 
-    // Default template for other sectors
+    // 3. General template for other engineering sectors
     return {
-      detectedSector: 'Artificial Intelligence & Engineering',
-      detectedTargetRole: targetRole || 'Technical Specialist',
-      candidateSummary: 'Candidate with analytical and technical domain expertise.',
-      detectedTechStack: ['Problem Solving', 'Data Analysis', 'Strategy Modeling'],
-      keyProjects: ['Primary Domain Project'],
-      strengths: ['Solid domain foundations', 'Disciplined analytical approach'],
-      recommendedFocus: 'Expanding deep sector implementation and stress trade-offs',
+      detectedSector: 'Engineering & Technology',
+      detectedTargetRole: targetRole || 'Software Development Engineer',
+      candidateSummary: 'Candidate with solid technical domain foundations and engineering problem-solving capabilities.',
+      detectedTechStack: ['Problem Solving', 'Data Structures & Algorithms', 'System Design', 'Core Engineering'],
+      keyProjects: ['Technical Domain Project Implementation'],
+      strengths: ['Analytical foundations', 'Methodical approach to problem solving'],
+      recommendedFocus: 'System scalability, deep component optimization, and testing under stress',
       questions: {
         easy: [
           {
             id: 'easy_1',
             roundTitle: 'Round 1: [Easy] Candidate Background & Project Walkthrough',
-            question: 'Welcome! Please introduce yourself, your academic background, and provide an executive summary of your primary projects and methodologies.',
+            question: 'Welcome! Please introduce yourself, your academic background, and provide a walkthrough of your primary technical projects and tools highlighted on your resume.',
             difficulty: 'Easy',
             topic: 'Background',
             expectedKeywords: ['background', 'projects', 'methodology']
           },
           {
             id: 'easy_2',
-            roundTitle: 'Round 2: [Easy] Core Domain Principles',
-            question: 'Can you explain the core analytical principles and tools you utilize in your primary domain?',
+            roundTitle: 'Round 2: [Easy] Core Engineering Principles',
+            question: 'Can you explain the core architectural principles, libraries, and design patterns you utilize in your primary projects?',
             difficulty: 'Easy',
             topic: 'Core Principles',
             expectedKeywords: ['principles', 'methodology', 'tools']
@@ -622,7 +748,7 @@ Respond in this EXACT JSON structure:
           {
             id: 'easy_3',
             roundTitle: 'Round 3: [Easy] Execution Flow & Quality Control',
-            question: 'How do you structure your workflow from initial analysis to final delivery or execution?',
+            question: 'How do you structure your development workflow from initial requirement gathering to testing and deployment?',
             difficulty: 'Easy',
             topic: 'Execution Flow',
             expectedKeywords: ['workflow', 'validation', 'quality']
@@ -639,45 +765,45 @@ Respond in this EXACT JSON structure:
           },
           {
             id: 'hard_2',
-            roundTitle: 'Round 5: [Hard] Optimization & Performance',
-            question: 'How do you evaluate and optimize performance and efficiency in your projects?',
+            roundTitle: 'Round 5: [Hard] Optimization & Performance Bottlenecks',
+            question: 'How do you profile, identify, and eliminate performance bottlenecks or memory inefficiencies in your applications?',
             difficulty: 'Hard',
             topic: 'Optimization',
             expectedKeywords: ['optimization', 'performance', 'metrics']
           },
           {
             id: 'hard_3',
-            roundTitle: 'Round 6: [Hard] Risk & Error Management',
-            question: 'How do you handle risk, anomalies, and unexpected failures in your operational pipeline?',
+            roundTitle: 'Round 6: [Hard] Error Handling & Fault Resilience',
+            question: 'How do you architect robust error handling and fault resilience when dependencies or external services fail unexpectedly?',
             difficulty: 'Hard',
-            topic: 'Risk Management',
-            expectedKeywords: ['risk', 'anomalies', 'error handling']
+            topic: 'Fault Resilience',
+            expectedKeywords: ['resilience', 'error handling', 'fallback']
           }
         ],
         tough: [
           {
             id: 'tough_1',
-            roundTitle: 'Round 7: [Tough] High-Pressure Crisis Scenario',
-            question: 'Imagine a critical failure occurs under peak operational demand. Walk me through your step-by-step incident triage and recovery.',
+            roundTitle: 'Round 7: [Tough] High-Pressure Crisis Incident Triage',
+            question: 'Imagine a critical production failure occurs under peak operational traffic. Walk me through your step-by-step incident triage, rollback, and root-cause analysis.',
             difficulty: 'Tough',
             topic: 'Crisis Triage',
             expectedKeywords: ['incident response', 'root cause', 'recovery']
           },
           {
             id: 'tough_2',
-            roundTitle: 'Round 8: [Tough] Scalability & Trade-offs',
-            question: 'What are the most difficult trade-offs you have faced between immediate results versus long-term sustainability?',
+            roundTitle: 'Round 8: [Tough] Scalability & Architectural Trade-offs',
+            question: 'What are the most difficult trade-offs you have faced between immediate implementation speed versus long-term scalability and code maintainability?',
             difficulty: 'Tough',
             topic: 'Architectural Trade-offs',
-            expectedKeywords: ['trade-offs', 'scalability', 'sustainability']
+            expectedKeywords: ['trade-offs', 'scalability', 'maintainability']
           },
           {
             id: 'tough_3',
-            roundTitle: 'Round 9: [Tough] Strategic Decision-Making under Uncertainty',
-            question: 'How do you make high-stakes strategic decisions when market or data parameters are incomplete or ambiguous?',
+            roundTitle: 'Round 9: [Tough] High-Volume System Resiliency under Uncertainty',
+            question: 'How do you design a mission-critical distributed service that maintains high availability and zero data corruption when partial network partitions occur?',
             difficulty: 'Tough',
-            topic: 'Decision-Making under Uncertainty',
-            expectedKeywords: ['decision making', 'uncertainty', 'risk mitigation']
+            topic: 'Distributed Resiliency',
+            expectedKeywords: ['high availability', 'partition tolerance', 'consistency']
           }
         ]
       }
@@ -733,15 +859,15 @@ export async function processInteractiveRound(
 
   const hasPreviousAnswer = candidateAnswer && candidateAnswer.trim().length > 0 && candidateAnswer.trim() !== 'No response provided.';
 
-  const isFinance = resumeText.toLowerCase().includes('gold') ||
-    resumeText.toLowerCase().includes('xauusd') ||
-    resumeText.toLowerCase().includes('trading') ||
-    resumeText.toLowerCase().includes('order block') ||
-    resumeText.toLowerCase().includes('market analyst');
+  const resumeLower = resumeText.toLowerCase();
+  const hasJavaOrCpp = /java|c\+\+|cpp|oops|stl|jvm|pointers/.test(resumeLower);
+  const isFinance = (/gold|xauusd|order block|trading|market analyst/.test(resumeLower)) && !hasJavaOrCpp;
 
-  const interviewerRole = isFinance
+  const interviewerRole = hasJavaOrCpp
+    ? 'Senior Principal Software Engineer & Technical Interview Lead (Specializing in Java, C++, and Core Computer Science)'
+    : isFinance
     ? 'Senior Head of Trading Strategy & Portfolio Risk at a Global Institutional Proprietary Trading Desk'
-    : `Senior Corporate Technical Hiring Lead in ${targetRole || 'Engineering'}`;
+    : `Senior Corporate Technical Hiring Lead in ${targetRole || 'Software Engineering'}`;
 
   const displayName = candidateName || 'there';
 
@@ -751,26 +877,24 @@ You speak clearly, warmly, professionally, and inquisitively.
 You listen to the candidate's exact reply and ask follow-up questions directly grounded in what they just said and what is on their resume.
 
 CRITICAL INSTRUCTIONS:
-1. DO NOT DEFAULT TO IT OR SOFTWARE CODING!
-   - Tailor your questions and evaluations strictly to the candidate's actual sector (e.g. Financial Markets, Forex/Gold Trading, Order Blocks, Liquidity, AI & Data Science).
-   ${
-     isFinance
-       ? '- All questions and evaluations must be centered on market analysis, institutional concepts (order blocks, liquidity pools, false breakouts), risk management (1:2 RRR, drawdowns), macro events (CPI, NFP, FOMC), and session dynamics (London, New York, Asian)!'
-       : ''
-   }
+1. DYNAMIC SKILL & DOMAIN ADAPTATION:
+   - Carefully examine the candidate's resume context and highlighted skills.
+   - If the candidate's resume highlights Java, C++, Python, or Software Engineering: You MUST interview them directly on their highlighted coding skills, Object-Oriented Programming, memory management, pointers, JVM, STL, multithreading, and algorithmic problem-solving!
+   - If the candidate highlights Financial Markets or Trading: Focus on market analysis, liquidity, order blocks, and risk management.
+   - If the candidate highlights another domain (e.g. Mechanical, Electrical): Focus on their respective domain principles.
 2. NATURAL INTERVIEW FLOW (15-Minute Session):
-   - Turn 1 (Opening): Warm professional greeting. Ask them to introduce themselves, walk through their background, and summarize their core models and strategies from their resume.
+   - Turn 1 (Opening): Warm professional greeting. Address the candidate by name (${displayName}), welcome them for the role of ${targetRole || 'Software Development Engineer'}, and ask them to introduce themselves, tell about their background, and walk through the programming languages, skills, and projects highlighted on their resume.
    - Subsequent Turns:
      * Acknowledge what the candidate actually replied with a realistic 1-2 sentence spoken reaction.
      * Evaluate their Technical/Domain Mark (0-100) and Communication Fluency Mark (0-100).
-     * Ask a follow-up question that builds directly on what they stated, probing deeper into their logic, risk controls, edge cases, or crisis scenarios.
+     * Ask a follow-up question that builds directly on what they stated, probing deeper into their logic, code implementation, memory management, edge cases, or crisis scenarios.
 3. Keep the interview questions conversational, engaging, and suitable for Text-to-Speech synthesis.
 
 Output STRICT JSON ONLY.`;
 
   const prompt = `LIVE 15-MINUTE INTERVIEW CONTEXT:
 Candidate: ${displayName}
-Target Role: ${targetRole || 'Market Analyst / Quantitative Trader'}
+Target Role: ${targetRole || (hasJavaOrCpp ? 'Software Development Engineer' : 'Technical Specialist')}
 Question Number: ${roundIndex + 1}
 Difficulty Tier: ${difficulty}
 ${timeRemainingSeconds ? `Time Remaining in 15-Min Interview: ${Math.floor(timeRemainingSeconds / 60)}m ${timeRemainingSeconds % 60}s` : ''}
@@ -782,7 +906,7 @@ ${resumeText}
 ${
   roundIndex === 0 || !hasPreviousAnswer
     ? `This is the opening question of the 15-minute interview.
-Start with a warm professional greeting: "Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole}. To start off, please introduce yourself, tell me about your background, and walk me through the key projects and models highlighted in your resume."`
+Start with a warm professional greeting: "Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole || (hasJavaOrCpp ? 'Software Development Engineer' : 'Technical Specialist')}. To start off, please introduce yourself, tell me about your background, and walk me through the key programming languages, skills, and projects highlighted in your resume."`
     : `=== PREVIOUS QUESTION ASKED ===
 "${previousQuestion}"
 
@@ -839,32 +963,38 @@ Generate the response in this EXACT JSON structure:
       if (words > 40) {
         techMark = 88;
         commMark = 90;
-        reaction = 'Excellent detail and structured explanation on your methodology.';
+        reaction = 'Excellent detail and structured explanation on your technical methodology.';
       } else if (words > 15) {
         techMark = 78;
         commMark = 76;
-        reaction = 'Good points. Let us dive deeper into the technical execution and risk rules.';
+        reaction = 'Good points. Let us dive deeper into the low-level execution and architectural logic.';
       } else {
         techMark = 65;
         commMark = 68;
-        reaction = 'Understood. Please try to elaborate more with specific numbers, models, and risk rules.';
+        reaction = 'Understood. Please try to elaborate more with specific code, data structures, and edge-case handling.';
       }
     } else {
-      reaction = `Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole}.`;
+      reaction = `Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole || 'Software Development Engineer'}.`;
     }
 
-    const openingQuestion = `Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole}. To start off, please introduce yourself, tell me about your background, and walk me through the key projects and models highlighted in your resume.`;
+    const openingQuestion = `Hi ${displayName}! Welcome to your technical interview for the position of ${targetRole || 'Software Development Engineer'}. To start off, please introduce yourself, tell me about your background, and walk me through the key programming languages, skills, and projects highlighted in your resume.`;
 
-    const fallbackQuestions: Record<string, string> = isFinance
+    const fallbackQuestions: Record<string, string> = hasJavaOrCpp
+      ? {
+          Easy: `Can you explain the core differences between C++ and Java in terms of memory management and execution (JVM bytecode vs native machine code compiled with pointers)?`,
+          Hard: `In C++, explain RAII (Resource Acquisition Is Initialization) and the difference between std::unique_ptr and std::shared_ptr. How do you prevent circular memory leaks?`,
+          Tough: `Suppose you have a low-latency multithreaded processing system written in C++ and Java. How would you design lock-free queues, avoid GC pauses, and ensure thread safety?`
+        }
+      : isFinance
       ? {
           Easy: `Can you explain your experience analyzing XAUUSD (Gold), and how you identify institutional liquidity and order blocks across market sessions?`,
           Hard: `How do you handle macroeconomic volatility during CPI, NFP, or FOMC news releases, and how do you ensure you maintain a minimum 1:2 Risk-to-Reward Ratio?`,
           Tough: `Suppose an unexpected market crisis causes a 150-pip flash crash in Gold with massive spread widening and slippage. Walk me through your real-time risk triage and capital preservation protocols.`
         }
       : {
-          Easy: `Based on your resume, can you explain the core strategy and methodology of your primary project?`,
-          Hard: `How do you diagnose and resolve unexpected anomalies or performance bottlenecks in your domain?`,
-          Tough: `Walk me through your emergency triage when a critical failure occurs under peak operational stress.`
+          Easy: `Based on your resume, can you explain the core architecture, data structures, and methodology of your primary project?`,
+          Hard: `How do you diagnose and resolve unexpected memory leaks, concurrency race conditions, or performance bottlenecks in your system?`,
+          Tough: `Walk me through your emergency triage when a critical service fails under peak operational load and how you ensure zero data loss.`
         };
 
     const nextQ = (roundIndex === 0 && !hasPreviousAnswer) ? openingQuestion : (fallbackQuestions[difficulty] || fallbackQuestions.Easy);
@@ -872,7 +1002,7 @@ Generate the response in this EXACT JSON structure:
     return {
       interviewerReaction: reaction,
       feedback: hasPreviousAnswer
-        ? 'Demonstrated understanding of core principles. Continue to articulate concrete risk management and real-world execution rules.'
+        ? 'Demonstrated understanding of core principles. Continue to articulate concrete implementation details and real-world execution rules.'
         : 'Starting interview session.',
       technicalMark: techMark,
       communicationMark: commMark,
@@ -880,7 +1010,7 @@ Generate the response in this EXACT JSON structure:
       nextQuestion: nextQ,
       roundTitle: `Question ${roundIndex + 1}: [${difficulty}] Technical Evaluation`,
       difficulty,
-      tips: `Focus on clear logical articulation, risk-managed breakdown, and real-world execution rules.`
+      tips: `Focus on clear logical articulation, code structure, and real-world execution rules.`
     };
   }
 }

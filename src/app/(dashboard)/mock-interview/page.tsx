@@ -74,7 +74,7 @@ export default function AIMockInterviewPage() {
 
   // Interview Workspace State: 'intro' | 'interviewing' | 'evaluating' | 'result'
   const [step, setStep] = useState<'intro' | 'interviewing' | 'evaluating' | 'result'>('intro');
-  const [targetRole, setTargetRole] = useState('Market Analyst / Quantitative Trader');
+  const [targetRole, setTargetRole] = useState('Software Development Engineer');
   const [interviewMode, setInterviewMode] = useState<'progressive' | 'easy' | 'hard' | 'tough'>('progressive');
 
   // 15-Minute Mock Interview Session State (900 seconds)
@@ -181,7 +181,7 @@ export default function AIMockInterviewPage() {
       // Fetch student resume
       const resRes = await fetch('/api/resume');
       let loadedResume: ResumeData | null = null;
-      let effectiveRole = 'Market Analyst / Quantitative Trader';
+      let effectiveRole = 'Software Development Engineer';
 
       if (resRes.ok) {
         const resData = await resRes.json();
@@ -189,16 +189,18 @@ export default function AIMockInterviewPage() {
         setResume(loadedResume);
 
         if (loadedResume) {
-          const detected =
-            loadedResume.targetRole ||
-            (loadedResume.sector?.includes('Financial') || loadedResume.summary?.includes('XAUUSD')
-              ? 'Market Analyst / Quantitative Trader'
-              : loadedResume.title);
-
-          if (detected && !detected.includes('Full Stack')) {
+          const detected = loadedResume.targetRole || loadedResume.title;
+          if (detected) {
             effectiveRole = detected;
             setTargetRole(detected);
           }
+        } else if (authData.activeUser?.department) {
+          const dept = authData.activeUser.department.toLowerCase();
+          if (dept.includes('mech')) effectiveRole = 'Mechanical Engineer';
+          else if (dept.includes('civil')) effectiveRole = 'Civil Engineer';
+          else if (dept.includes('ece') || dept.includes('eee')) effectiveRole = 'Electronics & Embedded Engineer';
+          else effectiveRole = 'Software Development Engineer';
+          setTargetRole(effectiveRole);
         }
       }
 
@@ -236,7 +238,7 @@ export default function AIMockInterviewPage() {
         const data = await res.json();
         if (data.analysis) {
           setAnalysisData(data.analysis);
-          if (data.analysis.detectedTargetRole && !data.analysis.detectedTargetRole.includes('Full Stack')) {
+          if (data.analysis.detectedTargetRole) {
             setTargetRole(data.analysis.detectedTargetRole);
           }
         }
@@ -279,7 +281,7 @@ export default function AIMockInterviewPage() {
         setResume(data.resume);
         setResumeUploadSuccess(true);
         // Re-analyze new resume with Gemini
-        await triggerResumeAnalysis(data.resume, targetRole);
+        await triggerResumeAnalysis(data.resume, data.resume?.targetRole || targetRole);
       } else {
         alert('Could not upload resume file. Please ensure it is a valid PDF or document.');
       }
@@ -823,7 +825,7 @@ export default function AIMockInterviewPage() {
                     <div className="flex flex-wrap items-center gap-2 pb-1">
                       <span className="px-2.5 py-1 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 font-black text-[11px] inline-flex items-center gap-1 border border-indigo-200 dark:border-indigo-800">
                         <img src="/emojis/target.png" alt="" className="w-3.5 h-3.5 object-contain" />
-                        <span>Sector: {analysisData?.detectedSector || resume?.sector || 'Financial Markets & Quantitative Trading'}</span>
+                        <span>Sector: {analysisData?.detectedSector || resume?.sector || 'Software Engineering & Technology'}</span>
                       </span>
                       <span className="px-2.5 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-black text-[11px] inline-flex items-center gap-1 border border-emerald-200 dark:border-emerald-800">
                         <img src="/emojis/check.png" alt="" className="w-3.5 h-3.5 object-contain" />

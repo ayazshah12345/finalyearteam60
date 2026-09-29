@@ -17,18 +17,29 @@ export async function POST(req: Request) {
       resumeData = dbStore.getResume(user.id) || null;
     }
 
+    const userDept = user.department || 'Computer Science & Engineering';
+    const isMech = userDept.toLowerCase().includes('mech');
+    const isCivil = userDept.toLowerCase().includes('civil');
+    const defaultSector = isMech ? 'Mechanical Engineering' : isCivil ? 'Civil Engineering' : 'Software Engineering & Computer Science';
+    const defaultRole = isMech ? 'Mechanical Engineer' : isCivil ? 'Civil Engineer' : 'Software Development Engineer';
+
     if (!resumeData) {
-      const { SYED_AYAZ_RESUME } = await import('@/lib/gemini-interview');
+      const studentSkills = (user.skills && user.skills.length > 0) ? user.skills : ['Java', 'C++', 'Data Structures', 'OOPs', 'Problem Solving'];
       resumeData = {
-        ...SYED_AYAZ_RESUME,
-        studentId: user.id
+        id: `res_${user.id}`,
+        studentId: user.id,
+        title: `${user.name || 'Student'} - Resume`,
+        sector: defaultSector,
+        targetRole: body.targetRole || defaultRole,
+        summary: `${user.name || 'Candidate'} is a student in ${userDept} with focus on core engineering and problem solving.`,
+        skills: [{ category: 'Technical Skills', list: studentSkills }],
+        projects: [],
+        experience: [],
+        education: [{ institution: 'Engineering College', degree: `B.Tech in ${userDept}`, year: '2022-2026', cgpa: `${user.cgpa || '8.5'}` }]
       };
     }
 
-    const targetRole =
-      body.targetRole && !body.targetRole.includes('Full Stack')
-        ? body.targetRole
-        : resumeData.targetRole || 'Market Analyst / Quantitative Trader';
+    const targetRole = body.targetRole || resumeData.targetRole || defaultRole;
 
     const analysis = await analyzeResumeWithGemini(resumeData, targetRole);
 
