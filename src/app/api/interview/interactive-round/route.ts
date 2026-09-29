@@ -24,6 +24,40 @@ export async function POST(req: Request) {
       ? 'Civil Engineer'
       : 'Software Development Engineer';
 
+    if (!resumeData) {
+      const studentSkills = (user.skills && user.skills.length > 0)
+        ? user.skills
+        : ['Java', 'C++', 'Data Structures & Algorithms', 'OOPs', 'Problem Solving'];
+      resumeData = {
+        id: `res_${user.id}`,
+        studentId: user.id,
+        title: `${user.name || 'Candidate'} - Profile Resume`,
+        sector: userDept.toLowerCase().includes('mech')
+          ? 'Mechanical Engineering'
+          : userDept.toLowerCase().includes('civil')
+          ? 'Civil Engineering'
+          : 'Software Engineering & Computer Science',
+        targetRole: body.targetRole || defaultRole,
+        summary: `${user.name || 'Candidate'} is a student specializing in ${userDept} with highlighted skills in ${studentSkills.join(', ')}.`,
+        skills: [{ category: 'Core Programming & Technical Skills', list: studentSkills }],
+        projects: [
+          {
+            title: 'Engineering & Algorithmic Problem Solving Project',
+            tech: studentSkills.slice(0, 3).join(', '),
+            points: ['Engineered core components, verified algorithmic efficiency and handled edge cases.']
+          }
+        ],
+        education: [
+          {
+            institution: 'College of Engineering & Technology',
+            degree: `B.Tech in ${userDept}`,
+            year: '2022-2026',
+            cgpa: `${user.cgpa || '8.5'}`
+          }
+        ]
+      };
+    }
+
     const roundRequest: InteractiveRoundRequest = {
       resume: resumeData,
       targetRole: body.targetRole || resumeData?.targetRole || defaultRole,

@@ -11,7 +11,57 @@ export async function GET(req: Request) {
   const targetStudentId = searchParams.get('studentId') || user.id;
   const resume = dbStore.getResume(targetStudentId);
 
-  return NextResponse.json({ resume: resume || null });
+  if (resume) {
+    return NextResponse.json({ resume });
+  }
+
+  // If no uploaded resume exists yet, provide structured profile resume based on student's account
+  const student = dbStore.getUserById(targetStudentId) || (user.id === targetStudentId ? user : null);
+  if (student) {
+    const studentSkills = (student.skills && student.skills.length > 0)
+      ? student.skills
+      : ['Java', 'C++', 'Data Structures & Algorithms', 'OOPs', 'Problem Solving'];
+    const dept = student.department || 'Computer Science & Engineering';
+    const isMech = dept.toLowerCase().includes('mech');
+    const isCivil = dept.toLowerCase().includes('civil');
+    const sector = isMech ? 'Mechanical Engineering' : isCivil ? 'Civil Engineering' : 'Software Engineering & Computer Science';
+    const targetRole = isMech ? 'Mechanical Engineer' : isCivil ? 'Civil Engineer' : 'Software Development Engineer';
+
+    const defaultProfileResume = {
+      id: `res_${student.id}`,
+      studentId: student.id,
+      title: `${student.name || 'Student'} - Profile Resume`,
+      template: 'ATS Resume' as const,
+      sector,
+      targetRole,
+      summary: `${student.name || 'Candidate'} is a student in ${dept} with strong foundations in ${studentSkills.join(', ')}.`,
+      skills: [{ category: 'Core Skills', list: studentSkills }],
+      experience: [],
+      projects: [
+        {
+          title: 'Core Systems & Problem Solving Implementation',
+          tech: studentSkills.slice(0, 3).join(', '),
+          points: [
+            'Designed and developed modular engineering solutions with high code quality and optimization.',
+            'Analyzed algorithmic time-space complexity and tested edge-case handling.'
+          ]
+        }
+      ],
+      education: [
+        {
+          institution: 'College of Engineering & Technology',
+          degree: `B.Tech in ${dept}`,
+          year: '2022 – 2026',
+          cgpa: `${student.cgpa || '8.5'}`
+        }
+      ],
+      certifications: [],
+      updatedAt: new Date().toISOString()
+    };
+    return NextResponse.json({ resume: defaultProfileResume });
+  }
+
+  return NextResponse.json({ resume: null });
 }
 
 export async function POST(req: Request) {

@@ -186,6 +186,21 @@ export default function AIMockInterviewPage() {
       if (resRes.ok) {
         const resData = await resRes.json();
         loadedResume = resData.resume;
+
+        // Check localStorage backup for persistent custom upload on Vercel serverless
+        try {
+          const cachedKey = `sgip_custom_resume_${authData.activeUser?.id}`;
+          const cached = typeof window !== 'undefined' ? localStorage.getItem(cachedKey) : null;
+          if (cached) {
+            const parsedCached = JSON.parse(cached);
+            if (parsedCached && parsedCached.isCustomUpload && (!loadedResume || !loadedResume.isCustomUpload)) {
+              loadedResume = parsedCached;
+            }
+          }
+        } catch (storageErr) {
+          console.warn('LocalStorage resume retrieval:', storageErr);
+        }
+
         setResume(loadedResume);
 
         if (loadedResume) {
@@ -236,6 +251,9 @@ export default function AIMockInterviewPage() {
 
       if (res.ok) {
         const data = await res.json();
+        if (data.resume && (!resumeToAnalyze || !resumeToAnalyze.skills || resumeToAnalyze.skills.length === 0)) {
+          setResume(data.resume);
+        }
         if (data.analysis) {
           setAnalysisData(data.analysis);
           if (data.analysis.detectedTargetRole) {
@@ -279,6 +297,12 @@ export default function AIMockInterviewPage() {
       if (res.ok) {
         const data = await res.json();
         setResume(data.resume);
+        try {
+          const cachedKey = `sgip_custom_resume_${user?.id}`;
+          if (typeof window !== 'undefined' && data.resume) {
+            localStorage.setItem(cachedKey, JSON.stringify(data.resume));
+          }
+        } catch (e) {}
         setResumeUploadSuccess(true);
         // Re-analyze new resume with Gemini
         await triggerResumeAnalysis(data.resume, data.resume?.targetRole || targetRole);
@@ -445,12 +469,22 @@ export default function AIMockInterviewPage() {
     const initialDifficulty = getRoundDifficulty(0, TOTAL_SESSION_SECONDS);
     setCurrentDifficulty(initialDifficulty);
 
+    const effectiveResume = (resume && resume.skills && resume.skills.length > 0)
+      ? resume
+      : {
+          ...(resume || {}),
+          skills: analysisData?.detectedTechStack
+            ? [{ category: 'Highlighted Skills', list: analysisData.detectedTechStack }]
+            : (resume?.skills || (user?.skills ? [{ category: 'Profile Skills', list: user.skills }] : undefined)),
+          targetRole
+        };
+
     try {
       const res = await fetch('/api/interview/interactive-round', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          resume,
+          resume: effectiveResume,
           targetRole,
           difficulty: initialDifficulty,
           roundIndex: 0,
@@ -501,12 +535,22 @@ export default function AIMockInterviewPage() {
     const nextIdx = currentRoundIndex + 1;
     const nextDifficulty = getRoundDifficulty(nextIdx, timeRemaining);
 
+    const effectiveResume = (resume && resume.skills && resume.skills.length > 0)
+      ? resume
+      : {
+          ...(resume || {}),
+          skills: analysisData?.detectedTechStack
+            ? [{ category: 'Highlighted Skills', list: analysisData.detectedTechStack }]
+            : (resume?.skills || (user?.skills ? [{ category: 'Profile Skills', list: user.skills }] : undefined)),
+          targetRole
+        };
+
     try {
       const res = await fetch('/api/interview/interactive-round', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          resume,
+          resume: effectiveResume,
           targetRole,
           difficulty: nextDifficulty,
           roundIndex: nextIdx,
@@ -638,7 +682,13 @@ export default function AIMockInterviewPage() {
   }
 
   const userSkillsText =
-    resume?.skills?.flatMap((s) => s.list).join(', ') || 'Python, Java, Data Structures, SQL, React, Web Development';
+    (analysisData?.detectedTechStack && analysisData.detectedTechStack.length > 0)
+      ? analysisData.detectedTechStack.join(', ')
+      : (resume?.skills && resume.skills.length > 0)
+      ? resume.skills.flatMap((s) => s.list).join(', ')
+      : (user?.skills && user.skills.length > 0)
+      ? user.skills.join(', ')
+      : 'Java, C++, Data Structures & Algorithms, OOPs, Web Development';
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto font-sans pb-12">
@@ -833,18 +883,18 @@ export default function AIMockInterviewPage() {
                       </span>
                     </div>
                     <div>
-                      • Candidate: <strong>{user?.name}</strong> ({user?.rollNumber || '922523243111'})
+                      • Candidate: <strong>{user?.name || 'Candidate'}</strong> {user?.rollNumber ? `(${user.rollNumber})` : ''}
                     </div>
                     <div>
-                      • Department & Academic Background: <strong>{user?.department || 'Artificial Intelligence and Data Science'} • {user?.cgpa || 8.51} CGPA</strong>
+                      • Department & Academic Background: <strong>{user?.department || 'Engineering & Technology'}{user?.cgpa ? ` • ${user.cgpa} CGPA` : ''}</strong>
                     </div>
                     <div>
-                      • Core Competencies & Strategy Models: <strong className="text-indigo-600 dark:text-indigo-400">{userSkillsText}</strong>
+                      • Highlighted Skills & Competencies: <strong className="text-indigo-600 dark:text-indigo-400">{userSkillsText}</strong>
                     </div>
                     {resume?.fileName && (
                       <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 pt-1">
                         <img src="/emojis/check.png" alt="" className="w-3.5 h-3.5 object-contain" />
-                        <span>Uploaded Custom Resume: <strong>{resume.fileName}</strong> ({resume.fileSize || '73.6 KB'})</span>
+                        <span>Uploaded Custom Resume: <strong>{resume.fileName}</strong> {resume.fileSize ? `(${resume.fileSize})` : ''}</span>
                       </div>
                     )}
                   </div>
