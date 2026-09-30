@@ -39,178 +39,42 @@ const LANGUAGES: Record<string, LanguageConfig> = {
     version: '3.13.1',
     ext: 'solution.py',
     badgeColor: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/30',
-    defaultCode: `# Python 3.13 Placement Code Runner
-def two_sum(nums, target):
-    """Finds indices of two numbers that add up to target"""
-    seen = {}
-    for i, num in enumerate(nums):
-        complement = target - num
-        if complement in seen:
-            return [seen[complement], i]
-        seen[num] = i
-    return []
-
-# Test execution
-numbers = [2, 7, 11, 15]
-target_val = 9
-result = two_sum(numbers, target_val)
-
-print(f"Input Array: {numbers}")
-print(f"Target Sum: {target_val}")
-print(f"Found Indices: {result}")
-`
+    defaultCode: ''
   },
   'C++': {
     name: 'C++',
     version: 'GCC 13.2 / C++20',
     ext: 'solution.cpp',
     badgeColor: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-500/30',
-    defaultCode: `// C++20 Placement Code Runner
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-
-using namespace std;
-
-vector<int> twoSum(const vector<int>& nums, int target) {
-    unordered_map<int, int> mp;
-    for (int i = 0; i < nums.size(); ++i) {
-        int complement = target - nums[i];
-        if (mp.find(complement) != mp.end()) {
-            return {mp[complement], i};
-        }
-        mp[nums[i]] = i;
-    }
-    return {};
-}
-
-int main() {
-    cout << "=== VSB C++20 Placement Compiler ===" << endl;
-    vector<int> nums = {2, 7, 11, 15};
-    int target = 9;
-    
-    vector<int> res = twoSum(nums, target);
-    if (!res.empty()) {
-        cout << "Target " << target << " found at indices: [" 
-             << res[0] << ", " << res[1] << "]" << endl;
-    }
-    return 0;
-}
-`
+    defaultCode: ''
   },
   Java: {
     name: 'Java',
     version: 'OpenJDK 17',
     ext: 'Main.java',
     badgeColor: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 border-orange-200 dark:border-orange-500/30',
-    defaultCode: `// Java 17 Placement Code Runner
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Arrays;
-
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("=== VSB Java 17 Code Studio ===");
-        int[] nums = {2, 7, 11, 15};
-        int target = 9;
-        
-        int[] result = solveTwoSum(nums, target);
-        System.out.println("Target: " + target);
-        System.out.println("Solution Indices: " + Arrays.toString(result));
-    }
-
-    public static int[] solveTwoSum(int[] nums, int target) {
-        Map<Integer, Integer> map = new HashMap<>();
-        for (int i = 0; i < nums.length; i++) {
-            int complement = target - nums[i];
-            if (map.containsKey(complement)) {
-                return new int[] { map.get(complement), i };
-            }
-            map.put(nums[i], i);
-        }
-        return new int[] {};
-    }
-}
-`
+    defaultCode: ''
   },
   C: {
     name: 'C',
     version: 'C11 / GCC 13.2',
     ext: 'main.c',
     badgeColor: 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/40 border-teal-200 dark:border-teal-500/30',
-    defaultCode: `/* C11 Placement Code Runner */
-#include <stdio.h>
-
-void printBinary(unsigned int n) {
-    for (int i = 7; i >= 0; i--) {
-        int k = n >> i;
-        if (k & 1)
-            printf("1");
-        else
-            printf("0");
-    }
-    printf("\\n");
-}
-
-int main() {
-    printf("=== VSB C11 Compiler Engine ===\\n");
-    int val = 42;
-    printf("Decimal Value: %d\\n", val);
-    printf("Binary Representation: ");
-    printBinary(val);
-    return 0;
-}
-`
+    defaultCode: ''
   },
   JavaScript: {
     name: 'JavaScript',
     version: 'Node.js v24.x',
     ext: 'index.js',
     badgeColor: 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/40 border-yellow-200 dark:border-yellow-500/30',
-    defaultCode: `// JavaScript (Node.js v24 Sandbox)
-function binarySearch(arr, target) {
-    let left = 0;
-    let right = arr.length - 1;
-
-    while (left <= right) {
-        const mid = Math.floor((left + right) / 2);
-        if (arr[mid] === target) return mid;
-        if (arr[mid] < target) left = mid + 1;
-        else right = mid - 1;
-    }
-    return -1;
-}
-
-const dataset = [3, 8, 12, 19, 25, 33, 47, 59, 72, 88];
-const searchTarget = 33;
-const index = binarySearch(dataset, searchTarget);
-
-console.log("Dataset:", dataset);
-console.log(\`Target \${searchTarget} located at index:\`, index);
-`
+    defaultCode: ''
   },
   SQL: {
     name: 'SQL',
     version: 'SQLite 3.44',
     ext: 'query.sql',
     badgeColor: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-500/30',
-    defaultCode: `-- SQL Relational Query Execution
-SELECT 
-    u.id, 
-    u.name, 
-    u.department, 
-    u.cgpa, 
-    u.backlogs,
-    CASE 
-        WHEN u.cgpa >= 8.5 THEN 'Tier-1 High CTC Eligible'
-        WHEN u.cgpa >= 7.5 THEN 'Tier-2 Product Eligible'
-        ELSE 'Core Industry Eligible'
-    END AS placement_tier
-FROM users u
-WHERE u.backlogs = 0
-ORDER BY u.cgpa DESC
-LIMIT 5;
-`
+    defaultCode: ''
   }
 };
 
@@ -241,7 +105,7 @@ export default function CodeCompilerPage() {
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
   const [selectedLang, setSelectedLang] = useState<string>('Python');
-  const [code, setCode] = useState<string>(LANGUAGES['Python'].defaultCode);
+  const [code, setCode] = useState<string>('');
   const [inputStdin, setInputStdin] = useState<string>('');
   const [showStdin, setShowStdin] = useState<boolean>(false);
 
@@ -377,7 +241,7 @@ export default function CodeCompilerPage() {
     setTimeout(() => setCopiedOutput(false), 2000);
   };
 
-  const lineCount = code.split('\n').length;
+  const lineCount = code ? code.split('\n').length : 0;
   const currentLang = LANGUAGES[selectedLang] || LANGUAGES['Python'];
 
   return (
@@ -406,16 +270,16 @@ export default function CodeCompilerPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => {
-                setCode(currentLang.defaultCode);
+                setCode('');
                 setStatus('IDLE');
                 setOutput('');
                 setErrorDetails(null);
               }}
               className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 hover:border-white/30 transition-all flex items-center gap-1.5 backdrop-blur-md shadow-sm"
-              title="Reset starter template"
+              title="Clear editor code"
             >
               <RotateCcw className="w-3.5 h-3.5 text-amber-300" />
-              <span>Reset Starter</span>
+              <span>Clear Code</span>
             </button>
 
             <button
@@ -564,7 +428,7 @@ export default function CodeCompilerPage() {
                 ref={lineNumbersRef}
                 className="w-12 py-4 bg-slate-100/80 dark:bg-slate-950/80 border-r border-slate-200/80 dark:border-slate-800/80 text-right pr-3 select-none text-slate-400 dark:text-slate-600 font-mono text-[11.5px] leading-6 shrink-0 overflow-hidden"
               >
-                {Array.from({ length: Math.max(18, lineCount) }).map((_, i) => (
+                {Array.from({ length: Math.max(18, lineCount || 1) }).map((_, i) => (
                   <div key={i}>{i + 1}</div>
                 ))}
               </div>
@@ -579,7 +443,7 @@ export default function CodeCompilerPage() {
                 spellCheck={false}
                 autoCapitalize="off"
                 autoComplete="off"
-                rows={Math.max(18, lineCount)}
+                rows={Math.max(18, lineCount || 1)}
                 className="flex-1 p-4 bg-[#fafbfd] dark:bg-slate-950 text-slate-900 dark:text-emerald-300 caret-indigo-600 dark:caret-emerald-400 selection:bg-indigo-100 dark:selection:bg-indigo-900/60 selection:text-indigo-900 dark:selection:text-emerald-200 font-mono text-xs leading-6 resize-none focus:outline-none overflow-y-auto"
                 placeholder="Type or paste your source code here..."
               />
