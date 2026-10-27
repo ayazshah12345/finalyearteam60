@@ -98,13 +98,38 @@ class DatabaseStore {
 
   private loadInitialData(): DatabaseSchema {
     try {
+      let raw: string | null = null;
       if (fs.existsSync(DB_FILE)) {
-        const raw = fs.readFileSync(DB_FILE, 'utf-8');
+        raw = fs.readFileSync(DB_FILE, 'utf-8');
+      } else {
+        const bundledPath = path.join(process.cwd(), 'data', 'sgip-db.json');
+        if (fs.existsSync(bundledPath)) {
+          raw = fs.readFileSync(bundledPath, 'utf-8');
+          try {
+            if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+            fs.writeFileSync(DB_FILE, raw, 'utf-8');
+          } catch (writeErr) {}
+        }
+      }
+
+      if (raw) {
         const dbData = JSON.parse(raw);
 
         // Defensive initialization of array properties
         if (!Array.isArray(dbData.users)) dbData.users = [...SEED_USERS];
         else {
+          // Merge any users from SEED_USERS that might be missing
+          const existingUserIds = new Set(dbData.users.map((u: User) => u.id));
+          const existingEmails = new Set(dbData.users.map((u: User) => (u.email || '').trim().toLowerCase()));
+          SEED_USERS.forEach((su: User) => {
+            const e = (su.email || '').trim().toLowerCase();
+            if (!existingUserIds.has(su.id) && (!e || !existingEmails.has(e))) {
+              dbData.users.push(su);
+              existingUserIds.add(su.id);
+              if (e) existingEmails.add(e);
+            }
+          });
+
           // Defensive deduplication of stored users
           const uniqueUsers: User[] = [];
           const seenRoll = new Set<string>();

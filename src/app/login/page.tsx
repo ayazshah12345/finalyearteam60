@@ -57,7 +57,7 @@ export default function LoginPage() {
   const [placementSearch, setPlacementSearch] = useState('');
   const [placementFilter, setPlacementFilter] = useState<'ALL' | 'SUPER_DREAM' | 'DREAM' | 'CORE_IT' | 'MASS'>('ALL');
 
-  // Force pure light theme on login page
+  // Force pure light theme on login page and pre-warm database session
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.documentElement.classList.remove('dark');
@@ -65,6 +65,10 @@ export default function LoginPage() {
       document.body.style.backgroundColor = '#ffffff';
       document.body.style.color = '#0f172a';
     }
+
+    // Pre-warm container and sync active users from database in background
+    fetch('/api/auth/me', { method: 'GET' }).catch(() => {});
+
     return () => {
       if (typeof document !== 'undefined') {
         document.body.style.backgroundColor = '';

@@ -221,13 +221,98 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. Primary Database Check: Prisma ORM (Direct PostgreSQL connection)
+    // 2. Primary Database Check: Supabase JS Client (Fastest, HTTPS REST, serverless-friendly)
+    if (!targetUser) {
+      try {
+        const supabase = getSupabaseClient();
+        const searchTerms = [cleanIdentifier, cleanEmail, cleanRoll, cleanId].filter(Boolean);
+        
+        for (const term of searchTerms) {
+          const termLower = term.toLowerCase();
+          const termUpper = term.toUpperCase();
+          
+          // Check by email (case-insensitive)
+          let { data: supaUser } = await supabase
+            .from('User')
+            .select('*')
+            .ilike('email', termLower)
+            .maybeSingle();
+            
+          // Check by rollNumber (case-insensitive)
+          if (!supaUser) {
+            const { data: byRoll } = await supabase
+              .from('User')
+              .select('*')
+              .ilike('rollNumber', termUpper)
+              .maybeSingle();
+            if (byRoll) supaUser = byRoll;
+          }
+          
+          // Check by id
+          if (!supaUser) {
+            const { data: byId } = await supabase
+              .from('User')
+              .select('*')
+              .eq('id', term)
+              .maybeSingle();
+            if (byId) supaUser = byId;
+          }
+
+          // Check faculty alias
+          if (!supaUser && termLower.includes('manivan')) {
+            const { data: byManivanan } = await supabase
+              .from('User')
+              .select('*')
+              .ilike('email', 'manivanan.vsb@gmail.com')
+              .maybeSingle();
+            const { data: byManivannan } = await supabase
+              .from('User')
+              .select('*')
+              .ilike('email', 'manivannan.vsb@gmail.com')
+              .maybeSingle();
+            supaUser = byManivanan || byManivannan;
+          }
+
+          if (supaUser) {
+            const parsed = parseStudentBio(supaUser.bio);
+            targetUser = {
+              id: supaUser.id,
+              name: supaUser.name,
+              email: supaUser.email,
+              role: supaUser.role as any,
+              department: supaUser.department,
+              batch: supaUser.batch || '2022-2026',
+              semester: supaUser.semester || 6,
+              rollNumber: supaUser.rollNumber || undefined,
+              avatarUrl: resolveUserAvatar(supaUser),
+              cgpa: supaUser.cgpa ?? 8.0,
+              backlogs: supaUser.backlogs ?? 0,
+              bio: parsed.about || supaUser.bio || 'VSB Student',
+              phoneNumber: parsed.phoneNumber || undefined,
+              parentName: parsed.parentName || undefined,
+              parentPhone: parsed.parentPhone || undefined,
+              bloodGroup: parsed.bloodGroup || undefined,
+              currentYear: parsed.currentYear || undefined,
+              classSection: parsed.classSection || undefined,
+              password: supaUser.password || undefined,
+              createdAt: supaUser.createdAt || new Date().toISOString()
+            };
+            dbStore.addUser(targetUser);
+            break;
+          }
+        }
+      } catch (se) {
+        console.warn('Supabase auth lookup warning:', se);
+      }
+    }
+
+    // 3. Fallback Database Check: Prisma ORM (Guarded with timeout to prevent serverless hang)
     if (!targetUser) {
       try {
         const searchTerms = [cleanIdentifier, cleanEmail, cleanRoll, cleanId].filter(Boolean);
         if (searchTerms.length > 0) {
           const isFacultyCheck = searchTerms.some(t => t.toLowerCase().includes('manivan'));
-          const dbUser = await prisma.user.findFirst({
+          const prismaPromise = prisma.user.findFirst({
             where: {
               OR: [
                 { id: { in: searchTerms } },
@@ -240,6 +325,12 @@ export async function POST(req: Request) {
               ]
             }
           });
+
+          const timeoutPromise = new Promise<null>((_, reject) => 
+            setTimeout(() => reject(new Error('Prisma lookup timeout')), 2500)
+          );
+
+          const dbUser = (await Promise.race([prismaPromise, timeoutPromise])) as any;
 
           if (dbUser) {
             const parsed = parseStudentBio(dbUser.bio);
@@ -273,61 +364,37 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. Fallback Database Check: Supabase JS Client
+    // 4. Fallback File Check: Directly inspect bundled sgip-db.json
     if (!targetUser) {
       try {
-        const supabase = getSupabaseClient();
-        const queryTerm = cleanIdentifier || cleanEmail || cleanRoll || cleanId;
-        if (queryTerm) {
-          // Check by email
-          let { data: supaUser } = await supabase.from('User').select('*').ilike('email', queryTerm).maybeSingle();
-          // Check by rollNumber
-          if (!supaUser) {
-            const { data: byRoll } = await supabase.from('User').select('*').ilike('rollNumber', queryTerm).maybeSingle();
-            if (byRoll) supaUser = byRoll;
-          }
-          // Check by id
-          if (!supaUser) {
-            const { data: byId } = await supabase.from('User').select('*').eq('id', queryTerm).maybeSingle();
-            if (byId) supaUser = byId;
-          }
-          // Check faculty alias
-          if (!supaUser && queryTerm.toLowerCase().includes('manivan')) {
-            const { data: byManivanan } = await supabase.from('User').select('*').ilike('email', 'manivanan.vsb@gmail.com').maybeSingle();
-            const { data: byManivannan } = await supabase.from('User').select('*').ilike('email', 'manivannan.vsb@gmail.com').maybeSingle();
-            supaUser = byManivanan || byManivannan;
-          }
-
-          if (supaUser) {
-            const parsed = parseStudentBio(supaUser.bio);
-            targetUser = {
-              id: supaUser.id,
-              name: supaUser.name,
-              email: supaUser.email,
-              role: supaUser.role as any,
-              department: supaUser.department,
-              batch: supaUser.batch || '2022-2026',
-              semester: supaUser.semester || 6,
-              rollNumber: supaUser.rollNumber || undefined,
-              avatarUrl: resolveUserAvatar(supaUser),
-              cgpa: supaUser.cgpa ?? 8.0,
-              backlogs: supaUser.backlogs ?? 0,
-              bio: parsed.about || supaUser.bio || 'VSB Student',
-              phoneNumber: parsed.phoneNumber || undefined,
-              parentName: parsed.parentName || undefined,
-              parentPhone: parsed.parentPhone || undefined,
-              bloodGroup: parsed.bloodGroup || undefined,
-              currentYear: parsed.currentYear || undefined,
-              classSection: parsed.classSection || undefined,
-              password: supaUser.password || undefined,
-              createdAt: supaUser.createdAt || new Date().toISOString()
-            };
-            dbStore.addUser(targetUser);
+        const fsModule = await import('fs');
+        const pathModule = await import('path');
+        const osModule = await import('os');
+        const candidatePaths = [
+          pathModule.join(process.cwd(), 'data', 'sgip-db.json'),
+          pathModule.join(osModule.tmpdir(), 'sgip-db.json')
+        ];
+        for (const p of candidatePaths) {
+          if (fsModule.existsSync(p)) {
+            const raw = fsModule.readFileSync(p, 'utf-8');
+            const data = JSON.parse(raw);
+            if (Array.isArray(data.users)) {
+              const termLower = (cleanIdentifier || cleanEmail).toLowerCase();
+              const termUpper = (cleanIdentifier || cleanRoll).toUpperCase();
+              const found = data.users.find((u: any) => 
+                (u.id && (u.id === cleanIdentifier || u.id === cleanId)) ||
+                (u.email && u.email.toLowerCase() === termLower) ||
+                (u.rollNumber && (u.rollNumber.toUpperCase() === termUpper || u.rollNumber.toLowerCase() === termLower))
+              );
+              if (found) {
+                targetUser = found;
+                dbStore.addUser(targetUser);
+                break;
+              }
+            }
           }
         }
-      } catch (se) {
-        console.warn('Supabase auth lookup warning:', se);
-      }
+      } catch (fe) {}
     }
 
     if (!targetUser) {
